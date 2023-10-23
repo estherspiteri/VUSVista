@@ -8,7 +8,7 @@ from helpers import extract_abstracts_by_pmids, add_abstracts_to_df
 
 views = Blueprint('views', __name__)
 
-@views.route('/publications/<string:rsid>')
+@views.route('/publications/<string:rsid>', methods=['GET'])
 def get_publications_of_variant(rsid: str):
     domain = request.host
 
@@ -56,6 +56,6 @@ def get_publications_of_variant(rsid: str):
                     # add abstract column to LitVar publications df
                     publications_df = add_abstracts_to_df(publications_df, pubmed_publications_abstracts_dict)
 
-                    return publications_df.to_dict()
+                    return {'data' : publications_df.to_dict()}
         else:
             return None

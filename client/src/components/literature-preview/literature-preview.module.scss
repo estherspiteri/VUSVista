@@ -1,0 +1,85 @@
+body {
+  font-family: "Arial", sans-serif;
+}
+
+.literature-preview-component {
+  position: relative;
+
+  border-bottom: 1px solid black;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    > * {
+      padding: 16px;
+      text-align: center;
+    }
+
+    .pmid {
+      color: white;
+      width: 100px;
+      background-color: #001a66;
+    }
+  }
+
+  .additional-info {
+    background-color: #f0f0f5;
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
+    // position: absolute;
+    transition: max-height 0.5s ease-out;
+
+    .additional-info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 32px;
+
+      .supplementary-material-match {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        background-color: #e65c00;
+        color: white;
+        font-size: 14px;
+
+        width: fit-content;
+        padding: 8px 16px;
+        font-weight: bold;
+        border-radius: 4px;
+
+        .icon {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .info {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        text-align: justify;
+
+        .info-type {
+          width: 90px;
+          flex-shrink: 0;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .visible-additional-info {
+    max-height: 1000px;
+    transition: max-height 1.25s ease-in;
+    transition-delay: 0ms;
+  }
+}

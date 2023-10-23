@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "jsx": "react"
+  },
+  "include": ["src", "typings.d.ts"],
+  "exclude": ["node_modules"],
+  "style": ["scss"]
+}
