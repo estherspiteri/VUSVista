@@ -5,8 +5,6 @@ body {
 .literature-preview-component {
   position: relative;
 
-  border-bottom: 1px solid black;
-
   .header {
     display: flex;
     flex-direction: row;
@@ -20,9 +18,16 @@ body {
     }
 
     .pmid {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       color: white;
-      width: 100px;
+      min-width: 150px;
       background-color: #001a66;
+    }
+
+    .title{
+      text-align: left;
     }
   }
 

@@ -16,7 +16,7 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
   props: LiteraturePreviewProps
 ) => {
   const [isAdditionalInfoVisible, setIsAdditionalInfoVisible] = useState(false);
-  console.log(props.date);
+
   return (
     <div className={styles["literature-preview-component"]}>
       <div
@@ -24,7 +24,7 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
         <div className={styles.pmid}>{props.pmid}</div>
-        <div>{props.title}</div>
+        <div className={styles.title}>{props.title}</div>
       </div>
       <div
         className={`${styles["additional-info"]} ${
@@ -48,7 +48,8 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
           <div className={styles.info}>
             <span className={styles["info-type"]}>Date:</span>
             <span>
-              {props.date.getDate()} {getMonthString(props.date.getMonth())}&nbsp;
+              {props.date.getDate()} {getMonthString(props.date.getMonth())}
+              &nbsp;
               {props.date.getFullYear()}
             </span>
           </div>
