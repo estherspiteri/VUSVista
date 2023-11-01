@@ -1,30 +1,24 @@
 import React, { useState } from "react";
-import WarningIcon from "./../../../src/warning.svg";
-import styles from "./literature-preview.module.scss";
+import styles from "./publication-preview.module.scss";
+import { IPublicationPreview } from "../../models/publication-search/publication-search.model";
 
-type LiteraturePreviewProps = {
-  pmid: number;
-  title: string;
-  date: Date;
-  authors: string[];
-  journal: string;
-  abstract: string;
-  isSupplementaryMaterialMatch: boolean;
+type PublicationPreviewProps = {
+  data?: IPublicationPreview;
 };
 
-const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
-  props: LiteraturePreviewProps
+const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
+  props: PublicationPreviewProps
 ) => {
   const [isAdditionalInfoVisible, setIsAdditionalInfoVisible] = useState(false);
 
   return (
-    <div className={styles["literature-preview-component"]}>
+    <div className={styles["publication-preview-container"]}>
       <div
         className={styles.header}
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
-        <div className={styles.pmid}>{props.pmid}</div>
-        <div className={styles.title}>{props.title}</div>
+        <div className={styles.pmid}>{props.data?.pmid}</div>
+        <div className={styles.title}>{props.data?.title}</div>
       </div>
       <div
         className={`${styles["additional-info"]} ${
@@ -32,7 +26,7 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
         }`}
       >
         <div className={styles["additional-info-content"]}>
-          {props.isSupplementaryMaterialMatch && (
+          {props.data?.isSupplementaryMaterialMatch && (
             <div className={styles["supplementary-material-match"]}>
               <div className={styles.icon}>
                 <svg fill="white" viewBox="0 0 478.125 478.125">
@@ -48,22 +42,23 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
           <div className={styles.info}>
             <span className={styles["info-type"]}>Date:</span>
             <span>
-              {props.date.getDate()} {getMonthString(props.date.getMonth())}
+              {props.data?.date.getDate()}{" "}
+              {getMonthString(props.data?.date.getMonth())}
               &nbsp;
-              {props.date.getFullYear()}
+              {props.data?.date.getFullYear()}
             </span>
           </div>
           <div className={styles.info}>
             <span className={styles["info-type"]}>Authors:</span>
-            <span>{props.authors.join(", ")}</span>
+            <span>{props.data?.authors.join(", ")}</span>
           </div>
           <div className={styles.info}>
             <span className={styles["info-type"]}>Journal:</span>
-            <span>{props.journal}</span>
+            <span>{props.data?.journal}</span>
           </div>
           <div className={styles.info}>
             <span className={styles["info-type"]}>Abstract:</span>
-            <span>{props.abstract}</span>
+            <span>{props.data?.abstract}</span>
           </div>
         </div>
       </div>
@@ -90,4 +85,4 @@ const LiteraturePreview: React.FunctionComponent<LiteraturePreviewProps> = (
   }
 };
 
-export default LiteraturePreview;
+export default PublicationPreview;

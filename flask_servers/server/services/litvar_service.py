@@ -85,7 +85,7 @@ def get_publications(rsid: str) -> LitvarResponse:
     if litvar_id_res.status != 200:
         current_app.logger.error(
             f'LitVar Search Variant query failed 500')
-        return Response(None, 500)
+        return Response({'isSuccess': False}, 500)
     else:
         litvar_id = litvar_id_res.data
 
@@ -99,7 +99,7 @@ def get_publications(rsid: str) -> LitvarResponse:
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
                     f'LitVar Variant Publications query failed 500')
-                return Response(None, 500)
+                return Response({'isSuccess': False}, 500)
             else:
                 litvar_publications = litvar_publications_res.data
                 publications_df = pd.DataFrame.from_records(litvar_publications['results'])
@@ -114,7 +114,7 @@ def get_publications(rsid: str) -> LitvarResponse:
                 if pubmed_publications_res.status != 200:
                     current_app.logger.error(
                         f'Entrez Publications query failed 500')
-                    return Response(None, 500)
+                    return Response({'isSuccess': False}, 500)
                 else:
                     current_app.logger.info(f'Appending PubMed abstracts to LitVar publications')
 
@@ -131,7 +131,7 @@ def get_publications(rsid: str) -> LitvarResponse:
                         publications_list.append(row.to_dict())
 
                     current_app.logger.info(f'Sending user {len(publications_list)} publications')
-                    return Response(json.dumps({'publications': publications_list, "is_litvar_id_found": True}), 200, content_type='application/json')
+                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "is_litvar_id_found": True}}), 200, content_type='application/json')
         else:
             current_app.logger.info(f'Sending user 0 publications')
-            return Response(json.dumps({'publications': [], "is_litvar_id_found": False}), 200)
+            return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': [], "is_litvar_id_found": False}}), 200)
