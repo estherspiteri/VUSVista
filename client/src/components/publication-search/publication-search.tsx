@@ -19,23 +19,11 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
   useEffect(() => {
     if (isSearching) {
       props.publicationService?.getPublications({ rsid }).then((res) => {
-        console.log(res.isSuccess, "pppppp");
         if (res.isSuccess) {
-          let updatedPublicationSearch = res.publicationSearch;
-          let publications: IPublicationPreview[] = [];
-
-          if (res.publicationSearch.publications) {
-            //format publication date
-            res.publicationSearch.publications.forEach((publication) => {
-              let pub = publication;
-              pub.date = new Date(publication.date);
-              publications = publications.concat(pub);
-            });
-          }
-
-          updatedPublicationSearch.publications = publications;
-
-          setData(updatedPublicationSearch);
+          setData({
+            ...res.publicationSearch,
+            publications: convertPubDates(res.publicationSearch.publications),
+          });
           setIsSearching(false);
         } else {
           //TODO: handle error
@@ -97,6 +85,23 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
       )}
     </div>
   );
+
+  function convertPubDates(
+    publications: IPublicationPreview[]
+  ): IPublicationPreview[] {
+    let updatedPublications: IPublicationPreview[] = [];
+
+    if (publications) {
+      //format publication date
+      publications.forEach((publication) => {
+        let pub = publication;
+        pub.date = new Date(publication.date);
+        updatedPublications = updatedPublications.concat(pub);
+      });
+    }
+
+    return updatedPublications;
+  }
 };
 
 export default PublicationSearch;

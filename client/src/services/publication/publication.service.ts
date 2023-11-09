@@ -21,7 +21,7 @@ export class PublicationService {
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
-      return result;
+    return result;
   }
 }
 

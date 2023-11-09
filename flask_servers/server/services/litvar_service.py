@@ -131,7 +131,7 @@ def get_publications(rsid: str) -> LitvarResponse:
                         publications_list.append(row.to_dict())
 
                     current_app.logger.info(f'Sending user {len(publications_list)} publications')
-                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "is_litvar_id_found": True}}), 200, content_type='application/json')
+                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}), 200, content_type='application/json')
         else:
             current_app.logger.info(f'Sending user 0 publications')
-            return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': [], "is_litvar_id_found": False}}), 200)
+            return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': [], "isLitvarIdFound": False}}), 200)
