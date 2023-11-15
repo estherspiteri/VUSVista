@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from logging.config import dictConfig
 from server.views.litvar_views import litvar_views
+from server.views.vus_views import vus_views
 
 
 def create_app():
@@ -29,5 +30,6 @@ def create_app():
     CORS(app)
 
     app.register_blueprint(litvar_views, url_prefix='/litvar')
+    app.register_blueprint(vus_views, url_prefix='/vus')
 
     return app

@@ -1,22 +1,23 @@
-from flask import current_app, jsonify, Response
+from flask import current_app, Response
 import requests
 import pandas as pd
 from urllib.parse import urlencode
-from server.responses.entrez_response import EntrezResponse
-from server.responses.litvar_response import LitvarResponse
+
+from server.helpers.data_helper import convert_df_to_list
+from server.responses.internal_response import InternalResponse
 from server.services.entrez_service import retrieve_pubmed_publications_info
 from typing import Dict
 import json
 
 
-def get_litvar_id(rsid: str) ->LitvarResponse:
+def get_litvar_id(rsid: str) -> InternalResponse:
     litvar_search_variant_res = requests.get(
         f'https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant/autocomplete/?query={rsid}')
 
     if litvar_search_variant_res.status_code != 200:
         current_app.logger.error(
             f'Response failure {litvar_search_variant_res.status_code}: {litvar_search_variant_res.reason}')
-        return LitvarResponse(None, litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
+        return InternalResponse(None, litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
     else:
         litvar_search_variant_res_json = litvar_search_variant_res.json()
 
@@ -27,13 +28,13 @@ def get_litvar_id(rsid: str) ->LitvarResponse:
             litvar_id = litvar_search_variant_res_json[0]['_id']
 
             current_app.logger.info(f"Litvar ID for variant rsid {rsid} is {litvar_id}")
-            return LitvarResponse(litvar_id, 200)
+            return InternalResponse(litvar_id, 200)
         else:
             current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for RSID {rsid}!')
-            return LitvarResponse('', litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
+            return InternalResponse('', litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
 
 
-def get_litvar_publications(litvar_id: str) -> LitvarResponse:
+def get_litvar_publications(litvar_id: str) -> InternalResponse:
     url_encoded_id = urlencode({'query': litvar_id}).split('=')[1]
     url = f"https://www.ncbi.nlm.nih.gov/research/litvar2-api/search/?variant={url_encoded_id}&sort=score%20desc"
 
@@ -42,9 +43,9 @@ def get_litvar_publications(litvar_id: str) -> LitvarResponse:
     if litvar_publications_res.status_code != 200:
         current_app.logger.error(
             f'Response failure {litvar_publications_res.status_code}: {litvar_publications_res.reason}')
-        return LitvarResponse(None, litvar_publications_res.status_code, litvar_publications_res.reason)
+        return InternalResponse(None, litvar_publications_res.status_code, litvar_publications_res.reason)
     else:
-        return LitvarResponse(litvar_publications_res.json(), 200)
+        return InternalResponse(litvar_publications_res.json(), 200)
 
 
 def extract_abstracts_by_pmids(pubmed_publications_info) -> Dict:
@@ -77,10 +78,10 @@ def add_abstracts_to_df(publications_df: pd.DataFrame, abstract_dict: Dict):
     return publications_df
 
 
-def get_publications(rsid: str) -> LitvarResponse:
+def get_publications(rsid: str) -> Response:
     # get LitVar id
     current_app.logger.info(f'Retrieving LitVar ID for RSID {rsid}')
-    litvar_id_res: LitvarResponse = get_litvar_id(rsid)
+    litvar_id_res: InternalResponse = get_litvar_id(rsid)
 
     if litvar_id_res.status != 200:
         current_app.logger.error(
@@ -94,7 +95,7 @@ def get_publications(rsid: str) -> LitvarResponse:
 
             # search for LitVar publications for given variant
             current_app.logger.info(f'Retrieving LitVar publications for {litvar_id}')
-            litvar_publications_res: LitvarResponse = get_litvar_publications(litvar_id)
+            litvar_publications_res: InternalResponse = get_litvar_publications(litvar_id)
 
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
@@ -109,7 +110,7 @@ def get_publications(rsid: str) -> LitvarResponse:
 
                 # retrieve more information about publications
                 current_app.logger.info(f'Retrieving PubMed information for LitVar publications')
-                pubmed_publications_res: EntrezResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
+                pubmed_publications_res: InternalResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
 
                 if pubmed_publications_res.status != 200:
                     current_app.logger.error(
@@ -126,9 +127,7 @@ def get_publications(rsid: str) -> LitvarResponse:
                     # add abstract column to LitVar publications df
                     publications_df = add_abstracts_to_df(publications_df, pubmed_publications_abstracts_dict)
 
-                    publications_list = []
-                    for index, row in publications_df.iterrows():
-                        publications_list.append(row.to_dict())
+                    publications_list = convert_df_to_list(publications_df)
 
                     current_app.logger.info(f'Sending user {len(publications_list)} publications')
                     return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}), 200, content_type='application/json')
