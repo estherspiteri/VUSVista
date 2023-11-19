@@ -1,0 +1,32 @@
+.view-all-vus-container {
+  .title {
+    width: "100%";
+    font-family: "Poppins-Bold", sans-serif;
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .description {
+    margin-bottom: 32px;
+  }
+
+  .view-all-vus {
+    border: 1px solid #e2f9f9;
+
+    .header {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      border-top-right-radius: 4px;
+      border-top-left-radius: 4px;
+      background-color: #008080;
+      color: white;
+
+      > * {
+        padding: 16px;
+        text-align: center;
+        width: calc(100% / 8);
+      }
+    }
+  }
+}

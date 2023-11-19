@@ -5,7 +5,7 @@ import { publicationService } from "./services/publication/publication.service";
 import VusFileUpload from "./components/vus-file-upload/vus-file-upload";
 import { vusService } from "./services/vus/vus.service";
 import { IVus } from "./models/view-vus.model.tsx/view-vus.model";
-import ViewVus from "./components/view-vus/view-vus";
+import ViewAllVus from "./components/view-all-vus/view-all-vus";
 
 type AppProps = {};
 
@@ -16,7 +16,7 @@ const App: React.FunctionComponent<AppProps> = () => {
     <div className={styles["container"]}>
       {/* <PublicationSearch publicationService={publicationService} /> */}
       {/* <VusFileUpload vusService={vusService} /> */}
-      {vusList && <ViewVus vusList={vusList} />}
+      {vusList && <ViewAllVus vusList={vusList} />}
       <button onClick={handleVusLoad}>Click to load VUS</button>
     </div>
   );
