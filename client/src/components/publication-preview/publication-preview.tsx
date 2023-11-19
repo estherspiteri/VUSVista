@@ -12,7 +12,11 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
   const [isAdditionalInfoVisible, setIsAdditionalInfoVisible] = useState(false);
 
   return (
-    <div className={styles["publication-preview-container"]}>
+    <div
+      className={`${styles["publication-preview-container"]} ${
+        isAdditionalInfoVisible ? styles["visible-additional-info"] : ""
+      }`}
+    >
       <div
         className={styles.header}
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
@@ -20,11 +24,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
         <div className={styles.pmid}>{props.data?.pmid}</div>
         <div className={styles.title}>{props.data?.title}</div>
       </div>
-      <div
-        className={`${styles["additional-info"]} ${
-          isAdditionalInfoVisible ? styles["visible-additional-info"] : ""
-        }`}
-      >
+      <div className={styles["additional-info"]}>
         <div className={styles["additional-info-content"]}>
           {props.data?.isSupplementaryMaterialMatch && (
             <div className={styles["supplementary-material-match"]}>
@@ -42,7 +42,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
           <div className={styles.info}>
             <span className={styles["info-type"]}>Date:</span>
             <span>
-              {props.data?.date.getDate()}{" "}
+              {props.data?.date.getDate()}&nbsp;
               {getMonthString(props.data?.date.getMonth())}
               &nbsp;
               {props.data?.date.getFullYear()}

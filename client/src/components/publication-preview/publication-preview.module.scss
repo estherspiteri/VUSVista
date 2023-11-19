@@ -8,8 +8,6 @@ body {
   .header {
     display: flex;
     flex-direction: row;
-    gap: 16px;
-    border-radius: 4px;
     cursor: pointer;
 
     > * {
@@ -21,22 +19,30 @@ body {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      color: white;
       min-width: 150px;
-      background-color: #001a66;
+      background-color: #e2f9f9;
+      border-bottom: 1px solid #fff;
     }
 
-    .title{
+    .title {
       text-align: left;
+      border-bottom: 1px solid #e2f9f9;
+      padding: 16px 16px 16px 32px;
+      width: 100%;
+    }
+
+    &:hover {
+      > * {
+        background-color: #cfe7e7ca !important;
+      }
     }
   }
 
   .additional-info {
-    background-color: #f0f0f5;
+    background-color: #fff;
     width: 100%;
     overflow: hidden;
     max-height: 0;
-    // position: absolute;
     transition: max-height 0.5s ease-out;
 
     .additional-info-content {
@@ -44,6 +50,8 @@ body {
       flex-direction: column;
       gap: 16px;
       padding: 32px;
+      border-left: 4px solid #008080;
+      border-right: 4px solid #008080;
 
       .supplementary-material-match {
         display: flex;
@@ -59,7 +67,6 @@ body {
         width: fit-content;
         padding: 8px 16px;
         font-weight: bold;
-        border-radius: 4px;
 
         .icon {
           width: 16px;
@@ -74,17 +81,30 @@ body {
         text-align: justify;
 
         .info-type {
-          width: 90px;
+          min-width: 150px;
           flex-shrink: 0;
           font-weight: bold;
+          color: #008080;
         }
       }
     }
   }
 
-  .visible-additional-info {
-    max-height: 1000px;
-    transition: max-height 1.25s ease-in;
-    transition-delay: 0ms;
+  &.visible-additional-info {
+    .header {
+      .pmid {
+        border-bottom: 1px solid #e2f9f9;
+      }
+    }
+
+    .additional-info {
+      max-height: 1000px;
+      transition: max-height 1.25s ease-in;
+      transition-delay: 0ms;
+
+      .additional-info-content {
+        border-bottom: 1px solid #e2f9f9;
+      }
+    }
   }
 }

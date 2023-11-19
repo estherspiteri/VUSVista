@@ -34,6 +34,12 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
 
   return (
     <div className={styles["publication-search-container"]}>
+      <div className={styles["title-container"]}>
+        <div className={styles.title}>Publications Search</div>
+        <div className={styles.description}>
+          <p>Look up publications for a particular VUS using its RSID.</p>
+        </div>
+      </div>
       <div className={styles["search-container"]}>
         <input
           placeholder="Type variant RSID"
@@ -42,7 +48,9 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
           disabled={isSearching}
         />
         <div
-          className={styles.icon}
+          className={`${styles.icon} ${
+            isSearching ? styles["searching-icon"] : ""
+          }`}
           onClick={() =>
             !isSearching && rsid.length > 0 && setIsSearching(true)
           }
@@ -65,10 +73,10 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
             <>
               {data?.publications && (
                 <div className={styles["publication-previews"]}>
-                  {/* <div className={styles["table-header"]}>
-              <span className={styles.pmid}>PMID</span>
-              <span>Title</span>
-            </div> */}
+                  <div className={styles.header}>
+                    <span className={styles.pmid}>PMID</span>
+                    <span>Title</span>
+                  </div>
 
                   <div className={styles["publication-preview-contents"]}>
                     {data.publications.map((publication) => (
