@@ -1,0 +1,167 @@
+{
+   "obj_type":"single nucleotide variant",
+   "accession":"VCV000630345",
+   "accession_version":"VCV000630345.",
+   "title":"NM_000384.3(APOB):c.2258G>A (p.Gly753Glu)",
+   "variation_set":[
+      {
+         "measure_id":"616463",
+         "variation_xrefs":[
+            {
+               "db_source":"dbSNP",
+               "db_id":"148502464"
+            }
+         ],
+         "variation_name":"NM_000384.3(APOB):c.2258G>A (p.Gly753Glu)",
+         "cdna_change":"c.2258G>A",
+         "aliases":[
+            
+         ],
+         "variation_loc":[
+            {
+               "status":"current",
+               "assembly_name":"GRCh38",
+               "chr":"2",
+               "band":"2p24.1",
+               "start":"21025111",
+               "stop":"21025111",
+               "inner_start":"",
+               "inner_stop":"",
+               "outer_start":"",
+               "outer_stop":"",
+               "display_start":"21025111",
+               "display_stop":"21025111",
+               "assembly_acc_ver":"GCF_000001405.38",
+               "annotation_release":"",
+               "alt":"",
+               "ref":""
+            },
+            {
+               "status":"previous",
+               "assembly_name":"GRCh37",
+               "chr":"2",
+               "band":"2p24.1",
+               "start":"21247983",
+               "stop":"21247983",
+               "inner_start":"",
+               "inner_stop":"",
+               "outer_start":"",
+               "outer_stop":"",
+               "display_start":"21247983",
+               "display_stop":"21247983",
+               "assembly_acc_ver":"GCF_000001405.25",
+               "annotation_release":"",
+               "alt":"",
+               "ref":""
+            }
+         ],
+         "allele_freq_set":[
+            {
+               "source":"The Genome Aggregation Database (gnomAD)",
+               "value":"0.00012",
+               "minor_allele":""
+            },
+            {
+               "source":"NHLBI Exome Sequencing Project (ESP) Exome Variant Server",
+               "value":"0.00023",
+               "minor_allele":""
+            },
+            {
+               "source":"Trans-Omics for Precision Medicine (TOPMed)",
+               "value":"0.00014",
+               "minor_allele":""
+            },
+            {
+               "source":"1000 Genomes Project",
+               "value":"0.00040",
+               "minor_allele":"T"
+            }
+         ],
+         "variant_type":"single nucleotide variant",
+         "canonical_spdi":"NC_000002.12:21025110:C:T"
+      }
+   ],
+   "trait_set":[
+      {
+         "trait_xrefs":[
+            {
+               "db_source":"MedGen",
+               "db_id":"C4551990"
+            },
+            {
+               "db_source":"MONDO",
+               "db_id":"MONDO:0014252"
+            },
+            {
+               "db_source":"OMIM",
+               "db_id":"615558"
+            }
+         ],
+         "trait_name":"Familial hypobetalipoproteinemia 1"
+      },
+      {
+         "trait_xrefs":[
+            {
+               "db_source":"MedGen",
+               "db_id":"C1704417"
+            },
+            {
+               "db_source":"MONDO",
+               "db_id":"MONDO:0007751"
+            },
+            {
+               "db_source":"OMIM",
+               "db_id":"144010"
+            }
+         ],
+         "trait_name":"Hypercholesterolemia, autosomal dominant, type B"
+      },
+      {
+         "trait_xrefs":[
+            {
+               "db_source":"MedGen",
+               "db_id":"CN230736"
+            }
+         ],
+         "trait_name":"Cardiovascular phenotype"
+      }
+   ],
+   "supporting_submissions":{
+      "scv":[
+         "SCV001190024",
+         "SCV002734183",
+         "SCV002786887",
+         "SCV002934768",
+         "SCV003925220"
+      ],
+      "rcv":[
+         "RCV001027456",
+         "RCV002442595",
+         "RCV002493417"
+      ]
+   },
+   "clinical_significance":{
+      "description":"Conflicting interpretations of pathogenicity",
+      "last_evaluated":"2022/10/14 00:00",
+      "review_status":"criteria provided, conflicting interpretations"
+   },
+   "record_status":"",
+   "gene_sort":"APOB",
+   "chr_sort":"02",
+   "location_sort":"00000000000021025111",
+   "variation_set_name":"",
+   "variation_set_id":"",
+   "genes":[
+      {
+         "symbol":"APOB",
+         "GeneID":"338",
+         "strand":"-",
+         "source":"submitted"
+      }
+   ],
+   "protein_change":"G753E",
+   "fda_recognized_database":""
+},
+"attributes="{
+   "uid":"630345"
+}
