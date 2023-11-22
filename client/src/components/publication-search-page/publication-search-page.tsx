@@ -6,6 +6,7 @@ import {
   IPublicationSearch,
 } from "../../models/publication-search/publication-search.model";
 import { PublicationService } from "../../services/publication/publication.service";
+import Loader from "../loader/loader";
 
 type PublicationSearchProps = { publicationService?: PublicationService };
 
@@ -15,11 +16,13 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
   const [data, setData] = useState<IPublicationSearch | undefined>(undefined);
   const [rsid, setRsid] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [searchedRsid, setSearchedRsid] = useState("");
 
   useEffect(() => {
     if (isSearching) {
       props.publicationService?.getPublications({ rsid }).then((res) => {
         if (res.isSuccess) {
+          setSearchedRsid(rsid);
           setData({
             ...res.publicationSearch,
             publications: convertPubDates(res.publicationSearch.publications),
@@ -47,6 +50,7 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
           onChange={(e) => setRsid(e.currentTarget.value)}
           disabled={isSearching}
         />
+        {/** TODO: add onEnter = click */}
         <div
           className={`${styles.icon} ${
             isSearching ? styles["searching-icon"] : ""
@@ -66,7 +70,7 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
         </div>
       </div>
       {isSearching ? (
-        <div className={styles["lds-dual-ring"]}></div>
+        <Loader />
       ) : (
         <>
           {data && (
@@ -82,7 +86,7 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
                       ? "publication"
                       : "publications"}
                     &nbsp;found for&nbsp;
-                    <span className={styles.colour}>{rsid}</span>
+                    <span className={styles.colour}>{searchedRsid}</span>
                   </span>
                   <div className={styles["publication-previews"]}>
                     <div className={styles.header}>

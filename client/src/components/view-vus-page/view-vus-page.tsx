@@ -1,28 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./view-vus-page.module.scss";
 import { IVus } from "../../models/view-vus.model.tsx/view-vus.model";
-import ViewAllVus from "./view-all-vus/view-all-vus";
+import ViewVus from "./view-vus/view-vus";
 import { VusService } from "../../services/vus/vus.service";
+import Loader from "../loader/loader";
 
-type ViewVusPageProps = {
-  vusService?: VusService;
-};
+type ViewAllVusProps = { vusService: VusService };
 
-const ViewVusPage: React.FunctionComponent<ViewVusPageProps> = (
-  props: ViewVusPageProps
+const ViewAllVus: React.FunctionComponent<ViewAllVusProps> = (
+  props: ViewAllVusProps
 ) => {
   const [vusList, setVusList] = useState<IVus[]>(undefined);
 
-  return (
-    <div className={styles["view-vus-page-container"]}>
-      {vusList && <ViewAllVus vusList={vusList} />}
-      <button onClick={handleVusLoad}>Click to load VUS</button>
-    </div>
-  );
-
-  function handleVusLoad(e: any) {
-    e.preventDefault();
-
+  useEffect(() => {
     props.vusService?.loadAllVus().then((res) => {
       if (res.isSuccess) {
         setVusList(res.vusList);
@@ -30,7 +20,37 @@ const ViewVusPage: React.FunctionComponent<ViewVusPageProps> = (
         //TODO: Handle error
       }
     });
-  }
+  }, []);
+
+  return (
+    <div className={styles["view-all-vus-container"]}>
+      <div className={styles.title}>VUS LIST</div>
+      <div className={styles.description}>
+        <p>
+          Below you can find a list of all the VUS stored within our database.
+        </p>
+      </div>
+      {vusList ? (
+        <div className={styles["view-all-vus"]}>
+          <div className={styles.header}>
+            <div>Chromosome</div>
+            <div>Position</div>
+            <div>Gene</div>
+            <div>Reference</div>
+            <div>Observed</div>
+            <div>Genotype</div>
+            <div>RSID</div>
+            <div></div>
+          </div>
+          {vusList.map((vus, index) => {
+            return <ViewVus vus={vus} isColoured={index % 2 === 0} />;
+          })}
+        </div>
+      ) : (
+        <Loader />
+      )}
+    </div>
+  );
 };
 
-export default ViewVusPage;
+export default ViewAllVus;
