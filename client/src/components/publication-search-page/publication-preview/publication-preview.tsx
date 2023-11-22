@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./publication-preview.module.scss";
-import { IPublicationPreview } from "../../models/publication-search/publication-search.model";
+import { IPublicationPreview } from "../../../models/publication-search/publication-search.model";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./publication-search.module.scss";
-import PublicationPreview from "../publication-preview/publication-preview";
+import PublicationPreview from "./publication-preview/publication-preview";
 import {
   IPublicationPreview,
   IPublicationSearch,
@@ -72,16 +72,29 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
           {data && (
             <>
               {data?.publications && (
-                <div className={styles["publication-previews"]}>
-                  <div className={styles.header}>
-                    <span className={styles.pmid}>PMID</span>
-                    <span>Title</span>
-                  </div>
+                <div className={styles["publications-previews-container"]}>
+                  <span className={styles.status}>
+                    <span className={styles.colour}>
+                      {data.publications.length}
+                    </span>
+                    &nbsp;
+                    {data.publications.length === 1
+                      ? "publication"
+                      : "publications"}
+                    &nbsp;found for&nbsp;
+                    <span className={styles.colour}>{rsid}</span>
+                  </span>
+                  <div className={styles["publication-previews"]}>
+                    <div className={styles.header}>
+                      <span className={styles.pmid}>PMID</span>
+                      <span>Title</span>
+                    </div>
 
-                  <div className={styles["publication-preview-contents"]}>
-                    {data.publications.map((publication) => (
-                      <PublicationPreview data={publication} />
-                    ))}
+                    <div className={styles["publication-preview-contents"]}>
+                      {data.publications.map((publication) => (
+                        <PublicationPreview data={publication} />
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

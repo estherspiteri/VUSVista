@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./view-all-vus.module.scss";
-import { IVus } from "../../models/view-vus.model.tsx/view-vus.model";
+import { IVus } from "../../../models/view-vus.model.tsx/view-vus.model";
 import ViewVus from "../view-vus/view-vus";
 
 type ViewAllVusProps = {
