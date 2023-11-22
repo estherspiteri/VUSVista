@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./publication-search.module.scss";
+import styles from "./publication-search-page.module.scss";
 import PublicationPreview from "./publication-preview/publication-preview";
 import {
   IPublicationPreview,
