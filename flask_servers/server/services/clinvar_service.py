@@ -65,7 +65,7 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
                 if loc['chr'] != chr:
                     return False, f"Chromosome {loc['chr']} does not match the expected chromosome {chr}!"
                 # compare expected and retrieved variant's chromosome position
-                elif loc['start'] != chr_pos:
+                elif loc['start'] != str(chr_pos):
                     return False, f"Chromosome start position {loc['start']} does not match the expected chromosome position {chr_pos}!"
                 break
 
@@ -76,12 +76,25 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
 def extract_clinvar_clinical_significance(clinvar_doc_summary):
     clinical_significance_obj = clinvar_doc_summary.get('clinical_significance')
 
-    return clinical_significance_obj['description']
+    return {'description': clinical_significance_obj['description'], 'last_evaluated': clinical_significance_obj['last_evaluated'], 'review_status': clinical_significance_obj['review_status']}
+
+
+# Retrieve the ClinVar variant's canonical SPDI.
+def extract_clinvar_canonical_spdi(clinvar_doc_summary):
+    canonical_spdi = ''
+
+    variation_set_arr = clinvar_doc_summary.get('variation_set')
+
+    if len(variation_set_arr) > 0:
+        canonical_spdi = variation_set_arr[0]['canonical_spdi']
+
+    return canonical_spdi
 
 
 def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str, chr_pos: str) -> InternalResponse:
     is_success = True
-    clinical_significance = ''
+    clinical_significance = {}
+    canonical_spdi = ''
     error_msg = ''
 
     retrieve_clinvar_ids_res = retrieve_clinvar_ids(rsid)
@@ -118,18 +131,22 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
                                                                                               gene, chr, chr_pos)
                     if are_equivalent:
                         clinical_significance = extract_clinvar_clinical_significance(document_summary)
+                        canonical_spdi = extract_clinvar_canonical_spdi(document_summary)
                     else:
                         is_success = False
 
-        return InternalResponse((is_success, clinical_significance, error_msg), 200)
+        return InternalResponse((is_success, clinical_significance, canonical_spdi, error_msg), 200)
 
 
 # TODO: retrieve other vital infor from clinvar (such as last modfied)
 # Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding ClinVar variant and extract its clinical significance.
 def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalResponse:
     # insert columns for clinvar clinical significance and error messages
-    vus_df.insert(0, 'Clinvar classification', "")
-    vus_df.insert(0, 'Error msg', "")
+    vus_df['Clinvar classification'] = ''
+    vus_df['Clinvar classification last eval'] = ""
+    vus_df['Clinvar classification review status'] = ""
+    vus_df['Clinvar error msg'] = ""
+    vus_df['Clinvar canonical spdi'] = ""
 
     genome_version = 'GRCh37'
     performance_dict = {}
@@ -141,6 +158,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
         current_app.logger.info(
             f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: {row['Position']}\n\tGenotype: {row['Genotype']}")
 
+        #TODO: add fix for when multiple rsids are found
         clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
                                                                                              row['RSID'], row['Gene'],
                                                                                              row['Chr'],
@@ -152,10 +170,15 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
             return InternalResponse(None, 500)
         else:
             # execute pipeline
-            is_success, clinical_significance, error_msg = clinvar_clinical_significance_pipeline_res.data
+            is_success, clinical_significance, canonical_spdi, error_msg = clinvar_clinical_significance_pipeline_res.data
 
-            vus_df.at[index, 'Clinvar classification'] = clinical_significance
-            vus_df.at[index, 'Error msg'] = error_msg
+            if clinical_significance:
+                vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
+                vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
+                vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
+
+            vus_df.at[index, 'Clinvar error msg'] = error_msg
+            vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
 
             # update performance for given variant
             if row['VUS Id'] in performance_dict:

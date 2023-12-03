@@ -34,11 +34,8 @@
       height: 100%;
       gap: 4px;
 
-      * {
+      .pill {
         font-size: 10px;
-      }
-
-      > * {
         padding: 4px;
         padding-left: 8px;
         padding-right: 8px;
@@ -51,14 +48,14 @@
           opacity: 0.4;
           background-color: #8f8e94 !important;
         }
-      }
 
-      .clinvar {
-        background-color: #78015e;
-      }
+        &.clinvar {
+          background-color: #78015e;
+        }
 
-      .dbsnp {
-        background-color: #14045e;
+        &.dbsnp {
+          background-color: #14045e;
+        }
       }
     }
 
@@ -78,9 +75,57 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      padding: 32px 16px;
+      padding: 16px;
       border-top: 0.5px dashed #008080;
-      margin: 0 16px;
+      border-left: 4px solid #008080;
+      border-right: 4px solid #008080;
+
+      .info-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: #fff;
+        padding: 8px;
+        border-radius: 4px;
+
+        p {
+          margin: 0;
+        }
+
+        &.clinvar-info {
+          background-color: #78015eba;
+        }
+
+        &.dbsnp-info {
+          background-color: #15045eb1;
+        }
+
+        &.disabled {
+          opacity: 0.6;
+          background-color: #8f8e94 !important;
+        }
+
+        .info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-left: 16px;
+
+          > * {
+            font-size: 14px;
+          }
+
+          .information {
+            display: flex;
+            flex-direction: row;
+
+            .info-title {
+              font-weight: bold;
+              min-width: 150px;
+            }
+          }
+        }
+      }
     }
   }
 

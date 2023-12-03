@@ -126,6 +126,19 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
 
         vus_df = handle_vus_with_multiple_genes(vus_df)
 
+        # write dataframe to excel file
+        # TODO: write to database
+        vus_df.to_excel('rsid_vus.xlsx', index=False)
+
+        # read the variant list into a dataframe
+        # TODO: load from db only of RSID process failed & needs to continue from here
+        # try:
+        #     vus_df = pd.read_excel('rsid_vus.xlsx', header=0)
+        #     vus_df = vus_df.fillna('')
+        # except Exception as e:
+        #     current_app.logger.error(f'Error loading RSID VUS from file: {e}')
+        #     return InternalResponse(None, 500)
+
         retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
 
         if retrieve_clinvar_variant_classifications_res.status != 200:

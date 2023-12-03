@@ -119,11 +119,14 @@ def get_alleles_from_dbsnp_info(dbsnp_info, pos):
 # Function to verify that the rsid matches with the requested variant using dbSNP
 def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, observed: str) -> InternalResponse:
     is_valid = True
+    error_msgs = []
 
     db_snp_variant_info_res = get_dbsnp_variant_info(rsid)
 
     if db_snp_variant_info_res.status != 200:
-        current_app.logger.error(f'Retrieval of variant info from dbSNP failed!')
+        error_msg = f'Retrieval of variant info from dbSNP failed!'
+        current_app.logger.error(error_msg)
+        error_msgs.append(error_msg)
         return InternalResponse(None, 500)
     else:
         db_snp_variant_info = db_snp_variant_info_res.data
@@ -140,20 +143,24 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, observed: s
                     break
 
             if not is_gene_found:
-                current_app.logger.warn(f"{rsid}: Variant's genes {genes} do not match the RSID's genes {genes_list}!")
+                error_msg = f"{rsid}: Variant's genes {genes} do not match the RSID's genes {genes_list}!"
+                current_app.logger.warn(error_msg)
+                error_msgs.append(error_msg)
                 is_valid = False
 
             # compare chromosome and chromosome position
             chr_pos = get_chr_pos_from_dbsnp_info(db_snp_variant_info)
 
             if chr_pos['CHR'] != chr:
-                current_app.logger.warn(
-                    f"{rsid}: Variant's chromosome {chr} does not match RSID's chromosome {chr_pos['CHR']}!")
+                error_msg = f"{rsid}: Variant's chromosome {chr} does not match RSID's chromosome {chr_pos['CHR']}!"
+                current_app.logger.warn(error_msg)
+                error_msgs.append(error_msg)
                 is_valid = False
 
             if chr_pos['POS'] != pos:
-                current_app.logger.warn(
-                    f"{rsid}: Variant's chromosome position {pos} does not match RSID's chromosome position {chr_pos['POS']}!")
+                error_msg = f"{rsid}: Variant's chromosome position {pos} does not match RSID's chromosome position {chr_pos['POS']}!"
+                current_app.logger.warn(error_msg)
+                error_msgs.append(error_msg)
                 is_valid = False
 
             # compare reference and observed allele
@@ -167,14 +174,17 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, observed: s
                     break
 
             if not ref_observed_allele_match:
-                current_app.logger.warn(
-                    f"{rsid}: Variant's reference {ref} and/or observed allele {observed} do not match any of the RSID's reference and observed alleles {ref_observed_allele_array[1]}!")
+                error_msg = f"{rsid}: Variant's reference {ref} and/or observed allele {observed} do not match any of the RSID's reference and observed alleles {ref_observed_allele_array[1]}!"
+                current_app.logger.warn(error_msg)
+                error_msgs.append(error_msg)
                 is_valid = False
         else:
-            current_app.logger.warn(f"{rsid}: No variant info found in dbSNP!")
+            error_msg = f"{rsid}: No variant info found in dbSNP!"
+            current_app.logger.warn(error_msg)
+            error_msgs.append(error_msg)
             is_valid = False
 
-        return InternalResponse(is_valid, 200)
+        return InternalResponse({'isValid': is_valid, 'errorMsgs': error_msgs}, 200)
 
 
 def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
@@ -196,7 +206,7 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
 
         for index, row in vus_df.iterrows():
             if row['RSID'] == 'NORSID':
-                rsid_verification.append(False)
+                rsid_verification.append({'isValid': False, 'errorMsgs': []})
             else:
                 verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
                                 row['Observed Allele'])
@@ -208,6 +218,8 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
                     rsid_verification.append(verify_rsid_res.data)
 
         # create a column which shows if an rsid is verified successfully or not (rsid variant matches details of inputted variant)
-        vus_df['RSID dbSNP verified'] = rsid_verification
+        vus_df['RSID dbSNP verified'] = [x['isValid'] for x in rsid_verification]
+        # create a column which shows the error messages that where returned during RSID verification§
+        vus_df['RSID dbSNP errorMsgs'] = [' '.join(x['errorMsgs']) for x in rsid_verification]
 
         return InternalResponse(vus_df, 200)

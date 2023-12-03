@@ -44,8 +44,12 @@ def view_all_vus():
     new_var_df['classification'] = var_df['Classification']
     new_var_df['rsid'] = var_df['RSID']
     new_var_df['rsidDbsnpVerified'] = var_df['RSID dbSNP verified']
-    new_var_df['clinvarErrorMsg'] = var_df['Error msg']
-    new_var_df['clinvarClassification'] = var_df['Clinvar classifcation']
+    new_var_df['rsidDbsnpErrorMsgs'] = var_df['RSID dbSNP errorMsgs']
+    new_var_df['clinvarErrorMsg'] = var_df['Clinvar error msg']
+    new_var_df['clinvarClassification'] = var_df['Clinvar classification']
+    new_var_df['clinvarClassificationLastEval'] = var_df['Clinvar classification last eval']
+    new_var_df['clinvarClassificationReviewStatus'] = var_df['Clinvar classification review status']
+    new_var_df['clinvarCanonicalSpdi'] = var_df['Clinvar canonical spdi']
 
     var_list = convert_df_to_list(new_var_df)
 
