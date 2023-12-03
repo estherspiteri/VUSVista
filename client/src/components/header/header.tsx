@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./header.module.scss";
 import { Link } from "react-router-dom";
 
@@ -8,15 +8,32 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
   return (
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>
-        <Link to={""} className={styles.option}>
-          VUS file upload
-        </Link>
-        <Link to={"/view-vus"} className={styles.option}>
-          View all VUS
-        </Link>
-        <Link to={"/publication-search"} className={styles.option}>
-          Publication search
-        </Link>
+        {/** VUS */}
+        <div
+          className={`${styles["option-container"]} ${styles["vus-option-container"]}`}
+        >
+          <div className={styles["option-btn"]}>VUS</div>
+          <div className={styles.options}>
+            <Link to={"upload-vus"} className={styles.option}>
+              File Upload
+            </Link>
+            <Link to={"/view-vus"} className={styles.option}>
+              View All
+            </Link>
+          </div>
+        </div>
+
+        {/** Publications */}
+        <div
+          className={`${styles["option-container"]} ${styles["publications-option-container"]}`}
+        >
+          <div className={styles["option-btn"]}>Publications</div>
+          <div className={styles.options}>
+            <Link to={"/publication-search"} className={styles.option}>
+              Search
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
