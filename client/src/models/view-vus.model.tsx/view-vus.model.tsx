@@ -6,6 +6,7 @@ export interface IVus {
   clinvarClassificationLastEval?: string;
   clinvarClassificationReviewStatus?: string;
   clinvarCanonicalSpdi?: string;
+  clinvarUid?: string;
   clinvarErrorMsg?: string;
   gene: string;
   genotype: string;

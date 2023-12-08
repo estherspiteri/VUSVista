@@ -50,19 +50,39 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
           {props.vus.observedAllele}
         </div>
         <div className={styles["header-content"]}>{props.vus.genotype}</div>
-        <div className={styles["header-content"]}>{props.vus.rsid}</div>
+        <div className={styles["header-content"]}>
+          {props.vus.rsidDbsnpVerified ? props.vus.rsid : "-"}
+        </div>
         <div className={styles.pills}>
           <div
             className={`${styles.pill} ${styles.clinvar} ${
-              props.vus.clinvarErrorMsg.length > 0 ? styles.disabled : ""
+              props.vus.clinvarErrorMsg.length > 0
+                ? styles.disabled
+                : styles.active
             }`}
+            onClick={(e) => {
+              if (props.vus.clinvarErrorMsg.length === 0) {
+                e.stopPropagation();
+                openInNewWindow(
+                  `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarUid}`
+                );
+              }
+            }}
           >
             ClinVar
           </div>
           <div
             className={`${styles.pill} ${styles.dbsnp} ${
-              props.vus.rsidDbsnpVerified ? "" : styles.disabled
+              props.vus.rsidDbsnpVerified ? styles.active : styles.disabled
             }`}
+            onClick={(e) => {
+              if (props.vus.rsidDbsnpVerified) {
+                e.stopPropagation();
+                openInNewWindow(
+                  `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
+                );
+              }
+            }}
           >
             dbSNP
           </div>
@@ -121,10 +141,27 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
                 {props.vus.rsidDbsnpVerified.toString()}
               </div>
               {!props.vus.rsidDbsnpVerified && (
-                <div className={styles.information}>
-                  <div className={styles["info-title"]}>Error message:</div>
-                  {props.vus.rsidDbsnpErrorMsgs}
-                </div>
+                <>
+                  {props.vus.rsid !== "NORSID" && (
+                    <div className={styles.information}>
+                      <div className={styles["info-title"]}>
+                        Suggested RSID:
+                      </div>
+                      <a
+                        href={`https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`}
+                        target="_blank"
+                      >
+                        {props.vus.rsid}
+                      </a>
+                    </div>
+                  )}
+                  <div className={styles.information}>
+                    <div className={styles["info-title"]}>Error message:</div>
+                    {props.vus.rsid === "NORSID"
+                      ? "No RSID found."
+                      : props.vus.rsidDbsnpErrorMsgs}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -132,6 +169,11 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
       </div>
     </div>
   );
+
+  function openInNewWindow(url: string) {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) newWindow.opener = null;
+  }
 };
 
 export default ViewVus;

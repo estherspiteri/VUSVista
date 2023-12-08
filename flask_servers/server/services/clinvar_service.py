@@ -91,10 +91,16 @@ def extract_clinvar_canonical_spdi(clinvar_doc_summary):
     return canonical_spdi
 
 
+# Retrieve the ClinVar variant's uid.
+def extract_clinvar_uid(clinvar_doc_summary):
+    return clinvar_doc_summary.attributes['uid']
+
+
 def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str, chr_pos: str) -> InternalResponse:
     is_success = True
     clinical_significance = {}
     canonical_spdi = ''
+    uid = ''
     error_msg = ''
 
     retrieve_clinvar_ids_res = retrieve_clinvar_ids(rsid)
@@ -132,10 +138,11 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
                     if are_equivalent:
                         clinical_significance = extract_clinvar_clinical_significance(document_summary)
                         canonical_spdi = extract_clinvar_canonical_spdi(document_summary)
+                        uid = extract_clinvar_uid(document_summary)
                     else:
                         is_success = False
 
-        return InternalResponse((is_success, clinical_significance, canonical_spdi, error_msg), 200)
+        return InternalResponse((is_success, clinical_significance, canonical_spdi, uid, error_msg), 200)
 
 
 # TODO: retrieve other vital infor from clinvar (such as last modfied)
@@ -147,6 +154,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
     vus_df['Clinvar classification review status'] = ""
     vus_df['Clinvar error msg'] = ""
     vus_df['Clinvar canonical spdi'] = ""
+    vus_df['Clinvar uid'] = ""
 
     genome_version = 'GRCh37'
     performance_dict = {}
@@ -170,7 +178,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
             return InternalResponse(None, 500)
         else:
             # execute pipeline
-            is_success, clinical_significance, canonical_spdi, error_msg = clinvar_clinical_significance_pipeline_res.data
+            is_success, clinical_significance, canonical_spdi, uid, error_msg = clinvar_clinical_significance_pipeline_res.data
 
             if clinical_significance:
                 vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
@@ -179,6 +187,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
 
             vus_df.at[index, 'Clinvar error msg'] = error_msg
             vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
+            vus_df.at[index, 'Clinvar uid'] = uid
 
             # update performance for given variant
             if row['VUS Id'] in performance_dict:

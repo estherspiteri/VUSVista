@@ -50,6 +50,7 @@ def view_all_vus():
     new_var_df['clinvarClassificationLastEval'] = var_df['Clinvar classification last eval']
     new_var_df['clinvarClassificationReviewStatus'] = var_df['Clinvar classification review status']
     new_var_df['clinvarCanonicalSpdi'] = var_df['Clinvar canonical spdi']
+    new_var_df['clinvarUid'] = var_df['Clinvar uid']
 
     var_list = convert_df_to_list(new_var_df)
 

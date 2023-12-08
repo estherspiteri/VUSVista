@@ -49,6 +49,14 @@
           background-color: #8f8e94 !important;
         }
 
+        &.active {
+          z-index: 100;
+
+          &:hover {
+            background-color: #008080;
+          }
+        }
+
         &.clinvar {
           background-color: #78015e;
         }
