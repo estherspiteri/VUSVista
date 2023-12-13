@@ -127,10 +127,13 @@ def get_publications(rsid: str) -> Response:
                     # add abstract column to LitVar publications df
                     publications_df = add_abstracts_to_df(publications_df, pubmed_publications_abstracts_dict)
 
+                    # replace NaNs with empty strings
+                    publications_df = publications_df.fillna('')
+
                     publications_list = convert_df_to_list(publications_df)
 
                     current_app.logger.info(f'Sending user {len(publications_list)} publications')
-                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}), 200, content_type='application/json')
+                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}), 200)
         else:
             current_app.logger.info(f'Sending user 0 publications')
             return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': [], "isLitvarIdFound": False}}), 200)
