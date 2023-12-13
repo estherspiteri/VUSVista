@@ -2,12 +2,21 @@ from flask import Blueprint, Response, current_app, request
 import pandas as pd
 import json
 
-from server.helpers.data_helper import convert_df_to_list
-from server.services.vus_preprocess_service import preprocess_vus, handle_vus_file
+from server.helpers.data_helper import convert_df_to_list, prep_vus_df_for_react
+from server.services.vus_preprocess_service import handle_vus_file
 
 vus_views = Blueprint('vus_views', __name__)
 
 
+# @vus_views.route('/file/resume/<string:stage>', methods=['POST'])
+# def resume_vus_preprocessing(stage: str):
+#     current_app.logger.info(f"Resuming VUS file preprocessing at stage: {stage}")
+#
+#     return resume_vus_processing(stage)
+
+
+# To include if you want VUS preprocessing, retrieval of RSIDs and retrieval of CLinVar classifications to be executed
+# one after the other
 @vus_views.route('/file', methods=['POST'])
 def store_and_verify_vus_file():
     current_app.logger.info(f"User storing new VUS file")
@@ -31,26 +40,7 @@ def view_all_vus():
         current_app.logger.error(f'Error loading VUS from file: {e}')
         return Response(json.dumps({'isSuccess': False}), 500)
 
-    # to match React camelCase syntax
-    new_var_df = pd.DataFrame()
-    new_var_df['vusID'] = var_df['VUS Id']
-    new_var_df['chromosome'] = var_df['Chr']
-    new_var_df['chromosomePosition'] = var_df['Position']
-    new_var_df['gene'] = var_df['Gene']
-    new_var_df['type'] = var_df['Type']
-    new_var_df['genotype'] = var_df['Genotype']
-    new_var_df['refAllele'] = var_df['Reference']
-    new_var_df['observedAllele'] = var_df['Observed Allele']
-    new_var_df['classification'] = var_df['Classification']
-    new_var_df['rsid'] = var_df['RSID']
-    new_var_df['rsidDbsnpVerified'] = var_df['RSID dbSNP verified']
-    new_var_df['rsidDbsnpErrorMsgs'] = var_df['RSID dbSNP errorMsgs']
-    new_var_df['clinvarErrorMsg'] = var_df['Clinvar error msg']
-    new_var_df['clinvarClassification'] = var_df['Clinvar classification']
-    new_var_df['clinvarClassificationLastEval'] = var_df['Clinvar classification last eval']
-    new_var_df['clinvarClassificationReviewStatus'] = var_df['Clinvar classification review status']
-    new_var_df['clinvarCanonicalSpdi'] = var_df['Clinvar canonical spdi']
-    new_var_df['clinvarUid'] = var_df['Clinvar uid']
+    new_var_df = prep_vus_df_for_react(var_df)
 
     var_list = convert_df_to_list(new_var_df)
 

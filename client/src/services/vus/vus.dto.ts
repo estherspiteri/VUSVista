@@ -6,6 +6,9 @@ export interface IStoreAndVerifyVusFileRequest {
 
 export interface IStoreAndVerifyVusFileResponse {
   isSuccess: boolean;
+  areRsidsRetrieved: boolean;
+  isClinvarAccessed: boolean;
+  vusList: IVus[];
 }
 
 export interface ILoadAllVusResponse {

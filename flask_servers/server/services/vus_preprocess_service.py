@@ -4,6 +4,7 @@ from Bio import Entrez
 from werkzeug.datastructures import FileStorage
 import json
 
+from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -102,7 +103,7 @@ def extract_chr_and_position(vus_df: pd.DataFrame):
     return vus_df
 
 
-def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
+def filter_vus(vus_df: pd.DataFrame) -> pd.DataFrame:
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
     vus_df = vus_df[vus_df['Type'].str.contains('CNV|LONGDEL', case=False, regex=True) == False]
@@ -115,6 +116,12 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
 
     vus_df = extract_chr_and_position(vus_df)
 
+    #TODO: store in db
+
+    return vus_df
+
+
+def get_rsids(vus_df: pd.DataFrame):
     get_rsids_from_dbsnp_res = get_rsids_from_dbsnp(vus_df)
 
     if get_rsids_from_dbsnp_res.status != 200:
@@ -124,27 +131,33 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
     else:
         vus_df = get_rsids_from_dbsnp_res.data
 
-        vus_df = handle_vus_with_multiple_genes(vus_df)
+        vus_df = handle_vus_with_multiple_genes(vus_df) #TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
 
         # write dataframe to excel file
         # TODO: write to database
         vus_df.to_excel('rsid_vus.xlsx', index=False)
 
-        # read the variant list into a dataframe
-        # TODO: load from db only of RSID process failed & needs to continue from here
-        # try:
-        #     vus_df = pd.read_excel('rsid_vus.xlsx', header=0)
-        #     vus_df = vus_df.fillna('')
-        # except Exception as e:
-        #     current_app.logger.error(f'Error loading RSID VUS from file: {e}')
-        #     return InternalResponse(None, 500)
+        return InternalResponse(vus_df, 200)
+
+
+def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
+    vus_df = filter_vus(vus_df)
+
+    preprocess_and_get_rsids_res = get_rsids(vus_df)
+
+    if preprocess_and_get_rsids_res.status != 200:
+        current_app.logger.error(
+            f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
+    else:
+        vus_df = preprocess_and_get_rsids_res.data
 
         retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
 
         if retrieve_clinvar_variant_classifications_res.status != 200:
             current_app.logger.error(
                 f'Retrieval of ClinVar variant classifications failed 500')
-            return InternalResponse(None, 500)
+            return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
         else:
             vus_df = retrieve_clinvar_variant_classifications_res.data
 
@@ -156,11 +169,12 @@ def handle_vus_file(file: FileStorage) -> Response:
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
     # TODO: check - should I assume that inputted file only has VUS?
-
     preprocess_vus_res = preprocess_vus(vus_df)
 
     if preprocess_vus_res.status != 200:
-        return Response({'isSuccess': False}, 200)
+        response = preprocess_vus_res.data
+        response['isSuccess'] = False
+        return Response(response,200)
     else:
         vus_df = preprocess_vus_res.data
 
@@ -168,4 +182,57 @@ def handle_vus_file(file: FileStorage) -> Response:
         # TODO: write to database
         vus_df.to_excel('final_vus.xlsx', index=False)
 
-        return Response(json.dumps({'isSuccess': True}), 200)
+        # update column names to camelCase format
+        new_vus_df = prep_vus_df_for_react(vus_df)
+
+        # convert df to list
+        vus_list = convert_df_to_list(new_vus_df)
+
+        return Response(json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True, 'vusList': vus_list}), 200)
+
+
+# def resume_vus_processing(stage: str):
+#     clinvar_failure_res = Response({'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+#
+#     if stage == 'rsid':
+#         rsid_failure_res = Response({'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+#
+#         # TODO: load from db only if RSID process failed & needs to continue from here
+#         try:
+#             vus_df = pd.read_excel('rsid_vus.xlsx', header=0)
+#             vus_df = vus_df.fillna('')
+#         except Exception as e:
+#             current_app.logger.error(f'Error loading RSID VUS from file: {e}')
+#             return rsid_failure_res
+#
+#         preprocess_and_get_rsids_res = get_rsids(vus_df)
+#
+#         if preprocess_and_get_rsids_res.status != 200:
+#             current_app.logger.error(f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+#             return rsid_failure_res
+#         else:
+#             vus_df = preprocess_and_get_rsids_res.data
+#
+#     else: # clinvar
+#         # TODO: load from db only if ClinVar process failed & needs to continue from here
+#         try:
+#             vus_df = pd.read_excel('rsid_vus.xlsx', header=0)
+#             vus_df = vus_df.fillna('')
+#         except Exception as e:
+#             current_app.logger.error(f'Error loading RSID VUS from file: {e}')
+#             return clinvar_failure_res
+#
+#     retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
+#
+#     if retrieve_clinvar_variant_classifications_res.status != 200:
+#         current_app.logger.error(
+#             f'Retrieval of ClinVar variant classifications failed 500')
+#         return clinvar_failure_res
+#     else:
+#         vus_df = retrieve_clinvar_variant_classifications_res.data
+#
+#         # write dataframe to excel file
+#         # TODO: write to database
+#         vus_df.to_excel('final_vus.xlsx', index=False)
+#
+#         return Response(json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}), 200)
