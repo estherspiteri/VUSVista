@@ -1,4 +1,4 @@
-
+-- Create a new database
 CREATE DATABASE "vus-app-db"
 WITH
 OWNER = postgres
@@ -7,6 +7,10 @@ lib = 'libc'
 CONNECTION LIMIT = -1
 IS_TEMPLATE = False;
 
+-- Connect to the newly created database
+\c "vus-app-db";
+
+-- Create tables within the new database
 CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
 CREATE TYPE VARIANT_TYPE AS ENUM ('SNV', 'MNV', 'INDEL');
 CREATE TYPE CONSEQUENCE AS ENUM ('MISSENSE', 'NONSENSE', 'INSERTION', 'DELETION', 'FRAMESHIFT', 'DUPLICATION');
