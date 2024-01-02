@@ -19,23 +19,23 @@ CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 
 CREATE TYPE ACMG_STRENGTH AS ENUM ('SUPPORTING', 'MODERATE', 'STRONG', 'VERY_STRONG');
 CREATE TYPE CLASSIFICATION AS ENUM ('VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED');
 
-DROP TABLE IF EXISTS gene_annotations;
-DROP TABLE IF EXISTS variants;
-DROP TABLE IF EXISTS db_snp;
-DROP TABLE IF EXISTS clinvar;
-DROP TABLE IF EXISTS external_references;
-DROP TABLE IF EXISTS variants_external_references;
-DROP TABLE IF EXISTS sample_files;
-DROP TABLE IF EXISTS samples;
-DROP TABLE IF EXISTS variants_samples;
-DROP TABLE IF EXISTS acmg_rules;
-DROP TABLE IF EXISTS samples_variants_acmg_rules;
-DROP TABLE IF EXISTS scientific_members;
-DROP TABLE IF EXISTS classification_overrides;
-DROP TABLE IF EXISTS classification_overrides_acmg_rules;
-DROP TABLE IF EXISTS publications;
-DROP TABLE IF EXISTS variants_publications;
 DROP TABLE IF EXISTS classification_overrides_publications;
+DROP TABLE IF EXISTS variants_publications;
+DROP TABLE IF EXISTS publications;
+DROP TABLE IF EXISTS classification_overrides_acmg_rules;
+DROP TABLE IF EXISTS classification_overrides;
+DROP TABLE IF EXISTS scientific_members;
+DROP TABLE IF EXISTS samples_variants_acmg_rules;
+DROP TABLE IF EXISTS acmg_rules;
+DROP TABLE IF EXISTS variants_samples;
+DROP TABLE IF EXISTS samples;
+DROP TABLE IF EXISTS sample_files;
+DROP TABLE IF EXISTS variants_external_references;
+DROP TABLE IF EXISTS external_references;
+DROP TABLE IF EXISTS clinvar;
+DROP TABLE IF EXISTS db_snp;
+DROP TABLE IF EXISTS variants;
+DROP TABLE IF EXISTS gene_annotations;
 
 
 -- GENE ANNOTATIONS
@@ -87,12 +87,16 @@ CREATE TABLE external_references (
     error_msg TEXT,
     db_id VARCHAR(15) NOT NULL,
     db_type EXTERNAL_REF_DB_TYPE NOT NULL,
+    variant_id INT NOT NULL,
     CONSTRAINT fk_clinvar
         FOREIGN KEY (db_id) 
             REFERENCES clinvar(clinvar_id) DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT fk_db_snp
         FOREIGN KEY (db_id) 
-            REFERENCES db_snp(db_snp_id) DEFERRABLE INITIALLY DEFERRED
+            REFERENCES db_snp(db_snp_id) DEFERRABLE INITIALLY DEFERRED,
+    CONSTRAINT fk_variants
+            FOREIGN KEY (variant_id) 
+                REFERENCES variants(variant_id)
 );
 
 -- VARIANTS/EXTERNAL_REFERENCES
