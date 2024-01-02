@@ -1,0 +1,31 @@
+.view-vus-container {
+  position: relative;
+
+  &.coloured {
+    .header {
+      background-color: #e2f9f9;
+    }
+  }
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    cursor: pointer;
+    background-color: #fff;
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      width: calc(100% / 3);
+      box-sizing: border-box;
+    }
+
+    &:hover {
+      background-color: #cfe7e7ca !important;
+    }
+  }
+}

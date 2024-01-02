@@ -8,6 +8,7 @@ import { vusService } from "./services/vus/vus.service";
 import Header from "./components/header/header";
 import ViewVusPage from "./components/view-vus-page/view-vus-page";
 import VusFileUploadPage from "./components/vus-file-upload-page/vus-file-upload-page";
+import ViewAllSamples from "./components/view-samples-page/view-samples-page";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -23,11 +24,15 @@ const App: React.FunctionComponent<AppProps> = () => {
           element={<VusFileUploadPage vusService={vusService} />}
         />
         <Route
+          path="/view-samples"
+          element={<ViewAllSamples vusService={vusService} />}
+        />
+        <Route
           path="/view-vus"
           element={<ViewVusPage vusService={vusService} />}
         />
         <Route
-          path="/publication-search"
+          path="/publication-search/*"
           element={
             <PublicationSearch publicationService={publicationService} />
           }

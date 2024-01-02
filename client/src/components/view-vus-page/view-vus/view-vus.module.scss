@@ -22,8 +22,15 @@
       justify-content: center;
       padding: 16px;
       text-align: center;
-      width: calc(100% / 8);
+      width: calc(100% / 7);
       box-sizing: border-box;
+    }
+
+    &.genotype-included {
+      .header-content,
+      .pills {
+        width: calc(100% / 8);
+      }
     }
 
     .pills {
@@ -33,6 +40,7 @@
       flex-wrap: wrap;
       height: 100%;
       gap: 4px;
+      width: 195px;
 
       .pill {
         font-size: 10px;
@@ -63,6 +71,21 @@
 
         &.dbsnp {
           background-color: #14045e;
+        }
+      }
+
+      .pub-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        padding: 2px;
+        fill: #008080;
+        z-index: 100;
+        margin-left: 8px;
+
+        &:hover {
+          fill: #fff;
+          background-color: #008080;
         }
       }
     }

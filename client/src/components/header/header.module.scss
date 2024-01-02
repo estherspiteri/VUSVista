@@ -57,18 +57,13 @@
       }
 
       &:hover {
-        .option-btn {
-          background-color: #f7f7f5;
-          color: #008080;
-          border-color: #008080;
-        }
-      }
+        .options {
+          display: block !important;
 
-      &.vus-option-container,
-      &.publications-option-container {
-        &:hover {
-          .options {
-            display: block !important;
+          .option-btn {
+            background-color: #f7f7f5;
+            color: #008080;
+            border-color: #008080;
           }
         }
       }

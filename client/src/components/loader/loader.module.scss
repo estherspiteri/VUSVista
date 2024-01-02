@@ -10,11 +10,11 @@
   &:after {
     content: " ";
     display: block;
-    width: 64px;
-    height: 64px;
+    width: var(--width);
+    height: var(--width);
     margin: 8px;
     border-radius: 50%;
-    border: 6px solid #008080;
+    border: var(--thick) solid #008080;
     border-color: #008080 transparent #008080 transparent;
     animation: lds-dual-ring 1.2s linear infinite;
   }

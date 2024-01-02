@@ -18,6 +18,17 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
   const [isSearching, setIsSearching] = useState(false);
   const [searchedRsid, setSearchedRsid] = useState("");
 
+  //read rsid from query parameter and start search
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const rsid = urlParams.get("rsid");
+
+    if (rsid?.length > 0) {
+      setRsid(rsid);
+      setIsSearching(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (isSearching) {
       props.publicationService?.getPublications({ rsid }).then((res) => {
@@ -45,6 +56,7 @@ const PublicationSearch: React.FunctionComponent<PublicationSearchProps> = (
       </div>
       <div className={styles["search-container"]}>
         <input
+          autoFocus={true}
           placeholder="Type variant RSID"
           value={rsid}
           onChange={(e) => setRsid(e.currentTarget.value)}

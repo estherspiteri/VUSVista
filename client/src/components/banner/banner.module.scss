@@ -1,0 +1,46 @@
+.banner-container {
+  position: absolute;
+  background-color: rgb(142, 27, 27);
+  top: 50px;
+  right: 50px;
+  width: 250px;
+  border-radius: 8px;
+  padding: 16px;
+  color: #fff;
+
+  animation: fadeIn 1s;
+
+  display: flex;
+  flex-direction: row;
+
+  &.closed {
+    display: none;
+  }
+
+  .content {
+    flex-grow: 1;
+  }
+
+  .close-icon {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+
+    svg {
+      position: absolute;
+      width: 24px;
+      top: -8px;
+      right: -8px;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

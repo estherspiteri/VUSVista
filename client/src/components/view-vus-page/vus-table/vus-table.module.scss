@@ -1,0 +1,30 @@
+.vus-table-container {
+  border: 1px solid #e2f9f9;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    background-color: #008080;
+    color: white;
+
+    > * {
+      padding: 16px;
+      text-align: center;
+      width: calc(100% / 7);
+      box-sizing: border-box;
+    }
+
+    :last-child {
+      width: 195px;
+    }
+
+    &.genotype-included {
+      > * {
+        width: calc(100% / 8);
+      }
+    }
+  }
+}
