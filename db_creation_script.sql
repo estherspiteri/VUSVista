@@ -10,46 +10,56 @@ IS_TEMPLATE = False;
 
 -- Once db is created, change connection to new db and run this:
 -- Create tables within the new database
-CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
+-- CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
 CREATE TYPE VARIANT_TYPE AS ENUM ('SNV', 'MNV', 'INDEL');
 CREATE TYPE CONSEQUENCE AS ENUM ('MISSENSE', 'NONSENSE', 'INSERTION', 'DELETION', 'FRAMESHIFT', 'DUPLICATION');
-CREATE TYPE STRAND AS ENUM ('+', '-');
+CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
 CREATE TYPE GENOTYPE AS ENUM ('HOMOZYGOUS', 'HETEROZYGOUS');
 CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 'PS3', 'PP5', 'BP6');
 CREATE TYPE ACMG_STRENGTH AS ENUM ('SUPPORTING', 'MODERATE', 'STRONG', 'VERY_STRONG');
 CREATE TYPE CLASSIFICATION AS ENUM ('VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED');
 
-DROP TABLE IF EXISTS classification_overrides_publications;
-DROP TABLE IF EXISTS variants_publications;
-DROP TABLE IF EXISTS publications;
-DROP TABLE IF EXISTS classification_overrides_acmg_rules;
-DROP TABLE IF EXISTS classification_overrides;
-DROP TABLE IF EXISTS scientific_members;
-DROP TABLE IF EXISTS samples_variants_acmg_rules;
-DROP TABLE IF EXISTS acmg_rules;
-DROP TABLE IF EXISTS variants_samples;
-DROP TABLE IF EXISTS samples;
-DROP TABLE IF EXISTS sample_files;
-DROP TABLE IF EXISTS variants_external_references;
-DROP TABLE IF EXISTS external_references;
-DROP TABLE IF EXISTS clinvar;
-DROP TABLE IF EXISTS db_snp;
-DROP TABLE IF EXISTS variants;
-DROP TABLE IF EXISTS gene_annotations;
+-- DROP TABLE IF EXISTS reviews_publications;
+-- DROP TABLE IF EXISTS variants_publications;
+-- DROP TABLE IF EXISTS publications;
+-- DROP TABLE IF EXISTS reviews_acmg_rules;
+-- DROP TABLE IF EXISTS classification_overrides;
+-- DROP TABLE IF EXISTS reviews;
+-- DROP TABLE IF EXISTS scientific_members;
+-- DROP TABLE IF EXISTS samples_variants_acmg_rules;
+-- DROP TABLE IF EXISTS acmg_rules;
+-- DROP TABLE IF EXISTS variants_samples;
+-- DROP TABLE IF EXISTS samples;
+-- DROP TABLE IF EXISTS sample_files;
+-- DROP TABLE IF EXISTS variants_external_references;
+-- DROP TABLE IF EXISTS external_references;
+-- DROP TABLE IF EXISTS clinvar;
+-- DROP TABLE IF EXISTS db_snp;
+-- DROP TABLE IF EXISTS variants;
+-- DROP TABLE IF EXISTS gene_annotations;
 
 
 -- GENE ANNOTATIONS
 CREATE TABLE gene_annotations (
     gene_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    seq_name VARCHAR(2) NOT NULL,
+    seq_name TEXT NOT NULL,
     source TEXT NOT NULL,
     feature TEXT NOT NULL,
     start_location INT NOT NULL,
     end_location INT NOT NULL,
-    score FLOAT NOT NULL,
+    score FLOAT,
     strand STRAND,
-    frame CHAR,
-    attribute TEXT
+    frame CHAR
+);
+
+CREATE TABLE gene_attributes (
+    gene_id INT NOT NULL,
+    attribute_name TEXT NOT NULL,
+    attribute_value TEXT NOT NULL,
+    CONSTRAINT fk_gene_annotations
+        FOREIGN KEY (gene_id) 
+            REFERENCES gene_annotations(gene_id),
+    PRIMARY KEY (gene_id, attribute_name)
 );
 
 -- VARIANTS 
@@ -63,53 +73,42 @@ CREATE TABLE variants (
     consequences CONSEQUENCE,
     classification CLASSIFICATION NOT NULL,
     gene_id INT NOT NULL,
+    gene_name TEXT NOT NULL,
     CONSTRAINT fk_gene_annotations 
         FOREIGN KEY (gene_id) 
             REFERENCES gene_annotations(gene_id)
 );
 
 -- EXTERNAL REFERENCES
-CREATE TABLE db_snp (
-    db_snp_id VARCHAR(15) PRIMARY KEY
-);
-
-CREATE TABLE clinvar (
-    clinvar_id TEXT PRIMARY KEY,
-    canonical_spdi TEXT NOT NULL,
-    classification TEXT,
-    last_evaluated TIMESTAMP,
-    review_status TEXT
-);
-
 -- Table that references either clinvar or db_snp based on db_type
 CREATE TABLE external_references (
     external_references_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     error_msg TEXT,
-    db_id VARCHAR(15) NOT NULL,
-    db_type EXTERNAL_REF_DB_TYPE NOT NULL,
+    db_type TEXT NOT NULL,
     variant_id INT NOT NULL,
-    CONSTRAINT fk_clinvar
-        FOREIGN KEY (db_id) 
-            REFERENCES clinvar(clinvar_id) DEFERRABLE INITIALLY DEFERRED,
-    CONSTRAINT fk_db_snp
-        FOREIGN KEY (db_id) 
-            REFERENCES db_snp(db_snp_id) DEFERRABLE INITIALLY DEFERRED,
     CONSTRAINT fk_variants
             FOREIGN KEY (variant_id) 
                 REFERENCES variants(variant_id)
 );
 
--- VARIANTS/EXTERNAL_REFERENCES
-CREATE TABLE variants_external_references (
-	variant_id INT NOT NULL,
-	external_references_id INT NOT NULL,
-	CONSTRAINT fk_variants
-        FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
+CREATE TABLE db_snp (
+    db_snp_id VARCHAR(15) PRIMARY KEY,
+    external_references_id INT NOT NULL UNIQUE,
+    CONSTRAINT fk_external_references
+            FOREIGN KEY (external_references_id) 
+                REFERENCES external_references(external_references_id)
+);
+
+CREATE TABLE clinvar (
+    clinvar_id TEXT PRIMARY KEY,
+    external_references_id INT NOT NULL UNIQUE,
+    canonical_spdi TEXT NOT NULL,
+    classification TEXT,
+    last_evaluated TIMESTAMP,
+    review_status TEXT,
     CONSTRAINT fk_external_references
         FOREIGN KEY (external_references_id) 
-            REFERENCES external_references(external_references_id),
-    PRIMARY KEY (variant_id, external_references_id)
+            REFERENCES external_references(external_references_id)
 );
 
 -- SAMPLES
@@ -175,41 +174,46 @@ CREATE TABLE samples_variants_acmg_rules(
 -- SCIENTIFIC_MEMBERS
 CREATE TABLE scientific_members(
     scientific_member_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    job_title TEXT NOT NULL,
-    department TEXT NOT NULL
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL
 );
 
--- CLASSIFICATION_OVERRIDES (VARIANTS/SCIENTIFIC_MEMBERS)
-CREATE TABLE classification_overrides(
+-- REVIEWS (VARIANTS/SCIENTIFIC_MEMBERS)
+CREATE TABLE reviews(
+    review_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     variant_id INT NOT NULL,
     scientific_member_id INT NOT NULL,
-    classification CLASSIFICATION NOT NULL,
     date_added TIMESTAMP NOT NULL,
-    reason TEXT,
+    comment TEXT,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(variant_id),
     CONSTRAINT fk_scientific_members
         FOREIGN KEY (scientific_member_id) 
-            REFERENCES scientific_members(scientific_member_id),
-    PRIMARY KEY (variant_id, scientific_member_id)
+            REFERENCES scientific_members(scientific_member_id)
 );
 
--- CLASSIFICATION_OVERRIDES/ACMG_RULES
-CREATE TABLE classification_overrides_acmg_rules(
-    variant_id INT NOT NULL,
-    scientific_member_id INT NOT NULL,
+CREATE TABLE classification_overrides(
+    classification_override_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    review_id INT NOT NULL UNIQUE,
+    classification CLASSIFICATION NOT NULL,
+    reason TEXT,
+    CONSTRAINT fk_reviews
+        FOREIGN KEY (review_id) 
+            REFERENCES reviews(review_id)
+);
+
+-- REVIEWS/ACMG_RULES
+CREATE TABLE reviews_acmg_rules(
+    review_id INT NOT NULL,
     rule_name ACMG_RULE NOT NULL,
-    CONSTRAINT fk_variants
-        FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
-    CONSTRAINT fk_scientific_members
-        FOREIGN KEY (scientific_member_id) 
-            REFERENCES scientific_members(scientific_member_id),
+    CONSTRAINT fk_reviews
+        FOREIGN KEY (review_id) 
+            REFERENCES reviews(review_id),
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (rule_name) 
             REFERENCES acmg_rules(rule_name),
-    PRIMARY KEY (variant_id, scientific_member_id, rule_name)
+    PRIMARY KEY (review_id, rule_name)
 );
 
 -- PUBLICATIONS
@@ -234,21 +238,17 @@ CREATE TABLE variants_publications(
     PRIMARY KEY (variant_id, pmid)
 );
 
--- CLASSIFICATION_OVERRIDES/PUBLICATIONS
-CREATE TABLE classification_overrides_publications(
-    variant_id INT NOT NULL,
-    scientific_member_id INT NOT NULL,
+-- REVIEWS/PUBLICATIONS
+CREATE TABLE reviews_publications(
+    review_id INT NOT NULL,
     pmid INT NOT NULL,
-    CONSTRAINT fk_variants
-        FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
-    CONSTRAINT fk_scientific_members
-        FOREIGN KEY (scientific_member_id) 
-            REFERENCES scientific_members(scientific_member_id),
+    CONSTRAINT fk_reviews
+        FOREIGN KEY (review_id) 
+            REFERENCES reviews(review_id),
     CONSTRAINT fk_publications
         FOREIGN KEY (pmid) 
             REFERENCES publications(pmid),
-    PRIMARY KEY (variant_id, scientific_member_id, pmid)
+    PRIMARY KEY (review_id, pmid)
 );
 
 

@@ -2,6 +2,7 @@ from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
 import requests
+from requests import RequestException
 
 from server.responses.internal_response import InternalResponse
 
@@ -18,7 +19,13 @@ def get_rsids(genome_version: str) -> InternalResponse:
     # retrieve RSIDs if they exist for a given variant
     url = f"https://api.ncbi.nlm.nih.gov/variation/v0/vcf/file/set_rsids?assembly={genome_version}"
     myfiles = {'file': open('variants.vcf', 'rb')}
-    rsid_vcf_res = requests.post(url, files=myfiles)
+
+    try:
+        rsid_vcf_res = requests.post(url, files=myfiles)
+    except RequestException as e:
+        current_app.logger.error(f'Failed to connect to NCBI Variation Service: {e}')
+        # send service unavailable status code
+        return InternalResponse(None, 503, e)
 
     if rsid_vcf_res.status_code != 200:
         current_app.logger.error(f'NCBI Variation Service failed: {rsid_vcf_res.reason}')
@@ -195,11 +202,13 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
 
     if get_rsids_res.status != 200:
         current_app.logger.error(
-            f'Get RSIDs query failed 500')
+            f'Get RSIDs query failed {get_rsids_res.status}')
         return InternalResponse(None, 500)
     else:
         # get variant RSIDs
         vus_df['RSID'] = get_rsids_res.data
+
+        print('hereeeeee', get_rsids_res.data)
 
         # check validity of RSIDs
         rsid_verification = []

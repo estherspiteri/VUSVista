@@ -86,7 +86,7 @@ def get_publications(rsid: str) -> Response:
     if litvar_id_res.status != 200:
         current_app.logger.error(
             f'LitVar Search Variant query failed 500')
-        return Response({'isSuccess': False}, 500)
+        return Response(json.dumps({'isSuccess': False}), 500)
     else:
         litvar_id = litvar_id_res.data
 
@@ -100,7 +100,7 @@ def get_publications(rsid: str) -> Response:
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
                     f'LitVar Variant Publications query failed 500')
-                return Response({'isSuccess': False}, 500)
+                return Response(json.dumps({'isSuccess': False}), 500)
             else:
                 litvar_publications = litvar_publications_res.data
                 publications_df = pd.DataFrame.from_records(litvar_publications['results'])
@@ -115,7 +115,7 @@ def get_publications(rsid: str) -> Response:
                 if pubmed_publications_res.status != 200:
                     current_app.logger.error(
                         f'Entrez Publications query failed 500')
-                    return Response({'isSuccess': False}, 500)
+                    return Response(json.dumps({'isSuccess': False}), 500)
                 else:
                     current_app.logger.info(f'Appending PubMed abstracts to LitVar publications')
 

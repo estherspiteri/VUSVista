@@ -1,8 +1,15 @@
 from flask import Flask
 from flask_cors import CORS
 from logging.config import dictConfig
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from server.config import SQLALCHEMY_DATABASE_URI, db
+from server.models import Base
 from server.views.litvar_views import litvar_views
 from server.views.vus_views import vus_views
+from flask_sqlalchemy import SQLAlchemy
 
 
 def create_app():
@@ -26,6 +33,9 @@ def create_app():
 
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
+
+    # Initialize SQLAlchemy with the Flask app
+    db.init_app(app)
 
     CORS(app)
 

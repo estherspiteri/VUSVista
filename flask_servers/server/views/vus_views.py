@@ -1,22 +1,19 @@
+from datetime import datetime
+from typing import List, Tuple
+
 from flask import Blueprint, Response, current_app, request
 import pandas as pd
 import json
 
-from server.helpers.data_helper import convert_df_to_list, prep_vus_df_for_react
-from server.services.vus_preprocess_service import handle_vus_file
+from server import db
+from server.helpers.data_helper import convert_df_to_list
+from server.models import Variants, VariantType, Classification, Consequence, GeneAnnotations, GeneAttributes, \
+    ExternalReferences, DbSnp, Clinvar
+from server.services.vus_preprocess_service import handle_vus_file, get_external_references
 
 vus_views = Blueprint('vus_views', __name__)
 
 
-# @vus_views.route('/file/resume/<string:stage>', methods=['POST'])
-# def resume_vus_preprocessing(stage: str):
-#     current_app.logger.info(f"Resuming VUS file preprocessing at stage: {stage}")
-#
-#     return resume_vus_processing(stage)
-
-
-# To include if you want VUS preprocessing, retrieval of RSIDs and retrieval of CLinVar classifications to be executed
-# one after the other
 @vus_views.route('/file', methods=['POST'])
 def store_and_verify_vus_file():
     current_app.logger.info(f"User storing new VUS file")
@@ -27,22 +24,83 @@ def store_and_verify_vus_file():
     return handle_vus_file(file)
 
 
+# TODO: merge with the function found in vus_preprocess_service.py
+def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
+    # insert columns for clinvar clinical significance and error messages
+    vus_df['clinvarClassification'] = ""
+    vus_df['clinvarClassificationLastEval'] = ""
+    vus_df['clinvarClassificationReviewStatus'] = ""
+    vus_df['clinvarErrorMsg'] = ""
+    vus_df['clinvarCanonicalSpdi'] = ""
+    vus_df['clinvarUid'] = ""
+
+    # insert columns for dbsnp and error messages
+    vus_df['rsid'] = ""
+    vus_df['rsidDbsnpVerified'] = False
+    vus_df['rsidDbsnpErrorMsgs'] = ""
+
+    # create new column to determine whether the variant has already been stored in the db or not
+    vus_df.insert(0, 'Exists in DB', False)
+
+    return vus_df
+
+
 @vus_views.route('/view', methods=['GET'])
 def view_all_vus():
     current_app.logger.info(f"User requested to view all VUS")
 
-    # read the variant list into a dataframe
-    # TODO: load from db
-    try:
-        var_df = pd.read_excel('final_vus.xlsx', header=0)
-        var_df = var_df.fillna('')
-    except Exception as e:
-        current_app.logger.error(f'Error loading VUS from file: {e}')
-        return Response(json.dumps({'isSuccess': False}), 500)
+    variants: List[Variants] = db.session.query(Variants).all()
 
-    new_var_df = prep_vus_df_for_react(var_df)
+    variants_data = [{'variantId': v.variant_id, 'chromosome': v.chromosome,
+                      'chromosomePosition': v.chromosome_position, 'gene': v.gene_name,
+                      'type': v.variant_type.value, 'refAllele': v.ref, 'observedAllele': v.alt,
+                      'classification': v.classification.value} for v in variants]
 
-    var_list = convert_df_to_list(new_var_df)
+    # store the variants into a dataframe
+    vus_df = pd.DataFrame(variants_data)
+
+    vus_df = add_missing_columns(vus_df)
+
+    vus_df_copy = vus_df.copy()
+
+    # iterate through the dataframe
+    for index, row in vus_df_copy.iterrows():
+        # retrieve all external references related to that variant
+        external_references: List[ExternalReferences] = db.session.query(ExternalReferences).filter(
+            ExternalReferences.variant_id == row['variantId']
+        ).all()
+
+        for ref in external_references:
+            if ref.db_type == 'db_snp':
+                # retrieve dbsnp entry related to the variant
+                dbsnp: DbSnp = db.session.query(DbSnp).filter(
+                    DbSnp.external_references_id == ref.external_references_id
+                ).one_or_none()
+
+                vus_df.at[index, 'rsid'] = dbsnp.db_snp_id
+                vus_df.at[index, 'rsidDbsnpVerified'] = len(ref.error_msg) == 0
+                vus_df.at[index, 'rsidDbsnpErrorMsgs'] = ref.error_msg
+
+            elif ref.db_type == 'clinvar':
+                # retrieve clinvar entry related to the variant
+                clinvar: Clinvar = db.session.query(Clinvar).filter(
+                    Clinvar.external_references_id == ref.external_references_id
+                ).one_or_none()
+
+                if clinvar.last_evaluated is not None:
+                    clinvar_last_evaluated = datetime.strftime(clinvar.last_evaluated, '%Y/%m/%d %H:%M')
+                else:
+                    clinvar_last_evaluated = None
+
+                # populate the clinvar fields
+                vus_df.at[index, 'clinvarUid'] = clinvar.clinvar_id
+                vus_df.at[index, 'clinvarCanonicalSpdi'] = clinvar.canonical_spdi
+                vus_df.at[index, 'clinvarClassification'] = clinvar.classification
+                vus_df.at[index, 'clinvarClassificationReviewStatus'] = clinvar.review_status
+                vus_df.at[index, 'clinvarClassificationLastEval'] = clinvar_last_evaluated
+                vus_df.at[index, 'clinvarErrorMsg'] = ref.error_msg
+
+    var_list = convert_df_to_list(vus_df)
 
     return Response(json.dumps({'isSuccess': True, 'vusList': var_list}), 200, mimetype='application/json')
 

@@ -148,14 +148,6 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
 # TODO: retrieve other vital infor from clinvar (such as last modfied)
 # Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding ClinVar variant and extract its clinical significance.
 def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalResponse:
-    # insert columns for clinvar clinical significance and error messages
-    vus_df['Clinvar classification'] = ''
-    vus_df['Clinvar classification last eval'] = ""
-    vus_df['Clinvar classification review status'] = ""
-    vus_df['Clinvar error msg'] = ""
-    vus_df['Clinvar canonical spdi'] = ""
-    vus_df['Clinvar uid'] = ""
-
     genome_version = 'GRCh37'
     performance_dict = {}
 

@@ -14,7 +14,6 @@ def convert_df_to_list(df: pd.DataFrame) -> List:
 def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     # to match React camelCase syntax
     new_vus_df = pd.DataFrame()
-    new_vus_df['vusID'] = vus_df['VUS Id']
     new_vus_df['chromosome'] = vus_df['Chr']
     new_vus_df['chromosomePosition'] = vus_df['Position']
     new_vus_df['gene'] = vus_df['Gene']

@@ -142,10 +142,14 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
                     {props.vus.clinvarCanonicalSpdi}
                   </div>
                 </>
-              ) : (
+              ) : props.vus.clinvarErrorMsg.length > 0 ? (
                 <div className={styles.information}>
                   <div className={styles["info-title"]}>Error message:</div>
                   {props.vus.clinvarErrorMsg}
+                </div>
+              ) : (
+                <div className={styles.information}>
+                  Clincal significance not reported in ClinVar
                 </div>
               )}
             </div>

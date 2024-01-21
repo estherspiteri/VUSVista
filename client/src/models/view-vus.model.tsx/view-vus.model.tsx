@@ -16,5 +16,4 @@ export interface IVus {
   rsidDbsnpVerified: boolean;
   rsidDbsnpErrorMsgs: string;
   type: string; //TODO: change to enum?
-  vusID: number;
 }
