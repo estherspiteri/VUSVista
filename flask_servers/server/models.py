@@ -179,8 +179,6 @@ class SampleFiles(Base):
     sample_file_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     date_uploaded = mapped_column(DateTime, nullable=False)
     filename = mapped_column(Text, nullable=False)
-    are_rsids_retrieved = mapped_column(Boolean, nullable=False)
-    is_clinvar_accessed = mapped_column(Boolean, nullable=False)
 
     samples: Mapped[List['Samples']] = relationship('Samples', uselist=True, back_populates='sample_file')
 
@@ -222,7 +220,6 @@ class Samples(Base):
     sample_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     sample_file_id = mapped_column(Integer, nullable=False)
     phenotype = mapped_column(Text)
-    date_collected = mapped_column(DateTime)
     genome_version = mapped_column(String(20))
 
     sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', back_populates='samples')

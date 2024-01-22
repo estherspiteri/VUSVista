@@ -11,7 +11,7 @@ import json
 from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences
+    Clinvar, ExternalReferences, SampleFiles, Samples
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -375,6 +375,32 @@ def store_vus_df_in_db(vus_df: pd.DataFrame):
         return InternalResponse(None, 500)
 
 
+def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage):
+    # store the file in the db
+    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now().timestamp())
+    db.session.add(new_sample_file)
+
+    db.session.flush()
+
+    unique_samples = []
+
+    # iterate through the dataframe
+    for index, row in vus_df.iterrows():
+        # extract sample ids
+        samples = row['Sample Ids'].replace(' ','').split(',')
+        unique_samples.append(samples)
+
+    # remove duplicate sample ids
+    unique_samples = set(unique_samples)
+
+    # store each unique sample in the db
+    for sample in unique_samples:
+        new_sample = Samples(sample_id=sample, sample_file_id=new_sample_file.sample_file_id, genome_version='GRCh37')
+        db.session.add(new_sample)
+
+    db.session.flush()
+
+
 def handle_vus_file(file: FileStorage) -> Response:
     vus_df = pd.read_excel(file, header=2)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
@@ -390,8 +416,13 @@ def handle_vus_file(file: FileStorage) -> Response:
         vus_df = preprocess_vus_res.data['vus_df']
 
         # store those vus that do not already exist in the db
+
+        create_file_and_sample_entries_in_db(vus_df, file)
+
         store_res = store_vus_df_in_db(vus_df)
 
+# TODO: store variants_samples
+# TODO: commit to db in the end?
         if store_res.status != 200: #TODO: send to front end that db saving failed?
             response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': False}
             return Response(json.dumps(response), 200)

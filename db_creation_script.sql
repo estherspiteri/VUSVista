@@ -116,14 +116,14 @@ CREATE TABLE sample_files (
     sample_file_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_uploaded TIMESTAMP NOT NULL,
     filename TEXT NOT NULL,
-    are_rsids_retrieved BOOLEAN NOT NULL,
-    is_clinvar_accessed BOOLEAN NOT NULL
+    -- are_rsids_retrieved BOOLEAN NOT NULL,
+    -- is_clinvar_accessed BOOLEAN NOT NULL
 );
 
 CREATE TABLE samples (
-    sample_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    sample_id TEXT PRIMARY KEY,
     phenotype TEXT,
-    date_collected TIMESTAMP,
+    -- date_collected TIMESTAMP,
     genome_version VARCHAR(20),
     sample_file_id INT NOT NULL,
     CONSTRAINT fk_sample_files
