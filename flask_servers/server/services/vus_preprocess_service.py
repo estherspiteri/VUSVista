@@ -11,7 +11,7 @@ import json
 from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences, SampleFiles, Samples
+    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -229,7 +229,9 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
     return vus_df
 
 
-def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame, List[int]):
+    existing_variant_ids = []
+
     # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
     new_vus_df = vus_df.copy()
 
@@ -257,12 +259,14 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
             vus_df.at[index, 'Classification'] = str(variant.classification)
             # vus_df.at[index, ''] = variant.consequences TODO: add consequence to variant info
 
+            existing_variant_ids.append(variant.variant_id)
+
             vus_df = get_external_references(variant.variant_id, index, vus_df)
 
     existing_vus_df = vus_df[vus_df['Exists in DB']]
     vus_df = vus_df[~vus_df['Exists in DB']]
 
-    return existing_vus_df, vus_df
+    return existing_vus_df, vus_df, existing_variant_ids
 
 
 def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
@@ -291,7 +295,7 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
     vus_df = add_missing_columns(vus_df)
 
     # check for existing variants
-    existing_vus_df, vus_df = check_for_existing_variants(vus_df)
+    existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
 
     if len(vus_df) > 0:
         vus_df = get_gene_ids(vus_df)
@@ -314,10 +318,13 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
             else:
                 vus_df = retrieve_clinvar_variant_classifications_res.data
 
-    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df}, 200)
+    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
+                             'existing_variant_ids': existing_variant_ids}, 200)
 
 
-def store_vus_df_in_db(vus_df: pd.DataFrame):
+def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
+    variant_ids = []
+
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # create new variant
@@ -328,6 +335,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame):
         db.session.add(new_variant)
 
         db.session.flush()
+        variant_ids.append(new_variant.variant_id)
 
         if len(row['RSID']) > 0:
             new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
@@ -361,23 +369,12 @@ def store_vus_df_in_db(vus_df: pd.DataFrame):
                                   last_evaluated=clinvar_last_evaluated)
             db.session.add(new_clinvar)
 
-    try:
-        # Commit the session to persist changes to the database
-        db.session.commit()
-        return InternalResponse(None, 200)
-    except SQLAlchemyError as e:
-        # Changes were rolled back due to an error
-        db.session.rollback()
-
-        current_app.logger.error(
-            f'Rollback carried out since insertion of variants in DB failed due to error: {e}')
-
-        return InternalResponse(None, 500)
+    return variant_ids
 
 
 def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage):
     # store the file in the db
-    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now().timestamp())
+    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now())
     db.session.add(new_sample_file)
 
     db.session.flush()
@@ -387,12 +384,12 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage)
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # extract sample ids
-        samples = row['Sample Ids'].replace(' ','').split(',')
-        unique_samples.append(samples)
+        samples = row['Sample Ids'].replace(' ', '').split(',')
+        unique_samples.extend(samples)
 
     # remove duplicate sample ids
-    unique_samples = set(unique_samples)
-
+    unique_samples = list(set(unique_samples))
+    print(unique_samples)
     # store each unique sample in the db
     for sample in unique_samples:
         new_sample = Samples(sample_id=sample, sample_file_id=new_sample_file.sample_file_id, genome_version='GRCh37')
@@ -401,8 +398,30 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage)
     db.session.flush()
 
 
+def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int]):
+    # iterate through the dataframe
+    for index, row in vus_df.iterrows():
+        variant_id = variant_ids[int(index)]
+
+        alt = row['Observed Allele']
+        vus_genotype = row['Genotype']
+
+        genotype_split = vus_genotype.split('/')
+
+        genotype = Genotype.HETEROZYGOUS
+
+        if genotype_split[0] == alt and genotype_split[1] == alt:
+            genotype = Genotype.HOMOZYGOUS
+
+        samples = row['Sample Ids'].replace(' ', '').split(',')
+
+        for sample in samples:
+            new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)
+            db.session.add(new_variants_samples)
+
+
 def handle_vus_file(file: FileStorage) -> Response:
-    vus_df = pd.read_excel(file, header=2)  # TODO: check re header
+    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
     preprocess_vus_res = preprocess_vus(vus_df)
@@ -413,30 +432,44 @@ def handle_vus_file(file: FileStorage) -> Response:
         return Response(json.dumps(response), 200)
     else:
         existing_vus_df = preprocess_vus_res.data['existing_vus_df']
+        existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
+
         vus_df = preprocess_vus_res.data['vus_df']
 
+        # join existing vus_df with the new vus
+        all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
+
+        # store file and samples entries
+        create_file_and_sample_entries_in_db(all_vus_df, file)
+
         # store those vus that do not already exist in the db
+        variant_ids = store_vus_df_in_db(vus_df)
 
-        create_file_and_sample_entries_in_db(vus_df, file)
+        # join existing vus_df's variant ids with the new vus variant ids
+        all_variant_ids = existing_variant_ids + variant_ids
 
-        store_res = store_vus_df_in_db(vus_df)
+        # store variants-samples entries in db
+        store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
 
-# TODO: store variants_samples
-# TODO: commit to db in the end?
-        if store_res.status != 200: #TODO: send to front end that db saving failed?
-            response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': False}
+        try:
+            # Commit the session to persist changes to the database
+            db.session.commit()
+        except SQLAlchemyError as e:
+            # Changes were rolled back due to an error
+            db.session.rollback()
+
+            current_app.logger.error(
+                f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
+
+            response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
             return Response(json.dumps(response), 200)
-        else:
-            # Join existing vus_df with the new vus
-            # Concatenate along rows (axis=0)
-            all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
 
-            # update column names to camelCase format
-            new_vus_df = prep_vus_df_for_react(all_vus_df)
+        # update column names to camelCase format
+        new_vus_df = prep_vus_df_for_react(all_vus_df)
 
-            # convert df to list
-            vus_list = convert_df_to_list(new_vus_df)
+        # convert df to list
+        vus_list = convert_df_to_list(new_vus_df)
 
-            return Response(
-                json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                            'vusList': vus_list}), 200)
+        return Response(
+            json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                        'vusList': vus_list}), 200)
