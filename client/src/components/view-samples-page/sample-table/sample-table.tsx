@@ -1,17 +1,10 @@
 import React from "react";
 import styles from "./sample-table.module.scss";
 import ViewSample from "../view-sample/view-sample";
+import { ISample } from "../../../models/view-samples.model";
 
 type SampleTableProps = {
-  sampleList: {
-    id: string;
-    dateCollected: string;
-    description: string;
-    genomeVersion: string;
-    // variants: IVus[];
-    fileName: string;
-    numOfVariants: number;
-  }[];
+  sampleList: ISample[];
   onSampleClickCallback?: (sampleId: string) => void;
 };
 
@@ -23,7 +16,7 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
       <div className={styles.header}>
         <div>Sample Id</div>
         <div>No. of Variants</div>
-        <div>Date collected</div>
+        <div>Phenotype</div>
       </div>
       {props.sampleList.map((sample, index) => {
         return (

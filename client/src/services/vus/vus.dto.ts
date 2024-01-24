@@ -1,4 +1,4 @@
-import { IVus } from "../../models/view-vus.model.tsx/view-vus.model";
+import { IVus } from "../../models/view-vus.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;

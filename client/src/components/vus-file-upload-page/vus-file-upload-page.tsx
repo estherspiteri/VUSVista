@@ -5,7 +5,7 @@ import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
 import uploadGif from "./upload.gif";
 import { Banner } from "../banner/banner";
 import Loader from "../loader/loader";
-import { IVus } from "../../models/view-vus.model.tsx/view-vus.model";
+import { IVus } from "../../models/view-vus.model";
 import VusTable from "../view-vus-page/vus-table/vus-table";
 
 type VusFileUploadPageProps = {

@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./vus-table.module.scss";
-import { IVus } from "../../../models/view-vus.model.tsx/view-vus.model";
+import { IVus } from "../../../models/view-vus.model";
 import ViewVus from "../../view-vus-page/view-vus/view-vus";
 
 type VusTableProps = { vusList: IVus[]; showGenotype?: boolean };

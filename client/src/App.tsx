@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./App.module.scss";
-import { IVus } from "./models/view-vus.model.tsx/view-vus.model";
+import { IVus } from "./models/view-vus.model";
 import { Route, Routes } from "react-router-dom";
 import PublicationSearch from "./components/publication-search-page/publication-search-page";
 import { publicationService } from "./services/publication/publication.service";
@@ -9,6 +9,7 @@ import Header from "./components/header/header";
 import ViewVusPage from "./components/view-vus-page/view-vus-page";
 import VusFileUploadPage from "./components/vus-file-upload-page/vus-file-upload-page";
 import ViewAllSamples from "./components/view-samples-page/view-samples-page";
+import { samplesService } from "./services/sample/sample.service";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -25,7 +26,7 @@ const App: React.FunctionComponent<AppProps> = () => {
         />
         <Route
           path="/view-samples"
-          element={<ViewAllSamples vusService={vusService} />}
+          element={<ViewAllSamples sampleService={samplesService} />}
         />
         <Route
           path="/view-vus"

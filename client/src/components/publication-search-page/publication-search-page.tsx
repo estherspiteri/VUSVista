@@ -4,7 +4,7 @@ import PublicationPreview from "./publication-preview/publication-preview";
 import {
   IPublicationPreview,
   IPublicationSearch,
-} from "../../models/publication-search/publication-search.model";
+} from "../../models/publication-search.model";
 import { PublicationService } from "../../services/publication/publication.service";
 import Loader from "../loader/loader";
 
