@@ -115,7 +115,7 @@ CREATE TABLE clinvar (
 CREATE TABLE sample_files (
     sample_file_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_uploaded TIMESTAMP NOT NULL,
-    filename TEXT NOT NULL,
+    filename TEXT NOT NULL
     -- are_rsids_retrieved BOOLEAN NOT NULL,
     -- is_clinvar_accessed BOOLEAN NOT NULL
 );
@@ -135,7 +135,7 @@ CREATE TABLE samples (
 -- VARIANTS/SAMPLES
 CREATE TABLE variants_samples (
     variant_id INT NOT NULL,
-    sample_id INT NOT NULL,
+    sample_id TEXT NOT NULL,
     genotype GENOTYPE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
@@ -157,7 +157,7 @@ CREATE TABLE acmg_rules(
 -- SAMPLES/VARIANTS/ACMG_RULES
 CREATE TABLE samples_variants_acmg_rules(
     variant_id INT NOT NULL,
-    sample_id INT NOT NULL,
+    sample_id TEXT NOT NULL,
     rule_name ACMG_RULE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
