@@ -31,7 +31,7 @@ const ViewAllVus: React.FunctionComponent<ViewAllVusProps> = (
         </p>
       </div>
       {vusList ? (
-        <VusTable vusList={vusList} showGenotype={false} />
+        <VusTable vusList={vusList} showGenotype={false} showZygosity={true} />
       ) : (
         <Loader />
       )}

@@ -384,7 +384,7 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage)
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # extract sample ids
-        samples = row['Sample Ids'].replace(' ', '').split(',')
+        samples = str(row['Sample Ids']).replace(' ', '').split(',')
         unique_samples.extend(samples)
 
     # remove duplicate sample ids
@@ -413,7 +413,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
         if genotype_split[0] == alt and genotype_split[1] == alt:
             genotype = Genotype.HOMOZYGOUS
 
-        samples = row['Sample Ids'].replace(' ', '').split(',')
+        samples = str(row['Sample Ids']).replace(' ', '').split(',')
 
         for sample in samples:
             new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)

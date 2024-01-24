@@ -3,7 +3,7 @@ import styles from "./vus-table.module.scss";
 import { IVus } from "../../../models/view-vus.model";
 import ViewVus from "../../view-vus-page/view-vus/view-vus";
 
-type VusTableProps = { vusList: IVus[]; showGenotype?: boolean };
+type VusTableProps = { vusList: IVus[]; showGenotype?: boolean; showZygosity?:boolean };
 
 const VusTable: React.FunctionComponent<VusTableProps> = (
   props: VusTableProps
@@ -30,6 +30,7 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
             vus={vus}
             isColoured={index % 2 === 0}
             showGenotype={props.showGenotype}
+            showZygosityQty={props.showZygosity}
           />
         );
       })}

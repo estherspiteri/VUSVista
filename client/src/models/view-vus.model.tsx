@@ -16,4 +16,6 @@ export interface IVus {
   rsidDbsnpVerified: boolean;
   rsidDbsnpErrorMsgs: string;
   type: string; //TODO: change to enum?
+  numHeterozygous?: number;
+  numHomozygous?: number;
 }

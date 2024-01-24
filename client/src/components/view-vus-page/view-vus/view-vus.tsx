@@ -6,6 +6,7 @@ type ViewVusProps = {
   vus?: IVus;
   isColoured?: boolean;
   showGenotype?: boolean;
+  showZygosityQty?: boolean;
 };
 
 const ViewVus: React.FunctionComponent<ViewVusProps> = (
@@ -116,6 +117,12 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
       >
         {/*TODO: Next to is RSID verified do info icon - on hover show what info was compared. Same for clinvar*/}
         <div className={styles["additional-info-content"]}>
+          {props.showZygosityQty && (
+            <>
+              <p>Num of Homozygous samples: {props.vus.numHomozygous}</p>
+              <p>Num of Heterozygous samples: {props.vus.numHeterozygous}</p>
+            </>
+          )}
           <div
             className={`${styles["info-container"]} ${styles["clinvar-info"]} ${
               props.vus.clinvarErrorMsg.length > 0 ? styles.disabled : ""
@@ -203,6 +210,7 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
 
 ViewVus.defaultProps = {
   showGenotype: false,
+  showZygosityQty: false,
 };
 
 export default ViewVus;

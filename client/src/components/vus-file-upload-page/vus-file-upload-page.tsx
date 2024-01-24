@@ -207,7 +207,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   </div>
                 </div>
 
-                <VusTable vusList={vusList} showGenotype={true} />
+                <VusTable vusList={vusList} showGenotype={true} showZygosity={false} />
               </div>
             )}
           </div>

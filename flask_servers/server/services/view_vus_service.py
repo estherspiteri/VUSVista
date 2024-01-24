@@ -5,7 +5,7 @@ import pandas as pd
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
-from server.models import ExternalReferences, Variants, DbSnp, Clinvar
+from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype
 
 
 # TODO: merge with the function found in vus_preprocess_service.py
@@ -80,6 +80,16 @@ def retrieve_all_vus_from_db():
                 vus_df.at[index, 'clinvarClassificationReviewStatus'] = clinvar.review_status
                 vus_df.at[index, 'clinvarClassificationLastEval'] = clinvar_last_evaluated
                 vus_df.at[index, 'clinvarErrorMsg'] = ref.error_msg
+
+        # retrieve all samples related to that variant
+        variant_samples: List[VariantsSamples] = (db.session.query(VariantsSamples)
+                                                  .filter(VariantsSamples.variant_id == row['variantId'])).all()
+
+        num_heterozygous = len([s for s in variant_samples if s.genotype == Genotype.HETEROZYGOUS])
+        num_homozygous = len(variant_samples) - num_heterozygous
+
+        vus_df.at[index, 'numHeterozygous'] = num_heterozygous
+        vus_df.at[index, 'numHomozygous'] = num_homozygous
 
     var_list = convert_df_to_list(vus_df)
 
