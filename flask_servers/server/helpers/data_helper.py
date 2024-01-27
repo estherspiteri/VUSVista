@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List
+from typing import List, Dict
 
 
 def convert_df_to_list(df: pd.DataFrame) -> List:
@@ -9,6 +9,14 @@ def convert_df_to_list(df: pd.DataFrame) -> List:
         final_list.append(row.to_dict())
     print(final_list)
     return final_list
+
+
+def prep_unprocessed_vus_dict_for_react(vus: Dict) -> Dict:
+    # to match React camelCase syntax
+    new_vus = {'locus': vus['Locus'], 'type': vus['Type'], 'genotype': vus['Genotype'], 'refAllele': vus['Reference'],
+               'observedAllele': vus['Observed Allele']}
+
+    return new_vus
 
 
 def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:

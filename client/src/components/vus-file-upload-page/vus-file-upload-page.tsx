@@ -7,6 +7,8 @@ import { Banner } from "../banner/banner";
 import Loader from "../loader/loader";
 import { IVus } from "../../models/view-vus.model";
 import VusTable from "../view-vus-page/vus-table/vus-table";
+import { IVusGene } from "../../models/vus_file_upload.model";
+import ViewVus from "../view-vus-page/view-vus/view-vus";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -15,15 +17,20 @@ type VusFileUploadPageProps = {
 const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   props: VusFileUploadPageProps
 ) => {
-  const [areRsidsRetrieved, setAreRsidsRetrieved] = useState(false);
-  const [isClinvarAccessed, setIsClinvarAccessed] = useState(false);
+  // const [areRsidsRetrieved, setAreRsidsRetrieved] = useState(false);
+  // const [isClinvarAccessed, setIsClinvarAccessed] = useState(false);
 
   const [file, setFile] = useState<File | undefined>(undefined);
   const [isProcessing, setIsUploading] = useState(false);
   const [isFileProcessed, setIsFileUploaded] = useState(false);
   const [vusList, setVusList] = useState<IVus[]>(undefined);
+  const [multipleGenes, setMultipleGenes] = useState<IVusGene[]>(undefined);
+  const [multipleGenesSelection, setMultipleGenesSelection] = useState<
+    (string | undefined)[] | undefined
+  >(undefined);
 
   const [errorMsg, setErrorMsg] = useState("");
+  console.log(multipleGenesSelection);
 
   const onFileDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -121,9 +128,10 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
               <div className={styles["uploaded-file"]}>
                 <span className={styles["file-name"]}>{file.name}</span>
                 <div className={styles.icon} onClick={() => setFile(undefined)}>
-                  {isProcessing ? (
+                  {isProcessing || multipleGenes?.length > 0 ? (
                     <Loader width={16} thickness={2} />
                   ) : isFileProcessed ? (
+                    // check icon
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -137,6 +145,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                       />
                     </svg>
                   ) : (
+                    // close icon
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
@@ -158,7 +167,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
               onClick={() =>
                 isFileProcessed ? newFileUpload() : processFile()
               }
-              className={`${styles.btn} ${isProcessing ? styles.disabled : ""}`}
+              className={`${styles.btn} ${
+                isProcessing || multipleGenes?.length > 0 ? styles.disabled : ""
+              }`}
             >
               <div className={styles["btn-content"]}>
                 <span>
@@ -207,7 +218,11 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   </div>
                 </div>
 
-                <VusTable vusList={vusList} showGenotype={true} showZygosity={false} />
+                <VusTable
+                  vusList={vusList}
+                  showGenotype={true}
+                  showZygosity={false}
+                />
               </div>
             )}
           </div>
@@ -218,12 +233,82 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           <p className={styles.errorMsg}>{errorMsg}</p>
         </Banner>
       )}
+      {multipleGenes && multipleGenes.length > 0 && (
+        <>
+          <div className={styles["modal-overlay"]} />
+          <div className={styles["multiple-gene-selection-modal"]}>
+            <p>{`Please select one gene for each of the following variant${
+              multipleGenes.length > 1 && "s"
+            }:`}</p>
+            <div className={styles.wrapper}>
+              <div className={styles["variant-info"]}>
+                <div className={styles.header}>
+                  <div className={styles.field}>Locus</div>
+                  <div className={styles.field}>Type</div>
+                  <div className={styles.field}>Genotype</div>
+                  <div className={styles.field}>Reference</div>
+                  <div className={styles.field}>Observed Allele</div>
+                </div>
+                <div className={styles.content}>
+                  {multipleGenes.map((x) => {
+                    return (
+                      <div className={styles.info}>
+                        <div className={styles.field}>{x.vus.locus}</div>
+                        <div className={styles.field}>{x.vus.type}</div>
+                        <div className={styles.field}>{x.vus.genotype}</div>
+                        <div className={styles.field}>{x.vus.refAllele}</div>
+                        <div className={styles.field}>
+                          {x.vus.observedAllele}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className={styles["gene-selection"]}>
+                {multipleGenes.map((x, multipleGenesIndex) => {
+                  return (
+                    <div className={`${styles.field} ${styles.genes}`}>
+                      {x.genes.map((gene, geneIndex) => {
+                        return (
+                          <label>
+                            <input
+                              type="radio"
+                              name={`gene-selection-${multipleGenesIndex}`}
+                              value={gene}
+                              checked={
+                                multipleGenesSelection[multipleGenesIndex] ===
+                                gene
+                              }
+                              onChange={(e) =>
+                                setMultipleGenesSelection(
+                                  multipleGenesSelection.map((selection, i) => {
+                                    if (i === multipleGenesIndex) {
+                                      return gene;
+                                    } else return selection;
+                                  })
+                                )
+                              }
+                              className={styles.radio}
+                            />
+                            {gene}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 
   function newFileUpload() {
-    setAreRsidsRetrieved(false);
-    setIsClinvarAccessed(false);
+    // setAreRsidsRetrieved(false);
+    // setIsClinvarAccessed(false);
 
     setFile(undefined);
 
@@ -241,6 +326,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     props.vusService
       ?.storeAndVerifyVusFile({
         vusFile: file,
+        // multipleGenesSelection: multipleGenes
       })
       .then((res) => {
         setIsUploading(false);
@@ -249,11 +335,22 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         if (!res.isSuccess) {
           setErrorMsg("Failed to succesfully process file. Please try again!");
         } else {
-          setVusList(res.vusList);
+          if (res.multipleGenes && res.multipleGenes.length > 0) {
+            // populate gene selection array with undefined
+            setMultipleGenesSelection(
+              Array.apply(undefined, Array(res.multipleGenes.length))
+            );
+
+            setMultipleGenes(res.multipleGenes);
+          } else {
+            setMultipleGenes(undefined);
+            setMultipleGenesSelection(undefined);
+            setVusList(res.vusList);
+          }
         }
 
-        setAreRsidsRetrieved(res.areRsidsRetrieved);
-        setIsClinvarAccessed(res.isClinvarAccessed);
+        // setAreRsidsRetrieved(res.areRsidsRetrieved);
+        // setIsClinvarAccessed(res.isClinvarAccessed);
       });
   }
 };

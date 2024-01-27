@@ -10,7 +10,13 @@ export class VusService {
   ): Promise<IStoreAndVerifyVusFileResponse> {
     let data = new FormData();
     data.append("file", input.vusFile);
-
+    
+    if (input.multipleGenesSelection) {
+      data.append(
+        "multipleGenesSelection",
+        JSON.stringify(input.multipleGenesSelection)
+      );
+    }
     const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/file`, {
       method: "POST",
       body: data,

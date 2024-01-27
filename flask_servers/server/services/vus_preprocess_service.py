@@ -9,7 +9,7 @@ from werkzeug.datastructures import FileStorage
 import json
 
 from server import db
-from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
+from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype
 from server.responses.internal_response import InternalResponse
@@ -112,22 +112,39 @@ def extract_chr_and_position(vus_df: pd.DataFrame):
     return vus_df
 
 
-def filter_vus(vus_df: pd.DataFrame) -> pd.DataFrame:
+def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
+    multiple_genes = []
+
+    for index, row in vus_df.iterrows():
+        # get the gene name
+        gene_string = row['Gene']
+        genes = gene_string.replace(' ', '').split(',')
+
+        # exclude AS1 and LOC from genes
+        filtered_genes = [g for g in genes if 'AS1' not in g and 'LOC' not in g]
+
+        # note if variant has multiple genes
+        if len(filtered_genes) > 1:
+            vus = prep_unprocessed_vus_dict_for_react(row.to_dict())
+            multiple_genes.append({'index': index, 'vus': vus, 'genes': filtered_genes})
+
+    return multiple_genes
+
+
+def filter_vus(vus_df: pd.DataFrame) -> InternalResponse:
+    multiple_genes = check_for_multiple_genes(vus_df)
+    #TODO: remove other function for multiple genes
+
+    if len(multiple_genes) > 0:
+        return InternalResponse({'multiple_genes': multiple_genes}, 200)
+
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
     vus_df = vus_df[vus_df['Type'].str.contains('CNV|LONGDEL', case=False, regex=True) == False]
 
-    # remove variant id column
-    vus_df = vus_df.drop(columns=['Variant Id'])
-
-    # remove flag type column
-    vus_df = vus_df.drop(columns=['FlagType'])
-
     vus_df = extract_chr_and_position(vus_df)
 
-    # TODO: store in db
-
-    return vus_df
+    return InternalResponse({'multiple_genes': None, 'filtered_df': vus_df}, 200)
 
 
 def get_rsids(vus_df: pd.DataFrame):
@@ -140,8 +157,8 @@ def get_rsids(vus_df: pd.DataFrame):
     else:
         vus_df = get_rsids_from_dbsnp_res.data
 
-        vus_df = handle_vus_with_multiple_genes(
-            vus_df)  # TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
+        # vus_df = handle_vus_with_multiple_genes(
+        #     vus_df)  # TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
 
         # write dataframe to excel file
         # TODO: write to database
@@ -290,36 +307,44 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
-    vus_df = filter_vus(vus_df)
+    filter_vus_res = filter_vus(vus_df)
 
-    vus_df = add_missing_columns(vus_df)
+    if filter_vus_res.data['multiple_genes'] is not None:
+        print(filter_vus_res.data['multiple_genes'])
+        current_app.logger.info(f'Some VUS contain multiple genes!')
+        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
+                                 'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
+    else:
+        vus_df = filter_vus_res.data['filtered_df']
 
-    # check for existing variants
-    existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
+        vus_df = add_missing_columns(vus_df)
 
-    if len(vus_df) > 0:
-        vus_df = get_gene_ids(vus_df)
+        # check for existing variants
+        existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
 
-        preprocess_and_get_rsids_res = get_rsids(vus_df)
+        if len(vus_df) > 0:
+            vus_df = get_gene_ids(vus_df)
 
-        if preprocess_and_get_rsids_res.status != 200:
-            current_app.logger.error(
-                f'Preprocessing of VUS and retrieval of RSIDs failed 500')
-            return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
-        else:
-            vus_df = preprocess_and_get_rsids_res.data
+            preprocess_and_get_rsids_res = get_rsids(vus_df)
 
-            retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
-
-            if retrieve_clinvar_variant_classifications_res.status != 200:
+            if preprocess_and_get_rsids_res.status != 200:
                 current_app.logger.error(
-                    f'Retrieval of ClinVar variant classifications failed 500')
-                return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+                    f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+                return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
             else:
-                vus_df = retrieve_clinvar_variant_classifications_res.data
+                vus_df = preprocess_and_get_rsids_res.data
 
-    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
-                             'existing_variant_ids': existing_variant_ids}, 200)
+                retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
+
+                if retrieve_clinvar_variant_classifications_res.status != 200:
+                    current_app.logger.error(
+                        f'Retrieval of ClinVar variant classifications failed 500')
+                    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+                else:
+                    vus_df = retrieve_clinvar_variant_classifications_res.data
+
+        return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
+                                 'existing_variant_ids': existing_variant_ids}, 200)
 
 
 def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
@@ -430,6 +455,9 @@ def handle_vus_file(file: FileStorage) -> Response:
         response = preprocess_vus_res.data
         response['isSuccess'] = False
         return Response(json.dumps(response), 200)
+    elif preprocess_vus_res.data['multiple_genes'] is not None:
+        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes']}),
+                        200, mimetype='application/json')
     else:
         existing_vus_df = preprocess_vus_res.data['existing_vus_df']
         existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']

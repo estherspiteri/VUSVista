@@ -14,6 +14,8 @@ def store_and_verify_vus_file():
     file = request.files['file']
     current_app.logger.info(f'Received file {file.filename} of type {file.content_type}')
 
+    # multiple_genes_selection = request.form['multipleGenesSelection']
+    #handle multiple_genes
     return handle_vus_file(file)
 
 

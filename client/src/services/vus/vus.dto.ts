@@ -1,7 +1,9 @@
 import { IVus } from "../../models/view-vus.model";
+import { IVusGene, IVusGeneSelected } from "../../models/vus_file_upload.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;
+  multipleGenesSelection?: IVusGeneSelected;
 }
 
 export interface IStoreAndVerifyVusFileResponse {
@@ -9,6 +11,7 @@ export interface IStoreAndVerifyVusFileResponse {
   areRsidsRetrieved: boolean;
   isClinvarAccessed: boolean;
   vusList: IVus[];
+  multipleGenes?: IVusGene[] | null;
 }
 
 export interface ILoadAllVusResponse {
