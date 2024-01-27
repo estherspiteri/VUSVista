@@ -337,7 +337,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
         db.session.flush()
         variant_ids.append(new_variant.variant_id)
 
-        if len(row['RSID']) > 0:
+        if len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
             new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
                                                         db_type='db_snp',
                                                         error_msg=row['RSID dbSNP errorMsgs'])
@@ -372,7 +372,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     return variant_ids
 
 
-def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file:FileStorage):
+def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage):
     # store the file in the db
     new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now())
     db.session.add(new_sample_file)

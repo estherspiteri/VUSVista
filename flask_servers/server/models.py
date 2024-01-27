@@ -66,6 +66,7 @@ class Classification(Enum):
     VUS = 'VUS'
     UNCERTAIN_SIGNIFICANCE = 'UNCERTAIN_SIGNIFICANCE'
     UNCLASSIFIED = 'UNCLASSIFIED'
+#TODO: include LIKELY_VUS
 
 
 class AcmgRules(Base):

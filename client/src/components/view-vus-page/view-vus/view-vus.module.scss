@@ -57,6 +57,11 @@
           background-color: #8f8e94 !important;
         }
 
+        &.unverified-rsid {
+          opacity: 0.8;
+          background-color: #A51534 !important;
+        }
+
         &.active {
           z-index: 100;
 
@@ -66,7 +71,7 @@
         }
 
         &.clinvar {
-          background-color: #78015e;
+          background-color: #7E0062;
         }
 
         &.dbsnp {
@@ -118,22 +123,28 @@
         color: #fff;
         padding: 8px;
         border-radius: 4px;
+        opacity: 0.8;
 
         p {
           margin: 0;
         }
 
         &.clinvar-info {
-          background-color: #78015eba;
+          background-color: #7E0062;
         }
 
         &.dbsnp-info {
-          background-color: #15045eb1;
+          background-color: #14045e;
         }
 
         &.disabled {
           opacity: 0.6;
           background-color: #8f8e94 !important;
+        }
+
+        &.unverified-rsid {
+          opacity: 0.6;
+          background-color: #A51534 !important;
         }
 
         .info {

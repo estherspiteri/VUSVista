@@ -61,9 +61,30 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         </div>
         <div className={styles.pills}>
           <div
+            className={`${styles.pill} ${styles.dbsnp} ${
+              props.vus.rsidDbsnpVerified
+                ? styles.active
+                : props.vus.rsid.length > 0
+                ? styles["unverified-rsid"]
+                : styles.disabled
+            }`}
+            onClick={(e) => {
+              if (props.vus.rsidDbsnpVerified) {
+                e.stopPropagation();
+                openInNewWindow(
+                  `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
+                );
+              }
+            }}
+          >
+            dbSNP
+          </div>
+          <div
             className={`${styles.pill} ${styles.clinvar} ${
-              props.vus.clinvarErrorMsg.length > 0
+              props.vus.clinvarClassification.length === 0
                 ? styles.disabled
+                : props.vus.rsid.length > 0 && !props.vus.rsidDbsnpVerified
+                ? styles["unverified-rsid"]
                 : styles.active
             }`}
             onClick={(e) => {
@@ -76,21 +97,6 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
             }}
           >
             ClinVar
-          </div>
-          <div
-            className={`${styles.pill} ${styles.dbsnp} ${
-              props.vus.rsidDbsnpVerified ? styles.active : styles.disabled
-            }`}
-            onClick={(e) => {
-              if (props.vus.rsidDbsnpVerified) {
-                e.stopPropagation();
-                openInNewWindow(
-                  `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
-                );
-              }
-            }}
-          >
-            dbSNP
           </div>
           {props.vus.rsidDbsnpVerified && (
             <div
@@ -124,11 +130,73 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
             </>
           )}
           <div
-            className={`${styles["info-container"]} ${styles["clinvar-info"]} ${
-              props.vus.clinvarErrorMsg.length > 0 ? styles.disabled : ""
+            className={`${styles["info-container"]} ${styles["dbsnp-info"]} ${
+              props.vus.rsidDbsnpVerified
+                ? ""
+                : props.vus.rsid.length > 0
+                ? styles["unverified-rsid"]
+                : styles.disabled
             }`}
           >
-            <p className={styles["info-cotainer-title"]}>ClinVar</p>
+            <p className={styles["info-container-title"]}>dbSnp</p>
+
+            <div className={styles.info}>
+              {props.vus.rsid.length > 0 ? (
+                <>
+                  <div className={styles.information}>
+                    <div className={styles["info-title"]}>
+                      Is RSID verified:
+                    </div>
+                    {props.vus.rsidDbsnpVerified.toString()}
+                  </div>
+                  {!props.vus.rsidDbsnpVerified && (
+                    <>
+                      {props.vus.rsid !== "NORSID" && (
+                        <div className={styles.information}>
+                          <div className={styles["info-title"]}>
+                            Suggested RSID:
+                          </div>
+                          <a
+                            href={`https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`}
+                            target="_blank"
+                          >
+                            {props.vus.rsid}
+                          </a>
+                        </div>
+                      )}
+                      <div className={styles.information}>
+                        <div className={styles["info-title"]}>
+                          Error message:
+                        </div>
+                        {props.vus.rsid === "NORSID"
+                          ? "No RSID found."
+                          : props.vus.rsidDbsnpErrorMsgs}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className={styles.information}>
+                  No valid RSID found for this variant.
+                </div>
+              )}
+            </div>
+          </div>
+          <div
+            className={`${styles["info-container"]} ${styles["clinvar-info"]} ${
+              props.vus.clinvarClassification.length === 0
+                ? styles.disabled
+                : props.vus.rsid.length > 0 && !props.vus.rsidDbsnpVerified
+                ? styles["unverified-rsid"]
+                : ""
+            }`}
+          >
+            <p className={styles["info-cotainer-title"]}>
+              ClinVar{" "}
+              {props.vus.clinvarClassification.length > 0 &&
+                !props.vus.rsidDbsnpVerified &&
+                "of suggested dbSNP RSID"}
+            </p>
             <div className={styles.info}>
               {props.vus.clinvarClassification.length > 0 ? (
                 <>
@@ -156,44 +224,8 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
                 </div>
               ) : (
                 <div className={styles.information}>
-                  Clincal significance not reported in ClinVar
+                  No Clinvar entry found based on dbSNP's RSID
                 </div>
-              )}
-            </div>
-          </div>
-          <div
-            className={`${styles["info-container"]} ${styles["dbsnp-info"]} ${
-              props.vus.rsidDbsnpVerified ? "" : styles.disabled
-            }`}
-          >
-            <p className={styles["info-container-title"]}>dbSnp</p>
-            <div className={styles.info}>
-              <div className={styles.information}>
-                <div className={styles["info-title"]}>Is RSID verified:</div>
-                {props.vus.rsidDbsnpVerified.toString()}
-              </div>
-              {!props.vus.rsidDbsnpVerified && (
-                <>
-                  {props.vus.rsid !== "NORSID" && (
-                    <div className={styles.information}>
-                      <div className={styles["info-title"]}>
-                        Suggested RSID:
-                      </div>
-                      <a
-                        href={`https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`}
-                        target="_blank"
-                      >
-                        {props.vus.rsid}
-                      </a>
-                    </div>
-                  )}
-                  <div className={styles.information}>
-                    <div className={styles["info-title"]}>Error message:</div>
-                    {props.vus.rsid === "NORSID"
-                      ? "No RSID found."
-                      : props.vus.rsidDbsnpErrorMsgs}
-                  </div>
-                </>
               )}
             </div>
           </div>
