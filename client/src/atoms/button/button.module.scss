@@ -1,0 +1,41 @@
+.button {
+  background-color: #008080;
+  color: #fff;
+  border: 2px solid #008080;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 100px;
+  font-size: 16px;
+
+  svg {
+    fill: #fff;
+  }
+
+  &:hover,
+  &.disabled {
+    color: #008080;
+
+    svg {
+      fill: #008080 !important;
+    }
+  }
+
+  &:hover {
+    background-color: #fff;
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    cursor: none;
+    background-color: #cfe7e7ca;
+  }
+
+  .btn-content {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    text-wrap: nowrap;
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./view-samples-page.module.scss";
-import Loader from "../loader/loader";
+import Loader from "../../atoms/loader/loader";
 import SampleTable from "./sample-table/sample-table";
 import { ISample } from "../../models/view-samples.model";
 import { SampleService } from "../../services/sample/sample.service";
@@ -78,7 +78,9 @@ const ViewAllSamples: React.FunctionComponent<ViewAllSamplesProps> = (
                     {selectedSample.variants.map((v) => {
                       return (
                         <div className={styles.variant}>
-                          <div className={styles["variant-id"]}>{v.variantId}</div>
+                          <div className={styles["variant-id"]}>
+                            {v.variantId}
+                          </div>
                           <div>{v.genotype}</div>
                           {/* <div className={styles.rules}>
                         <div className={styles["pathogenic-supporting"]}>

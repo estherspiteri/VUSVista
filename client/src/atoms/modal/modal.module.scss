@@ -1,0 +1,27 @@
+.modal-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  border: 4px solid #008080;
+  padding: 24px;
+  z-index: 100;
+  background-color: #fff;
+
+  .modal-title {
+    font-size: 18px;
+    padding-bottom: 24px;
+  }
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 68px; // header height
+  left: 0;
+  width: 100%;
+  height: calc(100% - 68px);
+  background-color: #324b4b;
+  opacity: 0.4;
+  z-index: 90;
+}

@@ -3,12 +3,15 @@ import styles from "./vus-file-upload-page.module.scss";
 import { VusService } from "../../services/vus/vus.service";
 import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
 import uploadGif from "./upload.gif";
-import { Banner } from "../banner/banner";
-import Loader from "../loader/loader";
+import { Banner } from "../../atoms/banner/banner";
+import Loader from "../../atoms/loader/loader";
 import { IVus } from "../../models/view-vus.model";
 import VusTable from "../view-vus-page/vus-table/vus-table";
 import { IVusGene } from "../../models/vus_file_upload.model";
 import ViewVus from "../view-vus-page/view-vus/view-vus";
+import Button from "../../atoms/button/button";
+import Icon from "../../atoms/icon/icon";
+import Modal from "../../atoms/modal/modal";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -28,6 +31,8 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   const [multipleGenesSelection, setMultipleGenesSelection] = useState<
     (string | undefined)[] | undefined
   >(undefined);
+  const [multipleGenesSelectionErrorMsg, setMultipleGenesSelectionErrorMsg] =
+    useState("");
 
   const [errorMsg, setErrorMsg] = useState("");
   console.log(multipleGenesSelection);
@@ -69,6 +74,14 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     }
   }, [isDragActive, errorMsg]);
 
+  useEffect(() => {
+    const areAllGenesSelected = !multipleGenesSelection?.includes(undefined);
+
+    if (areAllGenesSelected) {
+      setMultipleGenesSelectionErrorMsg("");
+    }
+  }, [multipleGenesSelection]);
+
   return (
     <div className={styles["vus-file-upload-page-container"]}>
       <div className={styles.title}>VUS File Upload</div>
@@ -96,27 +109,15 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   <img src={uploadGif} width={200} />
                 ) : (
                   <>
-                    <svg
-                      width="198"
-                      height="198"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 16v-6m0 0-3 2m3-2 3 2M3 6v10.8c0 1.12 0 1.68.218 2.108a2 2 0 0 0 .874.874c.427.218.987.218 2.105.218h11.606c1.118 0 1.677 0 2.104-.218.377-.192.683-.498.875-.874C21 18.48 21 17.92 21 16.8V9.2c0-1.12 0-1.68-.218-2.108a2 2 0 0 0-.874-.874C19.48 6 18.92 6 17.8 6H12M3 6h9M3 6a2 2 0 0 1 2-2h3.675c.489 0 .734 0 .964.055.204.05.399.13.578.24.202.124.375.297.72.643L12 6"
-                        stroke="teal"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-
+                    <Icon
+                      name="file-upload"
+                      width={110}
+                      height={110}
+                      stroke="#008080"
+                    />
                     <p>Drag your VUS spreadsheet file here</p>
                     <p>OR</p>
-                    <button onClick={open} className={styles.btn}>
-                      Browse files
-                    </button>
+                    <Button text="Browse files" onClick={open} />
                   </>
                 )}
               </div>
@@ -131,64 +132,27 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   {isProcessing || multipleGenes?.length > 0 ? (
                     <Loader width={16} thickness={2} />
                   ) : isFileProcessed ? (
-                    // check icon
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M19.707 6.293a1 1 0 0 1 0 1.414L10.414 17a2 2 0 0 1-2.828 0l-4.293-4.293a1 1 0 1 1 1.414-1.414L9 15.586l9.293-9.293a1 1 0 0 1 1.414 0Z"
-                        fill="#008080"
-                      />
-                    </svg>
+                    <Icon name="checkmark" fill="#008080" />
                   ) : (
-                    // close icon
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="m16 16-4-4m0 0L8 8m4 4 4-4m-4 4-4 4"
-                        stroke="#008080"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
+                    <Icon name="close" stroke="#008080" />
                   )}
                 </div>
               </div>
             </div>
-            <button
+            <Button
+              text={
+                isFileProcessed
+                  ? "Upload new file"
+                  : isProcessing
+                  ? "Processing"
+                  : "Process file"
+              }
+              icon="file-process"
+              disabled={isProcessing || multipleGenes?.length > 0}
               onClick={() =>
                 isFileProcessed ? newFileUpload() : processFile()
               }
-              className={`${styles.btn} ${
-                isProcessing || multipleGenes?.length > 0 ? styles.disabled : ""
-              }`}
-            >
-              <div className={styles["btn-content"]}>
-                <span>
-                  {isFileProcessed
-                    ? "Upload new file"
-                    : isProcessing
-                    ? "Processing"
-                    : "Process file"}
-                </span>
-                <div className={styles.icon}>
-                  <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                    <g fill="#fff">
-                      <path d="M12 0H5v6h.7l.2.7.1.1V1h5v4h4v9H9l.3.5-.5.5H16V4l-4-4zm0 4V1l3 3h-3zm-6.5 7.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
-                      <path d="M7.9 12.4 9 12v-1l-1.1-.4c-.1-.3-.2-.6-.4-.9l.5-1-.7-.7-1 .5c-.3-.2-.6-.3-.9-.4L5 7H4l-.4 1.1c-.3.1-.6.2-.9.4l-1-.5-.7.7.5 1.1c-.2.3-.3.6-.4.9L0 11v1l1.1.4c.1.3.2.6.4.9l-.5 1 .7.7 1.1-.5c.3.2.6.3.9.4L4 16h1l.4-1.1c.3-.1.6-.2.9-.4l1 .5.7-.7-.5-1.1c.2-.2.3-.5.4-.8zm-3.4 1.1c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                    </g>
-                  </svg>
-                </div>
-              </div>
-            </button>
+            />
             {isFileProcessed && vusList && (
               <div className={styles["file-content"]}>
                 <div className={styles["file-summary"]}>
@@ -234,13 +198,13 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         </Banner>
       )}
       {multipleGenes && multipleGenes.length > 0 && (
-        <>
-          <div className={styles["modal-overlay"]} />
-          <div className={styles["multiple-gene-selection-modal"]}>
-            <p>{`Please select one gene for each of the following variant${
-              multipleGenes.length > 1 && "s"
-            }:`}</p>
-            <div className={styles.wrapper}>
+        <Modal
+          title={`Please select one gene for each of the following variant${
+            multipleGenes.length > 1 && "s"
+          }:`}
+        >
+          <div className={styles["modal-content-wrapper"]}>
+            <div className={styles["selection-content"]}>
               <div className={styles["variant-info"]}>
                 <div className={styles.header}>
                   <div className={styles.field}>Locus</div>
@@ -300,11 +264,32 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 })}
               </div>
             </div>
+            {multipleGenesSelectionErrorMsg?.length > 0 && (
+              <span className={styles["error-msg"]}>
+                {multipleGenesSelectionErrorMsg}
+              </span>
+            )}
+            <Button
+              text="Save and process file"
+              icon="file-process"
+              onClick={saveMultipleGenesSelection}
+            />
           </div>
-        </>
+        </Modal>
       )}
     </div>
   );
+
+  function saveMultipleGenesSelection() {
+    const areAllGenesSelected = !multipleGenesSelection.includes(undefined);
+
+    if (areAllGenesSelected) {
+    } else {
+      setMultipleGenesSelectionErrorMsg(
+        "Please select a single gene for each of the above variants!"
+      );
+    }
+  }
 
   function newFileUpload() {
     // setAreRsidsRetrieved(false);

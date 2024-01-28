@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./view-vus-page.module.scss";
 import { IVus } from "../../models/view-vus.model";
 import { VusService } from "../../services/vus/vus.service";
-import Loader from "../loader/loader";
+import Loader from "../../atoms/loader/loader";
 import VusTable from "./vus-table/vus-table";
 
 type ViewAllVusProps = { vusService: VusService };
