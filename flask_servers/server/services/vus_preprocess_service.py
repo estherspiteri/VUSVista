@@ -131,12 +131,13 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     return multiple_genes
 
 
-def filter_vus(vus_df: pd.DataFrame) -> InternalResponse:
-    multiple_genes = check_for_multiple_genes(vus_df)
-    #TODO: remove other function for multiple genes
+def filter_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
+    if check_for_multiple_genes_flag:
+        multiple_genes = check_for_multiple_genes(vus_df)
+        # TODO: remove other function for multiple genes
 
-    if len(multiple_genes) > 0:
-        return InternalResponse({'multiple_genes': multiple_genes}, 200)
+        if len(multiple_genes) > 0:
+            return InternalResponse({'multiple_genes': multiple_genes}, 200)
 
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
@@ -306,11 +307,10 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     return vus_df
 
 
-def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
-    filter_vus_res = filter_vus(vus_df)
+def preprocess_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
+    filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
 
     if filter_vus_res.data['multiple_genes'] is not None:
-        print(filter_vus_res.data['multiple_genes'])
         current_app.logger.info(f'Some VUS contain multiple genes!')
         return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
                                  'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
@@ -330,7 +330,8 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
             if preprocess_and_get_rsids_res.status != 200:
                 current_app.logger.error(
                     f'Preprocessing of VUS and retrieval of RSIDs failed 500')
-                return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
+                return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
+                                         'multiple_genes': None}, 500)
             else:
                 vus_df = preprocess_and_get_rsids_res.data
 
@@ -339,12 +340,13 @@ def preprocess_vus(vus_df: pd.DataFrame) -> InternalResponse:
                 if retrieve_clinvar_variant_classifications_res.status != 200:
                     current_app.logger.error(
                         f'Retrieval of ClinVar variant classifications failed 500')
-                    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+                    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False,
+                                             'multiple_genes': None}, 500)
                 else:
                     vus_df = retrieve_clinvar_variant_classifications_res.data
 
         return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
-                                 'existing_variant_ids': existing_variant_ids}, 200)
+                                 'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
 
 
 def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
@@ -445,11 +447,17 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
             db.session.add(new_variants_samples)
 
 
-def handle_vus_file(file: FileStorage) -> Response:
+def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:
     vus_df = pd.read_excel(file, header=0)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
-    preprocess_vus_res = preprocess_vus(vus_df)
+    # handle multiple genes selection
+    if len(multiple_genes_selection) > 0:
+        for selection in multiple_genes_selection:
+            selection_row = vus_df.iloc[int(selection['index'])]
+            selection_row['Gene'] = selection['gene']
+
+    preprocess_vus_res = preprocess_vus(vus_df, len(multiple_genes_selection) == 0)
 
     if preprocess_vus_res.status != 200:
         response = preprocess_vus_res.data

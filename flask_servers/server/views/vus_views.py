@@ -14,9 +14,15 @@ def store_and_verify_vus_file():
     file = request.files['file']
     current_app.logger.info(f'Received file {file.filename} of type {file.content_type}')
 
-    # multiple_genes_selection = request.form['multipleGenesSelection']
-    #handle multiple_genes
-    return handle_vus_file(file)
+    multiple_genes_selection = request.form['multipleGenesSelection']
+
+    # Parse the JSON string into a Python object
+    if multiple_genes_selection:
+        multiple_genes_selection_object = json.loads(multiple_genes_selection)
+    else:
+        multiple_genes_selection_object = []
+
+    return handle_vus_file(file, multiple_genes_selection_object)
 
 
 @vus_views.route('/view', methods=['GET'])

@@ -10,19 +10,21 @@ export class VusService {
   ): Promise<IStoreAndVerifyVusFileResponse> {
     let data = new FormData();
     data.append("file", input.vusFile);
-    
-    if (input.multipleGenesSelection) {
-      data.append(
-        "multipleGenesSelection",
-        JSON.stringify(input.multipleGenesSelection)
-      );
-    }
+
+    const jsonData = input.multipleGenesSelection
+      ? JSON.stringify(input.multipleGenesSelection)
+      : "";
+
+    // Append the JSON string as a blob to the FormData
+    data.append("multipleGenesSelection", jsonData);
+
     const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/file`, {
       method: "POST",
       body: data,
       // headers: {
       // "Content-Type": "multipart/form-data",
       // },
+      cache: "no-store", //TODO: is it needed?
     })
       .then((response: Response) => {
         return response.json();

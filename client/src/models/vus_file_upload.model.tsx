@@ -14,5 +14,5 @@ export interface IVusGene {
 
 export interface IVusGeneSelected {
   index: number;
-  genes: string;
+  gene: string;
 }

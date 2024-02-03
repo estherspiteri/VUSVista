@@ -3,7 +3,7 @@ import { IVusGene, IVusGeneSelected } from "../../models/vus_file_upload.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;
-  multipleGenesSelection?: IVusGeneSelected;
+  multipleGenesSelection?: IVusGeneSelected[];
 }
 
 export interface IStoreAndVerifyVusFileResponse {

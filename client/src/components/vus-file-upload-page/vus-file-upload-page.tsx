@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./vus-file-upload-page.module.scss";
 import { VusService } from "../../services/vus/vus.service";
 import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
@@ -11,7 +11,7 @@ import { IVusGene } from "../../models/vus_file_upload.model";
 import ViewVus from "../view-vus-page/view-vus/view-vus";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icon/icon";
-import Modal from "../../atoms/modal/modal";
+import Modal, { ModalRef } from "../../atoms/modal/modal";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -24,7 +24,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   // const [isClinvarAccessed, setIsClinvarAccessed] = useState(false);
 
   const [file, setFile] = useState<File | undefined>(undefined);
-  const [isProcessing, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isFileProcessed, setIsFileUploaded] = useState(false);
   const [vusList, setVusList] = useState<IVus[]>(undefined);
   const [multipleGenes, setMultipleGenes] = useState<IVusGene[]>(undefined);
@@ -35,7 +35,8 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     useState("");
 
   const [errorMsg, setErrorMsg] = useState("");
-  console.log(multipleGenesSelection);
+
+  const modalRef = useRef<ModalRef>(null);
 
   const onFileDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -148,7 +149,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   : "Process file"
               }
               icon="file-process"
-              disabled={isProcessing || multipleGenes?.length > 0}
+              disabled={isProcessing}
               onClick={() =>
                 isFileProcessed ? newFileUpload() : processFile()
               }
@@ -199,6 +200,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
       )}
       {multipleGenes && multipleGenes.length > 0 && (
         <Modal
+          ref={modalRef}
           title={`Please select one gene for each of the following variant${
             multipleGenes.length > 1 && "s"
           }:`}
@@ -270,7 +272,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
               </span>
             )}
             <Button
-              text="Save and process file"
+              text="Continue processing file"
               icon="file-process"
               onClick={saveMultipleGenesSelection}
             />
@@ -284,6 +286,8 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     const areAllGenesSelected = !multipleGenesSelection.includes(undefined);
 
     if (areAllGenesSelected) {
+      processFile();
+      modalRef.current.closeModal();
     } else {
       setMultipleGenesSelectionErrorMsg(
         "Please select a single gene for each of the above variants!"
@@ -297,7 +301,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
 
     setFile(undefined);
 
-    setIsUploading(false);
+    setIsProcessing(false);
     setIsFileUploaded(false);
     setVusList(undefined);
 
@@ -305,19 +309,21 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   }
 
   function processFile() {
-    setIsUploading(true);
+    setIsProcessing(true);
     setErrorMsg("");
 
     props.vusService
       ?.storeAndVerifyVusFile({
         vusFile: file,
-        // multipleGenesSelection: multipleGenes
+        multipleGenesSelection: multipleGenesSelection?.map((g, i) => {
+          return { index: multipleGenes[i].index, gene: g };
+        }),
       })
       .then((res) => {
-        setIsUploading(false);
         setIsFileUploaded(res.isSuccess);
 
         if (!res.isSuccess) {
+          setIsProcessing(false);
           setErrorMsg("Failed to succesfully process file. Please try again!");
         } else {
           if (res.multipleGenes && res.multipleGenes.length > 0) {
@@ -328,6 +334,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
 
             setMultipleGenes(res.multipleGenes);
           } else {
+            setIsProcessing(false);
             setMultipleGenes(undefined);
             setMultipleGenesSelection(undefined);
             setVusList(res.vusList);
