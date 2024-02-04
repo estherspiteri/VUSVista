@@ -88,7 +88,7 @@ class ExternalReferences(Base):
     __tablename__ = 'external_references'
     __table_args__ = (
         ForeignKeyConstraint(['variant_id'], ['variants.variant_id'], name='fk_variants'),
-        PrimaryKeyConstraint('external_references_id', name='external_references_pkey'),
+        PrimaryKeyConstraint('external_references_id', name='external_references_pkey')
     )
 
     external_references_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
@@ -97,42 +97,40 @@ class ExternalReferences(Base):
     error_msg = mapped_column(Text)
 
     variant: Mapped['Variants'] = relationship('Variants', back_populates='external_references')
-    clinvar: Mapped[List['Clinvar']] = relationship('Clinvar', uselist=False, back_populates='external_references')
-    db_snp: Mapped[List['DbSnp']] = relationship('DbSnp', uselist=False, back_populates='external_references')
+    clinvar: Mapped['Clinvar'] = relationship('Clinvar', uselist=False, back_populates='external_clinvar')
+    db_snp: Mapped['DbSnp'] = relationship('DbSnp', uselist=False, back_populates='external_db_snp')
 
 
 class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
-        ForeignKeyConstraint(['external_references_id'], ['external_references.external_references_id'],
-                             name='fk_external_references'),
+        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.external_references_id'], name='fk_external_references'),
         PrimaryKeyConstraint('clinvar_id', name='clinvar_pkey'),
-        UniqueConstraint('external_references_id', name='clinvar_external_references_id_key')
+        UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
 
     clinvar_id = mapped_column(Text)
-    external_references_id = mapped_column(Integer, nullable=False)
+    external_clinvar_id = mapped_column(Integer, nullable=False)
     canonical_spdi = mapped_column(Text, nullable=False)
     classification = mapped_column(Text)
     last_evaluated = mapped_column(DateTime)
     review_status = mapped_column(Text)
 
-    external_references: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='clinvar')
+    external_clinvar: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='clinvar')
 
 
 class DbSnp(Base):
     __tablename__ = 'db_snp'
     __table_args__ = (
-        ForeignKeyConstraint(['external_references_id'], ['external_references.external_references_id'],
-                             name='fk_external_references'),
+        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.external_references_id'], name='fk_external_references'),
         PrimaryKeyConstraint('db_snp_id', name='db_snp_pkey'),
-        UniqueConstraint('external_references_id', name='db_snp_external_references_id_key')
+        UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
 
     db_snp_id = mapped_column(String(15))
-    external_references_id = mapped_column(Integer, nullable=False)
+    external_db_snp_id = mapped_column(Integer, nullable=False)
 
-    external_references: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='db_snp')
+    external_db_snp: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='db_snp')
 
 
 class GeneAnnotations(Base):

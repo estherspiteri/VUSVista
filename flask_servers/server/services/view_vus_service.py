@@ -55,7 +55,7 @@ def retrieve_all_vus_from_db():
             if ref.db_type == 'db_snp':
                 # retrieve dbsnp entry related to the variant
                 dbsnp: DbSnp = db.session.query(DbSnp).filter(
-                    DbSnp.external_references_id == ref.external_references_id
+                    DbSnp.external_db_snp_id == ref.external_references_id
                 ).one_or_none()
 
                 vus_df.at[index, 'rsid'] = dbsnp.db_snp_id
@@ -65,7 +65,7 @@ def retrieve_all_vus_from_db():
             elif ref.db_type == 'clinvar':
                 # retrieve clinvar entry related to the variant
                 clinvar: Clinvar = db.session.query(Clinvar).filter(
-                    Clinvar.external_references_id == ref.external_references_id
+                    Clinvar.external_clinvar_id == ref.external_references_id
                 ).one_or_none()
 
                 if clinvar.last_evaluated is not None:

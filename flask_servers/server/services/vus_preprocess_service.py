@@ -218,7 +218,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
         if ref.db_type == 'db_snp':
             # retrieve dbsnp entry related to the variant
             dbsnp: DbSnp = db.session.query(DbSnp).filter(
-                DbSnp.external_references_id == ref.external_references_id
+                DbSnp.external_db_snp_id == ref.external_references_id
             ).one_or_none()
 
             vus_df.at[index, 'RSID'] = dbsnp.db_snp_id
@@ -228,7 +228,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
         elif ref.db_type == 'clinvar':
             # retrieve clinvar entry related to the variant
             clinvar: Clinvar = db.session.query(Clinvar).filter(
-                Clinvar.external_references_id == ref.external_references_id
+                Clinvar.external_clinvar_id == ref.external_references_id
             ).one_or_none()
 
             if clinvar.last_evaluated is not None:
@@ -373,7 +373,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
             db.session.flush()
 
             new_dbsnp = DbSnp(db_snp_id=row['RSID'],
-                              external_references_id=new_dbnsp_external_ref.external_references_id)
+                              external_db_snp_id=new_dbnsp_external_ref.external_references_id)
             db.session.add(new_dbsnp)
 
         if len(row['Clinvar uid']) > 0:
@@ -389,7 +389,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
                 clinvar_last_evaluated = datetime.strptime(row['Clinvar classification last eval'], '%Y/%m/%d %H:%M')
 
             new_clinvar = Clinvar(clinvar_id=row['Clinvar uid'],
-                                  external_references_id=new_clinvar_external_ref.external_references_id,
+                                  external_clinvar_id=new_clinvar_external_ref.external_references_id,
                                   canonical_spdi=row['Clinvar canonical spdi'],
                                   classification=row['Clinvar classification'],
                                   review_status=row['Clinvar classification review status'],

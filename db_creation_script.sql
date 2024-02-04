@@ -93,21 +93,21 @@ CREATE TABLE external_references (
 
 CREATE TABLE db_snp (
     db_snp_id VARCHAR(15) PRIMARY KEY,
-    external_references_id INT NOT NULL UNIQUE,
+    external_db_snp_id INT NOT NULL UNIQUE,
     CONSTRAINT fk_external_references
-            FOREIGN KEY (external_references_id) 
+            FOREIGN KEY (external_db_snp_id) 
                 REFERENCES external_references(external_references_id)
 );
 
 CREATE TABLE clinvar (
     clinvar_id TEXT PRIMARY KEY,
-    external_references_id INT NOT NULL UNIQUE,
+    external_clinvar_id INT NOT NULL UNIQUE,
     canonical_spdi TEXT NOT NULL,
     classification TEXT,
     last_evaluated TIMESTAMP,
     review_status TEXT,
     CONSTRAINT fk_external_references
-        FOREIGN KEY (external_references_id) 
+        FOREIGN KEY (external_clinvar_id) 
             REFERENCES external_references(external_references_id)
 );
 

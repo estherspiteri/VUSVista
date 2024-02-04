@@ -1,6 +1,7 @@
 from flask import current_app, Response
 import pandas as pd
 import time
+import json
 from Bio import Entrez
 
 from server.responses.internal_response import InternalResponse
@@ -31,14 +32,19 @@ def retrieve_clinvar_ids(rsid: str) -> InternalResponse:
 def retrieve_clinvar_document_summary(clinvar_id: str):
     try:
         # retrieve document summary - can take multiple ids
-        handle = Entrez.esummary(db="clinvar", id=clinvar_id)
-        document_summary_dict = Entrez.read(handle)
+        handle = Entrez.esummary(db="clinvar", id=clinvar_id, retmode='json')
+
+        # Read the JSON data
+        json_data = handle.read()
+
+        # Parse the JSON data
+        document_summary_dict = json.loads(json_data)
         handle.close()
     except IOError as e:
         current_app.logger.error(f'Network error when calling Entrez.esummary(): {str(e)}')
         return InternalResponse(None, e.errno, str(e))
 
-    return InternalResponse(document_summary_dict['DocumentSummarySet']['DocumentSummary'][0], 200)
+    return InternalResponse(document_summary_dict['result'][clinvar_id], 200)
 
 
 # Compare variant's properties with the properties of the ClinVar variant.
@@ -74,9 +80,15 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
 
 # Retrieve the ClinVar variant's clinical significance.
 def extract_clinvar_clinical_significance(clinvar_doc_summary):
-    clinical_significance_obj = clinvar_doc_summary.get('clinical_significance')
+    clinical_significance_obj = clinvar_doc_summary.get('clinical_impact_classification')
 
-    return {'description': clinical_significance_obj['description'], 'last_evaluated': clinical_significance_obj['last_evaluated'], 'review_status': clinical_significance_obj['review_status']}
+    last_eval = ""
+    if (clinical_significance_obj['last_evaluated'] != "1/01/01 00:00" and
+            len(clinical_significance_obj['description']) == 0):
+        last_eval = clinical_significance_obj['last_evaluated']
+
+    return {'description': clinical_significance_obj['description'], 'last_evaluated': last_eval,
+            'review_status': clinical_significance_obj['review_status']}
 
 
 # Retrieve the ClinVar variant's canonical SPDI.
@@ -93,7 +105,7 @@ def extract_clinvar_canonical_spdi(clinvar_doc_summary):
 
 # Retrieve the ClinVar variant's uid.
 def extract_clinvar_uid(clinvar_doc_summary):
-    return clinvar_doc_summary.attributes['uid']
+    return clinvar_doc_summary['uid']
 
 
 def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str, chr_pos: str) -> InternalResponse:
@@ -170,7 +182,8 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
             return InternalResponse(None, 500)
         else:
             # execute pipeline
-            is_success, clinical_significance, canonical_spdi, uid, error_msg = clinvar_clinical_significance_pipeline_res.data
+            is_success, clinical_significance, canonical_spdi, uid, error_msg = (
+                clinvar_clinical_significance_pipeline_res.data)
 
             if clinical_significance:
                 vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
@@ -182,17 +195,17 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
             vus_df.at[index, 'Clinvar uid'] = uid
 
             # update performance for given variant
-            if row['VUS Id'] in performance_dict:
-                if is_success:
-                    performance_dict[row['VUS Id']] = True
-            else:
-                performance_dict[row['VUS Id']] = is_success
-
-    num_of_variants = len(performance_dict.keys())
-    success = len([key for key in performance_dict.keys() if performance_dict[key] is True])
-    failure = num_of_variants - success
-
-    current_app.logger.info(
-        f'Found in ClinVar: {round(success / num_of_variants * 100, 2)}%\nNot found in ClinVar: {round(failure / num_of_variants * 100, 2)}%')
+    #         if row['VUS Id'] in performance_dict:
+    #             if is_success:
+    #                 performance_dict[row['VUS Id']] = True
+    #         else:
+    #             performance_dict[row['VUS Id']] = is_success
+    #
+    # num_of_variants = len(performance_dict.keys())
+    # success = len([key for key in performance_dict.keys() if performance_dict[key] is True])
+    # failure = num_of_variants - success
+    #
+    # current_app.logger.info(
+    #     f'Found in ClinVar: {round(success / num_of_variants * 100, 2)}%\nNot found in ClinVar: {round(failure / num_of_variants * 100, 2)}%')
 
     return InternalResponse(vus_df, 200)
