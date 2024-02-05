@@ -63,10 +63,19 @@ class ACMGStrength(Enum):
 
 
 class Classification(Enum):
+    PATHOGENIC = 'PATHOGENIC'
+    LIKELY_PATHOGENIC = 'LIKELY_PATHOGENIC'
     VUS = 'VUS'
     UNCERTAIN_SIGNIFICANCE = 'UNCERTAIN_SIGNIFICANCE'
     UNCLASSIFIED = 'UNCLASSIFIED'
-#TODO: include LIKELY_VUS
+    LIKELY_VUS = 'LIKELY_VUS'
+    LIKELY_BENIGN = 'LIKELY_BENIGN'
+    BENIGN = 'BENIGN'
+
+
+class ReviewStatus(Enum):
+    IN_PROGRESS = 'IN_PROGRESS'
+    COMPLETE = 'COMPLETE'
 
 
 class AcmgRules(Base):
@@ -264,13 +273,15 @@ class Reviews(Base):
     variant_id = mapped_column(Integer, nullable=False)
     scientific_member_id = mapped_column(Integer, nullable=False)
     date_added = mapped_column(DateTime, nullable=False)
-    comment = mapped_column(Text)
+    classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
+    review_status = mapped_column(EnumSQL(ReviewStatus, name='review_status'))
+    classification_reason = mapped_column(Text)
+
 
     publications: Mapped['Publications'] = relationship('Publications', secondary='reviews_publications', back_populates='review')
     scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='reviews')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='reviews')
     acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
-    classification_overrides: Mapped['ClassificationOverrides'] = relationship('ClassificationOverrides', uselist=False, back_populates='review')
 
 
 class SamplesVariantsAcmgRules(Base):
@@ -315,23 +326,6 @@ class VariantsSamples(Base):
 
     sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples')
-
-
-class ClassificationOverrides(Base):
-    __tablename__ = 'classification_overrides'
-    __table_args__ = (
-        ForeignKeyConstraint(['review_id'], ['reviews.review_id'], name='fk_reviews'),
-        PrimaryKeyConstraint('classification_override_id', name='classification_overrides_pkey'),
-        UniqueConstraint('review_id', name='classification_overrides_review_id_key')
-    )
-
-    classification_override_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
-    review_id = mapped_column(Integer, nullable=False)
-    classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
-    reason = mapped_column(Text)
-
-    review: Mapped['Reviews'] = relationship('Reviews', back_populates='classification_overrides')
-
 
 t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,
