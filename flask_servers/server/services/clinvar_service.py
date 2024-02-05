@@ -1,4 +1,4 @@
-from flask import current_app, Response
+from flask import current_app
 import pandas as pd
 import time
 import json
@@ -58,7 +58,8 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
 
     # if none of the genes match the expected gene
     if gene not in [x['symbol'] for x in doc_genes]:
-        return False, f"None of the gene names {[gene_name['symbol'] for gene_name in doc_genes]} match the expected gene name {gene}!"
+        return False, (f"None of the gene names {[gene_name['symbol'] for gene_name in doc_genes]} "
+                       f"match the expected gene name {gene}!")
 
     variation_set_arr = retrieved_var_clinvar_doc_summary.get('variation_set')
     if len(variation_set_arr) > 0:
@@ -72,7 +73,8 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
                     return False, f"Chromosome {loc['chr']} does not match the expected chromosome {chr}!"
                 # compare expected and retrieved variant's chromosome position
                 elif loc['start'] != str(chr_pos):
-                    return False, f"Chromosome start position {loc['start']} does not match the expected chromosome position {chr_pos}!"
+                    return False, (f"Chromosome start position {loc['start']} does not match the expected chromosome "
+                                   f"position {chr_pos}!")
                 break
 
     return True, ''
@@ -80,7 +82,7 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
 
 # Retrieve the ClinVar variant's clinical significance.
 def extract_clinvar_clinical_significance(clinvar_doc_summary):
-    clinical_significance_obj = clinvar_doc_summary.get('clinical_impact_classification')
+    clinical_significance_obj = clinvar_doc_summary.get('germline_classification')
 
     last_eval = ""
     if (clinical_significance_obj['last_evaluated'] != "1/01/01 00:00" and
@@ -108,7 +110,8 @@ def extract_clinvar_uid(clinvar_doc_summary):
     return clinvar_doc_summary['uid']
 
 
-def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str, chr_pos: str) -> InternalResponse:
+def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str,
+                                           chr_pos: str) -> InternalResponse:
     is_success = True
     clinical_significance = {}
     canonical_spdi = ''
@@ -139,13 +142,15 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
             retrieve_clinvar_document_summary_res = retrieve_clinvar_document_summary(var_id)
 
             if retrieve_clinvar_document_summary_res.status != 200:
-                current_app.logger.error(f"Retrieval of ClinVar document summary for ClinVar Id {var_id} and RSID {rsid} failed 500!")
+                current_app.logger.error(
+                    f"Retrieval of ClinVar document summary for ClinVar Id {var_id} and RSID {rsid} failed 500!")
                 return InternalResponse(None, 500)
             else:
                 document_summary = retrieve_clinvar_document_summary_res.data
 
                 if is_success:
-                    are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(genome_version, document_summary,
+                    are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(genome_version,
+                                                                                              document_summary,
                                                                                               gene, chr, chr_pos)
                     if are_equivalent:
                         clinical_significance = extract_clinvar_clinical_significance(document_summary)
@@ -158,23 +163,25 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
 
 
 # TODO: retrieve other vital infor from clinvar (such as last modfied)
-# Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding ClinVar variant and extract its clinical significance.
+# Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding
+# ClinVar variant and extract its clinical significance.
 def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalResponse:
     genome_version = 'GRCh37'
-    performance_dict = {}
+    # performance_dict = {}
 
     # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
     new_vus_df = vus_df.copy()
 
     for index, row in new_vus_df.iterrows():
         current_app.logger.info(
-            f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: {row['Position']}\n\tGenotype: {row['Genotype']}")
+            f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: "
+            f"{row['Position']}\n\tGenotype: {row['Genotype']}")
 
-        #TODO: add fix for when multiple rsids are found
+        # TODO: add fix for when multiple rsids are found
         clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
-                                                                                             row['RSID'], row['Gene'],
-                                                                                             row['Chr'],
-                                                                                             row['Position'])
+                                                                                            row['RSID'], row['Gene'],
+                                                                                            row['Chr'],
+                                                                                            row['Position'])
 
         if clinvar_clinical_significance_pipeline_res.status != 200:
             current_app.logger.error(
