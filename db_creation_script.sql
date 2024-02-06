@@ -17,7 +17,9 @@ CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
 CREATE TYPE GENOTYPE AS ENUM ('HOMOZYGOUS', 'HETEROZYGOUS');
 CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 'PS3', 'PP5', 'BP6');
 CREATE TYPE ACMG_STRENGTH AS ENUM ('SUPPORTING', 'MODERATE', 'STRONG', 'VERY_STRONG');
-CREATE TYPE CLASSIFICATION AS ENUM ('VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED');
+CREATE TYPE CLASSIFICATION AS ENUM ('PATHOGENIC', 'LIKELY_PATHOGENIC', 'VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED'. 'LIKELY_VUS', 'LIKELY_BENIGN', 'BENIGN');
+CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
+
 
 -- DROP TABLE IF EXISTS reviews_publications;
 -- DROP TABLE IF EXISTS variants_publications;
@@ -184,23 +186,15 @@ CREATE TABLE reviews(
     variant_id INT NOT NULL,
     scientific_member_id INT NOT NULL,
     date_added TIMESTAMP NOT NULL,
-    comment TEXT,
+    review_status REVIEW_STATUS,
+    classification CLASSIFICATION NOT NULL,
+    classification_reason TEXT,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(variant_id),
     CONSTRAINT fk_scientific_members
         FOREIGN KEY (scientific_member_id) 
             REFERENCES scientific_members(scientific_member_id)
-);
-
-CREATE TABLE classification_overrides(
-    classification_override_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    review_id INT NOT NULL UNIQUE,
-    classification CLASSIFICATION NOT NULL,
-    reason TEXT,
-    CONSTRAINT fk_reviews
-        FOREIGN KEY (review_id) 
-            REFERENCES reviews(review_id)
 );
 
 -- REVIEWS/ACMG_RULES
