@@ -1,9 +1,14 @@
 import { IVus } from "../../models/view-vus.model";
-import { IVusGene, IVusGeneSelected } from "../../models/vus_file_upload.model";
+import {
+  ISamplePhenotypeSelected,
+  IVusGene,
+  IVusGeneSelected,
+} from "../../models/vus_file_upload.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;
   multipleGenesSelection?: IVusGeneSelected[];
+  samplePhenotypeSelection?: ISamplePhenotypeSelected[];
 }
 
 export interface IStoreAndVerifyVusFileResponse {
@@ -12,9 +17,24 @@ export interface IStoreAndVerifyVusFileResponse {
   isClinvarAccessed: boolean;
   vusList: IVus[];
   multipleGenes?: IVusGene[] | null;
+  uniqueSampleIds?: string[] | null;
 }
 
 export interface ILoadAllVusResponse {
   isSuccess: boolean;
   vusList?: IVus[] | null;
+}
+
+export interface IGetHPOTermsRequest {
+  phenotype: string;
+}
+
+export interface IHPOTerm {
+  ontologyId: string;
+  name: string;
+}
+
+export interface IGetHPOTermsResponse {
+  isSuccess: boolean;
+  hpoTerms: IHPOTerm[];
 }

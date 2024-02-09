@@ -33,3 +33,18 @@ def view_all_vus():
 
     return Response(json.dumps({'isSuccess': True, 'vusList': var_list}), 200, mimetype='application/json')
 
+
+@vus_views.route('/phenotype/<string:phenotype>', methods=['GET'])
+def get_phenotype_terms(phenotype: str):
+    url_encoded_phenotype = urllib.parse.quote(phenotype)
+    url = f"https://hpo.jax.org/api/hpo/search?q={url_encoded_phenotype}&max=30&category=terms"
+
+    hpo_res = requests.get(url)
+
+    if hpo_res.status_code != 200:
+        current_app.logger.error(
+            f'Response failure {hpo_res.status_code}: {hpo_res.reason}')
+        return Response(json.dumps({'isSuccess': False, 'hpoTerms': None}), 500, mimetype='application/json')
+    else:
+        terms = [{'ontologyId': x['ontologyId'],  'name': x['name']} for x in hpo_res.json()['terms']]
+        return Response(json.dumps({'isSuccess': True, 'hpoTerms': terms}), 200, mimetype='application/json')

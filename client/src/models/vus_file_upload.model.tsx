@@ -16,3 +16,9 @@ export interface IVusGeneSelected {
   index: number;
   gene: string;
 }
+
+export interface ISamplePhenotypeSelected {
+  sampleId: number;
+  pheontypeName: string;
+  ontologyId: string;
+}

@@ -8,10 +8,11 @@ import Loader from "../../atoms/loader/loader";
 import { IVus } from "../../models/view-vus.model";
 import VusTable from "../view-vus-page/vus-table/vus-table";
 import { IVusGene } from "../../models/vus_file_upload.model";
-import ViewVus from "../view-vus-page/view-vus/view-vus";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icon/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
+import { IHPOTerm } from "../../services/vus/vus.dto";
+import SamplePhenotypeSelection from "./sample-phenotype-selection/sample-phenotype-selection";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -27,16 +28,29 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   const [isProcessing, setIsProcessing] = useState(false);
   const [isFileProcessed, setIsFileUploaded] = useState(false);
   const [vusList, setVusList] = useState<IVus[]>(undefined);
+
   const [multipleGenes, setMultipleGenes] = useState<IVusGene[]>(undefined);
   const [multipleGenesSelection, setMultipleGenesSelection] = useState<
     (string | undefined)[] | undefined
   >(undefined);
   const [multipleGenesSelectionErrorMsg, setMultipleGenesSelectionErrorMsg] =
     useState("");
+  const [areMultipleGenesSelected, setAreMultipleGenesSelected] =
+    useState(false);
+
+  const [sampleIds, setSampleIds] = useState<string[]>(undefined);
+  const [samplesPhenotypesSelection, setSamplesPhenotypesSelection] = useState<
+    IHPOTerm[][] | undefined
+  >(undefined);
+  const [
+    samplesPhenotypesSelectionErrorMsg,
+    setSamplesPhenotypesSelectionErrorMsg,
+  ] = useState("");
 
   const [errorMsg, setErrorMsg] = useState("");
 
   const modalRef = useRef<ModalRef>(null);
+  console.log(samplesPhenotypesSelection, "kkk");
 
   const onFileDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -198,85 +212,134 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           <p className={styles.errorMsg}>{errorMsg}</p>
         </Banner>
       )}
-      {multipleGenes && multipleGenes.length > 0 && (
+      {sampleIds && sampleIds.length > 0 && (
         <Modal
           ref={modalRef}
-          title={`Please select one gene for each of the following variant${
-            multipleGenes.length > 1 && "s"
-          }:`}
+          title={
+            multipleGenes &&
+            multipleGenes.length > 0 &&
+            !areMultipleGenesSelected
+              ? `Please select one Gene for each of the following Variants:`
+              : `Please select Phenotypes for each of the following Sample Ids:`
+          }
         >
-          <div className={styles["modal-content-wrapper"]}>
-            <div className={styles["selection-content"]}>
-              <div className={styles["variant-info"]}>
-                <div className={styles.header}>
-                  <div className={styles.field}>Locus</div>
-                  <div className={styles.field}>Type</div>
-                  <div className={styles.field}>Genotype</div>
-                  <div className={styles.field}>Reference</div>
-                  <div className={styles.field}>Observed Allele</div>
-                </div>
-                <div className={styles.content}>
-                  {multipleGenes.map((x) => {
-                    return (
-                      <div className={styles.info}>
-                        <div className={styles.field}>{x.vus.locus}</div>
-                        <div className={styles.field}>{x.vus.type}</div>
-                        <div className={styles.field}>{x.vus.genotype}</div>
-                        <div className={styles.field}>{x.vus.refAllele}</div>
-                        <div className={styles.field}>
-                          {x.vus.observedAllele}
+          {multipleGenes &&
+          multipleGenes.length > 0 &&
+          !areMultipleGenesSelected ? (
+            <div className={styles["modal-content-wrapper"]}>
+              <div className={styles["selection-content"]}>
+                <div className={styles["variant-info"]}>
+                  <div className={styles.header}>
+                    <div className={styles.field}>Locus</div>
+                    <div className={styles.field}>Type</div>
+                    <div className={styles.field}>Genotype</div>
+                    <div className={styles.field}>Reference</div>
+                    <div className={styles.field}>Observed Allele</div>
+                  </div>
+                  <div className={styles.content}>
+                    {multipleGenes.map((x) => {
+                      return (
+                        <div className={styles.info}>
+                          <div className={styles.field}>{x.vus.locus}</div>
+                          <div className={styles.field}>{x.vus.type}</div>
+                          <div className={styles.field}>{x.vus.genotype}</div>
+                          <div className={styles.field}>{x.vus.refAllele}</div>
+                          <div className={styles.field}>
+                            {x.vus.observedAllele}
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className={styles["gene-selection"]}>
+                  {multipleGenes.map((x, multipleGenesIndex) => {
+                    return (
+                      <div className={`${styles.field} ${styles.genes}`}>
+                        {x.genes.map((gene, geneIndex) => {
+                          return (
+                            <label>
+                              <input
+                                type="radio"
+                                name={`gene-selection-${multipleGenesIndex}`}
+                                value={gene}
+                                checked={
+                                  multipleGenesSelection[multipleGenesIndex] ===
+                                  gene
+                                }
+                                onChange={(e) =>
+                                  setMultipleGenesSelection(
+                                    multipleGenesSelection.map(
+                                      (selection, i) => {
+                                        if (i === multipleGenesIndex) {
+                                          return gene;
+                                        } else return selection;
+                                      }
+                                    )
+                                  )
+                                }
+                                className={styles.radio}
+                              />
+                              {gene}
+                            </label>
+                          );
+                        })}
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div className={styles["gene-selection"]}>
-                {multipleGenes.map((x, multipleGenesIndex) => {
-                  return (
-                    <div className={`${styles.field} ${styles.genes}`}>
-                      {x.genes.map((gene, geneIndex) => {
-                        return (
-                          <label>
-                            <input
-                              type="radio"
-                              name={`gene-selection-${multipleGenesIndex}`}
-                              value={gene}
-                              checked={
-                                multipleGenesSelection[multipleGenesIndex] ===
-                                gene
-                              }
-                              onChange={(e) =>
-                                setMultipleGenesSelection(
-                                  multipleGenesSelection.map((selection, i) => {
-                                    if (i === multipleGenesIndex) {
-                                      return gene;
-                                    } else return selection;
-                                  })
-                                )
-                              }
-                              className={styles.radio}
-                            />
-                            {gene}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
+              {multipleGenesSelectionErrorMsg?.length > 0 && (
+                <span className={styles["error-msg"]}>
+                  {multipleGenesSelectionErrorMsg}
+                </span>
+              )}
+              <Button
+                text="Proceed to Sample Phenotype selection"
+                icon="file-process"
+                onClick={saveMultipleGenesSelection}
+              />
             </div>
-            {multipleGenesSelectionErrorMsg?.length > 0 && (
-              <span className={styles["error-msg"]}>
-                {multipleGenesSelectionErrorMsg}
-              </span>
-            )}
-            <Button
-              text="Continue processing file"
-              icon="file-process"
-              onClick={saveMultipleGenesSelection}
-            />
-          </div>
+          ) : (
+            <div className={styles["modal-content-wrapper"]}>
+              <div className={styles["phenotype-selection-modal-content"]}>
+                <div className={styles.header}>
+                  <div className={styles['sample-id-field']}>Sample Id</div>
+                  <div className={styles['selected-phenotypes-field']}>Selected Phenotypes</div>
+                </div>
+                <div className={styles.content}>
+                  {sampleIds.map((id, sampleIdIndex) => {
+                    return (
+                      <SamplePhenotypeSelection
+                        sampleId={id}
+                        vusService={props.vusService}
+                        onSamplePhenotypesSelectionUpdate={(selection) => {
+                          const updatedSelection =
+                            samplesPhenotypesSelection.map((s, i) => {
+                              if (i === sampleIdIndex) {
+                                return selection;
+                              } else return s;
+                            });
+
+                          setSamplesPhenotypesSelection(updatedSelection);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+              {samplesPhenotypesSelectionErrorMsg?.length > 0 && (
+                <span className={styles["error-msg"]}>
+                  {samplesPhenotypesSelectionErrorMsg}
+                </span>
+              )}
+              <Button
+                text="Continue processing file"
+                icon="file-process"
+                onClick={saveSamplesPhenotypeSelection}
+              />
+            </div>
+          )}
         </Modal>
       )}
     </div>
@@ -286,11 +349,25 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     const areAllGenesSelected = !multipleGenesSelection.includes(undefined);
 
     if (areAllGenesSelected) {
-      processFile();
-      modalRef.current.closeModal();
+      setAreMultipleGenesSelected(true);
     } else {
       setMultipleGenesSelectionErrorMsg(
         "Please select a single gene for each of the above variants!"
+      );
+    }
+  }
+
+  function saveSamplesPhenotypeSelection() {
+    const areAllSamplePhenotypesSelected =
+      !samplesPhenotypesSelection.includes([]) &&
+      !samplesPhenotypesSelection.includes(undefined);
+
+    if (areAllSamplePhenotypesSelected) {
+      processFile();
+      modalRef.current.closeModal();
+    } else {
+      setSamplesPhenotypesSelectionErrorMsg(
+        "Please select at least a single phenotype for each of the above sample Ids!"
       );
     }
   }
@@ -326,13 +403,22 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           setIsProcessing(false);
           setErrorMsg("Failed to succesfully process file. Please try again!");
         } else {
-          if (res.multipleGenes && res.multipleGenes.length > 0) {
-            // populate gene selection array with undefined
-            setMultipleGenesSelection(
-              Array.apply(undefined, Array(res.multipleGenes.length))
+          if (res.uniqueSampleIds && res.uniqueSampleIds.length > 0) {
+            // populate phenotype selection array with undefined
+            setSamplesPhenotypesSelection(
+              Array.apply(undefined, Array(res.uniqueSampleIds.length))
             );
 
-            setMultipleGenes(res.multipleGenes);
+            setSampleIds(res.uniqueSampleIds);
+
+            if (res.multipleGenes && res.multipleGenes.length > 0) {
+              // populate gene selection array with undefined
+              setMultipleGenesSelection(
+                Array.apply(undefined, Array(res.multipleGenes.length))
+              );
+
+              setMultipleGenes(res.multipleGenes);
+            }
           } else {
             setIsProcessing(false);
             setMultipleGenes(undefined);

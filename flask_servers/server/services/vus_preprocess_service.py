@@ -131,13 +131,28 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     return multiple_genes
 
 
-def filter_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
-    if check_for_multiple_genes_flag:
+def extract_all_unique_sample_ids(vus_df: pd.DataFrame) -> List:
+    sample_ids = []
+
+    for index, row in vus_df.iterrows():
+        # get the sample ids
+        sample_ids_string = row['Sample Ids']
+        row_sample_ids = sample_ids_string.replace(' ', '').split(',')
+        sample_ids.extend(row_sample_ids)
+
+    unique_sample_ids = list(set(sample_ids))
+
+    return unique_sample_ids
+
+
+def filter_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResponse:
+    if one_time_filter_flag:
         multiple_genes = check_for_multiple_genes(vus_df)
         # TODO: remove other function for multiple genes
 
-        if len(multiple_genes) > 0:
-            return InternalResponse({'multiple_genes': multiple_genes}, 200)
+        unique_sample_ids = extract_all_unique_sample_ids(vus_df)
+
+        return InternalResponse({'multiple_genes': multiple_genes, 'unique_sample_ids': unique_sample_ids}, 200)
 
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
@@ -307,13 +322,15 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     return vus_df
 
 
-def preprocess_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
-    filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
+def preprocess_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResponse:
+    filter_vus_res = filter_vus(vus_df, one_time_filter_flag)
 
-    if filter_vus_res.data['multiple_genes'] is not None:
-        current_app.logger.info(f'Some VUS contain multiple genes!')
+    if one_time_filter_flag:
+        if filter_vus_res.data['multiple_genes'] is not None:
+            current_app.logger.info(f'Some VUS contain multiple genes!')
         return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
-                                 'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
+                                 'multiple_genes': filter_vus_res.data['multiple_genes'],
+                                 'unique_sample_ids': filter_vus_res.data['unique_sample_ids']}, 200)
     else:
         vus_df = filter_vus_res.data['filtered_df']
 
@@ -447,7 +464,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
             db.session.add(new_variants_samples)
 
 
-def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:
+def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multiple_genes_selection: List) -> Response:
     vus_df = pd.read_excel(file, header=0)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
@@ -457,14 +474,19 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
             selection_row = vus_df.iloc[int(selection['index'])]
             selection_row['Gene'] = selection['gene']
 
-    preprocess_vus_res = preprocess_vus(vus_df, len(multiple_genes_selection) == 0)
+    # a vus file will consist of at least a single sample which needs its phenotype
+    # therefore if no phenotypes are returned then the system still needs to request the phenotypes from the user
+    one_time_filter_flag = len(sample_phenotype_selection) == 0
+
+    preprocess_vus_res = preprocess_vus(vus_df, one_time_filter_flag)
 
     if preprocess_vus_res.status != 200:
         response = preprocess_vus_res.data
         response['isSuccess'] = False
         return Response(json.dumps(response), 200)
-    elif preprocess_vus_res.data['multiple_genes'] is not None:
-        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes']}),
+    elif one_time_filter_flag:
+        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes'],
+                                    'uniqueSampleIds': preprocess_vus_res.data['unique_sample_ids']}),
                         200, mimetype='application/json')
     else:
         existing_vus_df = preprocess_vus_res.data['existing_vus_df']

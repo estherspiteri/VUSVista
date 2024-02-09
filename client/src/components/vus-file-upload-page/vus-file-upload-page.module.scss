@@ -124,6 +124,11 @@
     gap: 32px;
     align-items: center;
 
+    .header {
+      padding: 8px;
+      font-weight: bold;
+    }
+
     .selection-content {
       display: flex;
       flex-direction: row;
@@ -142,8 +147,6 @@
 
         .header {
           border-bottom: 2px solid #008080;
-          padding: 8px;
-          font-weight: bold;
         }
 
         .content {
@@ -181,6 +184,31 @@
 
         .radio {
           accent-color: #008080bb;
+        }
+      }
+    }
+
+    .phenotype-selection-modal-content {
+      .header {
+        display: flex;
+        flex-direction: row;
+        text-align: center;
+        box-sizing: border-box;
+
+        .sample-id-field {
+          width: 20%;
+        }
+
+        .selected-phenotypes-field {
+          width: 50%;
+        }
+      }
+
+      .content {
+        border-top: 2px solid #008080;
+
+        [class*="phenotype-selection-input-container"] {
+          padding: 16px;
         }
       }
     }
