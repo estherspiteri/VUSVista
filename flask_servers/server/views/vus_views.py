@@ -1,6 +1,11 @@
+import urllib
+from urllib.parse import urlencode
+
+import requests
 from flask import Blueprint, Response, current_app, request
 import json
-
+import pandas as pd
+from server.responses.internal_response import InternalResponse
 from server.services.view_vus_service import retrieve_all_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file
 
@@ -22,7 +27,15 @@ def store_and_verify_vus_file():
     else:
         multiple_genes_selection_object = []
 
-    return handle_vus_file(file, multiple_genes_selection_object)
+    sample_phenotype_selection = request.form['samplePhenotypeSelection']
+
+    # Parse the JSON string into a Python object
+    if sample_phenotype_selection:
+        sample_phenotype_selection_object = json.loads(sample_phenotype_selection)
+    else:
+        sample_phenotype_selection_object = []
+
+    return handle_vus_file(file, sample_phenotype_selection_object, multiple_genes_selection_object)
 
 
 @vus_views.route('/view', methods=['GET'])
