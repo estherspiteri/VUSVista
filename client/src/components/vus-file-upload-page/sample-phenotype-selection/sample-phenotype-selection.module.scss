@@ -18,19 +18,29 @@
     width: 50%;
     flex-shrink: 0;
     font-size: 12px;
-    border: 0.5px solid #008080;
+    border: 2px solid #008080;
     margin-right: 16px;
     overflow: auto;
-    margin-top:8px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
 
     .phenotype {
       display: flex;
       flex-direction: row;
-      align-items: center;
-    }
-  }
+      align-items: start;
+      justify-content: start;
+      padding: 4px;
 
-  .phenotype-selection {
-    // background-color: #008080;
+      svg {
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+
+      span {
+        padding-top: 4px;
+      }
+      border-bottom: 0.5px solid #008080;
+    }
   }
 }

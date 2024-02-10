@@ -30,9 +30,15 @@ const SamplePhenotypeSelection: React.FunctionComponent<
           samplePhenotypesSelection.length > 0 &&
           samplePhenotypesSelection.map((term) => {
             return (
-              <p className={styles['phenotype']}>
-                <Icon name="close" onClick={() => removeSelection(term)} stroke="#008080"/>
-                <span>{`${term.ontologyId}: ${term.name}`}</span>
+              <p className={styles["phenotype"]}>
+                <Icon
+                  name="close"
+                  onClick={() => removeSelection(term)}
+                  stroke="#008080"
+                />
+                <span>
+                  <b>{term.ontologyId}</b>: {term.name}
+                </span>
               </p>
             );
           })}
@@ -58,7 +64,11 @@ const SamplePhenotypeSelection: React.FunctionComponent<
   function addToSelection(term: IHPOTerm) {
     var updatedSelection = samplePhenotypesSelection;
 
-    if (!samplePhenotypesSelection.includes(term)) {
+    const isHPOTermSelectedAlready = samplePhenotypesSelection
+      .map((s) => s.ontologyId)
+      .includes(term.ontologyId);
+
+    if (!isHPOTermSelectedAlready) {
       updatedSelection = samplePhenotypesSelection.concat([term]);
     }
 

@@ -144,7 +144,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
               <div className={styles["uploaded-file"]}>
                 <span className={styles["file-name"]}>{file.name}</span>
                 <div className={styles.icon} onClick={() => setFile(undefined)}>
-                  {isProcessing || multipleGenes?.length > 0 ? (
+                  {isProcessing || (errorMsg.length === 0 && multipleGenes?.length > 0) ? (
                     <Loader width={16} thickness={2} />
                   ) : isFileProcessed ? (
                     <Icon name="checkmark" fill="#008080" />
@@ -304,8 +304,10 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
             <div className={styles["modal-content-wrapper"]}>
               <div className={styles["phenotype-selection-modal-content"]}>
                 <div className={styles.header}>
-                  <div className={styles['sample-id-field']}>Sample Id</div>
-                  <div className={styles['selected-phenotypes-field']}>Selected Phenotypes</div>
+                  <div className={styles["sample-id-field"]}>Sample Id</div>
+                  <div className={styles["selected-phenotypes-field"]}>
+                    Selected Phenotypes
+                  </div>
                 </div>
                 <div className={styles.content}>
                   {sampleIds.map((id, sampleIdIndex) => {
@@ -394,6 +396,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         vusFile: file,
         multipleGenesSelection: multipleGenesSelection?.map((g, i) => {
           return { index: multipleGenes[i].index, gene: g };
+        }),
+        samplePhenotypeSelection: samplesPhenotypesSelection?.map((p, i) => {
+          return { sampleId: sampleIds[i], phenotypesSelected: p};
         }),
       })
       .then((res) => {

@@ -17,7 +17,7 @@ CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
 CREATE TYPE GENOTYPE AS ENUM ('HOMOZYGOUS', 'HETEROZYGOUS');
 CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 'PS3', 'PP5', 'BP6');
 CREATE TYPE ACMG_STRENGTH AS ENUM ('SUPPORTING', 'MODERATE', 'STRONG', 'VERY_STRONG');
-CREATE TYPE CLASSIFICATION AS ENUM ('PATHOGENIC', 'LIKELY_PATHOGENIC', 'VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED'. 'LIKELY_VUS', 'LIKELY_BENIGN', 'BENIGN');
+CREATE TYPE CLASSIFICATION AS ENUM ('PATHOGENIC', 'LIKELY_PATHOGENIC', 'VUS', 'UNCERTAIN_SIGNIFICANCE', 'UNCLASSIFIED', 'LIKELY_VUS', 'LIKELY_BENIGN', 'BENIGN');
 CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
 
 
@@ -124,7 +124,6 @@ CREATE TABLE sample_files (
 
 CREATE TABLE samples (
     sample_id TEXT PRIMARY KEY,
-    phenotype TEXT,
     -- date_collected TIMESTAMP,
     genome_version VARCHAR(20),
     sample_file_id INT NOT NULL,
@@ -132,6 +131,24 @@ CREATE TABLE samples (
         FOREIGN KEY (sample_file_id) 
             REFERENCES sample_files(sample_file_id)
 
+);
+
+CREATE TABLE phenotypes (
+  ontology_term_id TEXT PRIMARY KEY,
+  term_name TEXT  
+);
+
+-- SAMPLES/PHENOTYPES
+CREATE TABLE samples_phenotypes(
+    sample_id TEXT NOT NULL,
+    ontology_term_id TEXT NOT NULL,
+    CONSTRAINT fk_samples
+        FOREIGN KEY (sample_id) 
+            REFERENCES samples(sample_id),
+    CONSTRAINT fk_phenotypes
+        FOREIGN KEY (ontology_term_id) 
+            REFERENCES phenotypes(ontology_term_id),
+    PRIMARY KEY (sample_id, ontology_term_id)
 );
 
 -- VARIANTS/SAMPLES

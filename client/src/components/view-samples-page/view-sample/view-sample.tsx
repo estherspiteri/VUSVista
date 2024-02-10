@@ -29,7 +29,13 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
           {props.sample.variants.length}
         </div>
         <div className={styles["header-content"]}>
-          {props.sample.phenotype}
+          {props.sample.phenotype.map((p) => {
+            return (
+              <p>
+                {p.ontologyId}: {p.name}
+              </p>
+            );
+          })}
         </div>
       </div>
     </div>

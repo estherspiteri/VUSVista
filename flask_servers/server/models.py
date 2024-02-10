@@ -227,12 +227,34 @@ class Samples(Base):
 
     sample_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     sample_file_id = mapped_column(Integer, nullable=False)
-    phenotype = mapped_column(Text)
     genome_version = mapped_column(String(20))
 
+    ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes', back_populates='sample')
     sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', back_populates='samples')
     samples_variants_acmg_rules: Mapped[List['SamplesVariantsAcmgRules']] = relationship('SamplesVariantsAcmgRules', uselist=True, back_populates='sample')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='sample')
+
+
+class Phenotypes(Base):
+    __tablename__ = 'phenotypes'
+    __table_args__ = (
+        PrimaryKeyConstraint('ontology_term_id', name='phenotypes_pkey'),
+    )
+
+    ontology_term_id = mapped_column(Text)
+    term_name = mapped_column(Text)
+
+    sample: Mapped[List['Samples']] = relationship('Samples', secondary='samples_phenotypes', back_populates='ontology_term')
+
+
+t_samples_phenotypes = Table(
+    'samples_phenotypes', metadata,
+    Column('sample_id', Text, nullable=False),
+    Column('ontology_term_id', Text, nullable=False),
+    ForeignKeyConstraint(['ontology_term_id'], ['phenotypes.ontology_term_id'], name='fk_phenotypes'),
+    ForeignKeyConstraint(['sample_id'], ['samples.sample_id'], name='fk_samples'),
+    PrimaryKeyConstraint('sample_id', 'ontology_term_id', name='samples_phenotypes_pkey')
+)
 
 
 class Variants(Base):
@@ -326,6 +348,7 @@ class VariantsSamples(Base):
 
     sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples')
+
 
 t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,

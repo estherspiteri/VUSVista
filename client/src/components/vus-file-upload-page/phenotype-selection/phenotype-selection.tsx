@@ -46,6 +46,7 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
               <p
                 onClick={() => {
                   props.onTermClickCallback && props.onTermClickCallback(term);
+                  setShowHPOTerms(false);
                 }}
               >
                 {term.ontologyId}: {term.name}

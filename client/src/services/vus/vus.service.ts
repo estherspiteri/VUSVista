@@ -20,7 +20,11 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("multipleGenesSelection", multipleGenesSelectionJsonData);
 
-    data.append("samplePhenotypeSelection", "");
+    const samplePhenotypeSelectionJsonData = input.samplePhenotypeSelection
+      ? JSON.stringify(input.samplePhenotypeSelection)
+      : "";
+
+    data.append("samplePhenotypeSelection", samplePhenotypeSelectionJsonData);
 
     const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/file`, {
       method: "POST",

@@ -8,6 +8,8 @@
   padding: 24px;
   z-index: 100;
   background-color: #fff;
+  overflow: auto;
+  max-height: 70%;
 
   .modal-title {
     font-size: 18px;

@@ -1,17 +1,17 @@
 .phenotype-selection-input-container {
   width: 100%;
+  position: relative;
 
   .phenotype-selection-input {
-    position: "relative";
     width: 100%;
     box-sizing: border-box;
     height: 32px;
-    border-color: #008080;
+    border: 2px solid #008080;
   }
 
   .dropdown-container {
     position: absolute;
-    max-width: 100%;
+    width: calc(100% - 32px);
     border-radius: 4px;
     font-size: 14px;
 
