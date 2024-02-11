@@ -1,3 +1,5 @@
+import { IHPOTerm } from "../services/vus/vus.dto";
+
 export interface IUnprocessedVus {
   locus: string;
   type: string;
@@ -17,8 +19,8 @@ export interface IVusGeneSelected {
   gene: string;
 }
 
+
 export interface ISamplePhenotypeSelected {
-  sampleId: number;
-  pheontypeName: string;
-  ontologyId: string;
+  sampleId: string;
+  phenotypesSelected: IHPOTerm[];
 }

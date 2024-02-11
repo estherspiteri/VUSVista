@@ -11,7 +11,7 @@ import json
 from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype
+    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -136,7 +136,7 @@ def extract_all_unique_sample_ids(vus_df: pd.DataFrame) -> List:
 
     for index, row in vus_df.iterrows():
         # get the sample ids
-        sample_ids_string = row['Sample Ids']
+        sample_ids_string = str(row['Sample Ids'])
         row_sample_ids = sample_ids_string.replace(' ', '').split(',')
         sample_ids.extend(row_sample_ids)
 
@@ -416,7 +416,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     return variant_ids
 
 
-def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage):
+def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, sample_phenotype_selection: List):
     # store the file in the db
     new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now())
     db.session.add(new_sample_file)
@@ -431,13 +431,23 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
         samples = str(row['Sample Ids']).replace(' ', '').split(',')
         unique_samples.extend(samples)
 
-    # remove duplicate sample ids
-    unique_samples = list(set(unique_samples))
-    print(unique_samples)
     # store each unique sample in the db
-    for sample in unique_samples:
-        new_sample = Samples(sample_id=sample, sample_file_id=new_sample_file.sample_file_id, genome_version='GRCh37')
+    for selection in sample_phenotype_selection:
+        new_sample = Samples(sample_id=selection['sampleId'], sample_file_id=new_sample_file.sample_file_id, genome_version='GRCh37')
         db.session.add(new_sample)
+
+        for phenotype in selection['phenotypesSelected']:
+            phenotype_selected: Phenotypes = db.session.query(Phenotypes).filter(
+                Phenotypes.ontology_term_id == phenotype['ontologyId'],
+            ).one_or_none()
+
+            if phenotype_selected is None:
+                new_phenotype = Phenotypes(ontology_term_id=phenotype['ontologyId'], term_name=phenotype['name'])
+                db.session.add(new_phenotype)
+
+                new_sample.ontology_term.append(new_phenotype)
+            else:
+                new_sample.ontology_term.append(phenotype_selected)
 
     db.session.flush()
 
@@ -469,10 +479,9 @@ def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multipl
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
     # handle multiple genes selection
-    if len(multiple_genes_selection) > 0:
-        for selection in multiple_genes_selection:
-            selection_row = vus_df.iloc[int(selection['index'])]
-            selection_row['Gene'] = selection['gene']
+    for selection in multiple_genes_selection:
+        selection_row = vus_df.iloc[int(selection['index'])]
+        selection_row['Gene'] = selection['gene']
 
     # a vus file will consist of at least a single sample which needs its phenotype
     # therefore if no phenotypes are returned then the system still needs to request the phenotypes from the user
@@ -498,7 +507,7 @@ def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multipl
         all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
 
         # store file and samples entries
-        create_file_and_sample_entries_in_db(all_vus_df, file)
+        create_file_and_sample_entries_in_db(all_vus_df, file, sample_phenotype_selection)
 
         # store those vus that do not already exist in the db
         variant_ids = store_vus_df_in_db(vus_df)
