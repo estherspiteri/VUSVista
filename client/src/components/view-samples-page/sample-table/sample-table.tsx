@@ -14,9 +14,9 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
   return (
     <div className={styles["sample-table-container"]}>
       <div className={styles.header}>
-        <div>Sample Id</div>
-        <div>No. of Variants</div>
-        <div>Phenotype</div>
+        <div className={`${styles['header-content']} ${styles.id}`}>Sample Id</div>
+        <div className={`${styles['header-content']} ${styles.variants}`}>No. of Variants</div>
+        <div className={`${styles['header-content']} ${styles.date}`}>Date uploaded</div>
       </div>
       {props.sampleList.map((sample, index) => {
         return (

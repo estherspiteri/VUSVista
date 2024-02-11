@@ -11,10 +11,30 @@
     background-color: #008080;
     color: white;
 
-    > * {
+    .header-content {
       padding: 16px;
       text-align: center;
-      width: calc(100% / 3);
+      box-sizing: border-box;
+
+      &.id {
+        flex-grow: 1;
+        text-align: left;
+      }
+
+      &.variants,
+      &.date {
+        flex-shrink: 0;
+        width: 150px;
+
+      }
+
+      &.variants {
+        width: 150px;
+      }
+
+      &.date {
+        width: 200px;
+      }
     }
   }
 }

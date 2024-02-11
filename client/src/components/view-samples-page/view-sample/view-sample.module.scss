@@ -15,13 +15,31 @@
     background-color: #fff;
 
     .header-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      height: 100%;
+      vertical-align: middle;
       padding: 16px;
       text-align: center;
-      width: calc(100% / 3);
       box-sizing: border-box;
+
+      &.id {
+        flex-grow: 1;
+        text-align: left;
+      }
+
+      &.variants,
+      &.date {
+        flex-shrink: 0;
+        width: 150px;
+
+      }
+
+      &.variants {
+        width: 150px;
+      }
+
+      &.date {
+        width: 200px;
+      }
     }
 
     &:hover {

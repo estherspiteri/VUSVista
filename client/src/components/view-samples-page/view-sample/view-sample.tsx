@@ -24,18 +24,14 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
           props.onClickCallback && props.onClickCallback(props.sample.sampleId)
         }
       >
-        <div className={styles["header-content"]}>{props.sample.sampleId}</div>
-        <div className={styles["header-content"]}>
+        <div className={`${styles["header-content"]} ${styles.id}`}>{props.sample.sampleId}</div>
+        <div className={`${styles["header-content"]} ${styles.variants}`}>
           {props.sample.variants.length}
         </div>
-        <div className={styles["header-content"]}>
-          {props.sample.phenotype.map((p) => {
-            return (
-              <p>
-                {p.ontologyId}: {p.name}
-              </p>
-            );
-          })}
+        <div className={`${styles["header-content"]} ${styles.date}`}>
+          {`${props.sample.dateOfFileUpload.getDate()}/${
+            props.sample.dateOfFileUpload.getMonth() + 1
+          }/${props.sample.dateOfFileUpload.getFullYear()}`}
         </div>
       </div>
     </div>
