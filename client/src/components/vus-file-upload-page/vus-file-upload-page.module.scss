@@ -125,7 +125,6 @@
     align-items: center;
 
     .header {
-      padding: 8px;
       font-weight: bold;
     }
 
@@ -147,6 +146,7 @@
 
         .header {
           border-bottom: 2px solid #008080;
+          padding: 8px;
         }
 
         .content {
@@ -194,13 +194,19 @@
         flex-direction: row;
         text-align: center;
         box-sizing: border-box;
+        padding: 8px 0;
 
         .sample-id-field {
-          width: 20%;
+          flex-grow: 1;
+          text-align: left;
         }
 
         .selected-phenotypes-field {
-          width: 50%;
+          width: 432px;
+        }
+
+        .phenotypes-selection-field {
+          width: 300px;
         }
       }
 

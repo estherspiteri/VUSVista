@@ -43,10 +43,12 @@ const SamplePhenotypeSelection: React.FunctionComponent<
             );
           })}
       </div>
-      <PhenotypeSelection
-        vusService={props.vusService}
-        onTermClickCallback={(term) => addToSelection(term)}
-      />
+      <div className={styles['phenotype-selection']}>
+        <PhenotypeSelection
+          vusService={props.vusService}
+          onTermClickCallback={(term) => addToSelection(term)}
+        />
+      </div>
     </div>
   );
 

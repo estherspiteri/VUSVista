@@ -7,6 +7,7 @@ from Bio import Entrez
 from sqlalchemy.exc import SQLAlchemyError, MultipleResultsFound
 from werkzeug.datastructures import FileStorage
 import json
+import re
 
 from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
@@ -131,13 +132,16 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     return multiple_genes
 
 
+def extract_sample_ids(sample_ids: str) -> List :
+    return re.split(',|;', sample_ids.replace(' ', ''))
+
+
 def extract_all_unique_sample_ids(vus_df: pd.DataFrame) -> List:
     sample_ids = []
 
     for index, row in vus_df.iterrows():
         # get the sample ids
-        sample_ids_string = str(row['Sample Ids'])
-        row_sample_ids = sample_ids_string.replace(' ', '').split(',')
+        row_sample_ids = extract_sample_ids(str(row['Sample Ids']))
         sample_ids.extend(row_sample_ids)
 
     unique_sample_ids = list(set(sample_ids))
@@ -428,7 +432,7 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # extract sample ids
-        samples = str(row['Sample Ids']).replace(' ', '').split(',')
+        samples = extract_sample_ids(str(row['Sample Ids']))
         unique_samples.extend(samples)
 
     # store each unique sample in the db
@@ -467,7 +471,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
         if genotype_split[0] == alt and genotype_split[1] == alt:
             genotype = Genotype.HOMOZYGOUS
 
-        samples = str(row['Sample Ids']).replace(' ', '').split(',')
+        samples = extract_sample_ids(str(row['Sample Ids']))
 
         for sample in samples:
             new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)

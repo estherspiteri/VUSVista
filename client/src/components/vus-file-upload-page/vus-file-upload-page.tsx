@@ -308,6 +308,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   <div className={styles["selected-phenotypes-field"]}>
                     Selected Phenotypes
                   </div>
+                  <div className={styles['phenotypes-selection-field']}/>
                 </div>
                 <div className={styles.content}>
                   {sampleIds.map((id, sampleIdIndex) => {
