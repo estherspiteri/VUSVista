@@ -24,12 +24,42 @@ body {
       border-bottom: 1px solid #fff;
     }
 
+    .title,
+    .icon-wrapper {
+      border-bottom: 1px solid #e2f9f9;
+      background-color: #fff;
+    }
+
     .title {
       text-align: left;
-      border-bottom: 1px solid #e2f9f9;
       padding: 16px 16px 16px 32px;
       width: 100%;
+    }
+
+    .icon-wrapper,
+    .icon {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .icon-wrapper {
       background-color: #fff;
+      padding: 0px;
+
+      .icon {
+        stroke: #008080;
+        margin-right: 16px;
+        cursor: pointer;
+        z-index: 100;
+        padding: 4px;
+
+        &:hover {
+          stroke: #fff;
+          background-color: #008080;
+          border-radius: 4px;
+        }
+      }
     }
 
     &:hover {

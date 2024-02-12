@@ -78,7 +78,7 @@ def add_abstracts_to_df(publications_df: pd.DataFrame, abstract_dict: Dict):
     return publications_df
 
 
-def get_publications(rsid: str) -> Response:
+def get_publications(rsid: str) -> InternalResponse:
     # get LitVar id
     current_app.logger.info(f'Retrieving LitVar ID for RSID {rsid}')
     litvar_id_res: InternalResponse = get_litvar_id(rsid)
@@ -86,7 +86,7 @@ def get_publications(rsid: str) -> Response:
     if litvar_id_res.status != 200:
         current_app.logger.error(
             f'LitVar Search Variant query failed 500')
-        return Response(json.dumps({'isSuccess': False}), 500)
+        return InternalResponse({'isSuccess': False}, 500)
     else:
         litvar_id = litvar_id_res.data
 
@@ -100,7 +100,7 @@ def get_publications(rsid: str) -> Response:
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
                     f'LitVar Variant Publications query failed 500')
-                return Response(json.dumps({'isSuccess': False}), 500)
+                return InternalResponse({'isSuccess': False}, 500)
             else:
                 litvar_publications = litvar_publications_res.data
                 publications_df = pd.DataFrame.from_records(litvar_publications['results'])
@@ -111,11 +111,12 @@ def get_publications(rsid: str) -> Response:
                 # retrieve more information about publications
                 current_app.logger.info(f'Retrieving PubMed information for LitVar publications')
                 pubmed_publications_res: InternalResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
+                print(pubmed_publications_res.data)
 
                 if pubmed_publications_res.status != 200:
                     current_app.logger.error(
                         f'Entrez Publications query failed 500')
-                    return Response(json.dumps({'isSuccess': False}), 500)
+                    return InternalResponse({'isSuccess': False}, 500)
                 else:
                     current_app.logger.info(f'Appending PubMed abstracts to LitVar publications')
 
@@ -133,7 +134,7 @@ def get_publications(rsid: str) -> Response:
                     publications_list = convert_df_to_list(publications_df)
 
                     current_app.logger.info(f'Sending user {len(publications_list)} publications')
-                    return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}), 200)
+                    return InternalResponse({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}, 200)
         else:
             current_app.logger.info(f'Sending user 0 publications')
-            return Response(json.dumps({'isSuccess': True, 'publicationSearch': {'publications': [], "isLitvarIdFound": False}}), 200)
+            return InternalResponse({'isSuccess': True, 'publicationSearch': {'publications': [], "isLitvarIdFound": False}}, 200)

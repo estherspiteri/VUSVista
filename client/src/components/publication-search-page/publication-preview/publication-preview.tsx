@@ -24,6 +24,18 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
       >
         <div className={styles.pmid}>{props.data?.pmid}</div>
         <div className={styles.title}>{props.data?.title}</div>
+        <div className={styles["icon-wrapper"]}>
+          <div
+            className={styles.icon}
+            onClick={() =>
+              openInNewWindow(
+                `https://pubmed.ncbi.nlm.nih.gov/${props.data.pmid}/`
+              )
+            }
+          >
+            <Icon name="document" />
+          </div>
+        </div>
       </div>
       <div className={styles["additional-info"]}>
         <div className={styles["additional-info-content"]}>
@@ -79,6 +91,11 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
     ];
 
     return months[month];
+  }
+
+  function openInNewWindow(url: string) {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) newWindow.opener = null;
   }
 };
 

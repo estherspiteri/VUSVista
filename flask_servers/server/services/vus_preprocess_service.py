@@ -397,6 +397,10 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
                               external_db_snp_id=new_dbnsp_external_ref.external_references_id)
             db.session.add(new_dbsnp)
 
+            #TODO: get publications and store in db
+
+
+
         if len(row['Clinvar uid']) > 0:
             new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
                                                           db_type='clinvar',
