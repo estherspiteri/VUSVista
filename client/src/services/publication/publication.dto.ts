@@ -1,10 +1,12 @@
-import { IPublicationSearch } from "../../models/publication-search/publication-search.model";
+import {
+  IPublicationPreview,
+} from "../../models/publication-search.model";
 
-export interface IGetPublicationsRequest {
-  rsid: string;
+export interface IGetPublicationsByVariantIdRequest {
+  variantId: string;
 }
 
-export interface IGetPublicationsResponse {
+export interface IGetPublicationsByVariantIdResponse {
   isSuccess: boolean;
-  publicationSearch?: IPublicationSearch;
+  publications?: IPublicationPreview[];
 }

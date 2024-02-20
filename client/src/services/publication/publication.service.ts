@@ -1,14 +1,14 @@
 import {
-  IGetPublicationsRequest,
-  IGetPublicationsResponse,
+  IGetPublicationsByVariantIdRequest,
+  IGetPublicationsByVariantIdResponse,
 } from "./publication.dto";
 
 export class PublicationService {
-  async getPublications(
-    input: IGetPublicationsRequest
-  ): Promise<IGetPublicationsResponse> {
-    const result: IGetPublicationsResponse = await fetch(
-      `/litvar/publications/${input.rsid}`,
+  async getPublicationsByVariantId(
+    input: IGetPublicationsByVariantIdRequest
+  ): Promise<IGetPublicationsByVariantIdResponse> {
+    const result: IGetPublicationsByVariantIdResponse = await fetch(
+      `/publication/getByVariantId/${input.variantId}`,
       {
         method: "GET",
         headers: {

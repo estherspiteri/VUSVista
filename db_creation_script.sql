@@ -229,37 +229,42 @@ CREATE TABLE reviews_acmg_rules(
 
 -- PUBLICATIONS
 CREATE TABLE publications(
-    pmid INT PRIMARY KEY,
-    title TEXT NOT NULL,
+    publication_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    pmid INT,
+    doi TEXT,
+    title TEXT,
     abstract TEXT,
-    match_in_sup_material BOOLEAN NOT NULL,
-    date_published DATE NOT NULL
+    match_in_sup_material BOOLEAN,
+    date_published DATE,
+	authors TEXT,
+	journal TEXT,
+    link TEXT
 );
 
 -- VARIANTS/PUBLICATIONS
 CREATE TABLE variants_publications(
     variant_id INT NOT NULL,
-    pmid INT NOT NULL,
+    publication_id INT NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(variant_id),
     CONSTRAINT fk_publications
-        FOREIGN KEY (pmid) 
-            REFERENCES publications(pmid),
-    PRIMARY KEY (variant_id, pmid)
+        FOREIGN KEY (publication_id) 
+            REFERENCES publications(publication_id),
+    PRIMARY KEY (variant_id, publication_id)
 );
 
 -- REVIEWS/PUBLICATIONS
 CREATE TABLE reviews_publications(
     review_id INT NOT NULL,
-    pmid INT NOT NULL,
+    publication_id INT NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
             REFERENCES reviews(review_id),
     CONSTRAINT fk_publications
-        FOREIGN KEY (pmid) 
-            REFERENCES publications(pmid),
-    PRIMARY KEY (review_id, pmid)
+        FOREIGN KEY (publication_id) 
+            REFERENCES publications(publication_id),
+    PRIMARY KEY (review_id, publication_id)
 );
 
 

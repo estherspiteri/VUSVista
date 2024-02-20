@@ -1,14 +1,12 @@
 export interface IPublicationPreview {
-  pmid: string;
-  title: string;
-  date: Date;
-  authors: string[];
-  journal: string;
-  abstract: string;
+  publicationId: number;
+  pmid?: string | null;
+  title?: string | null;
+  date?: Date | null; //TODO: fix to correct camelCase - change mapping from backend
+  authors?: string[] | null;
+  journal?: string | null;
+  abstract?: string | null;
   isSupplementaryMaterialMatch: boolean;
-}
-
-export interface IPublicationSearch {
-  isLitvarIdFound: boolean;
-  publications: IPublicationPreview[];
+  doi?: string | null;
+  link?: string | null;
 }

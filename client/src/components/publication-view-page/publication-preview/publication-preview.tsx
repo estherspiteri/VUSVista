@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./publication-preview.module.scss";
-import { IPublicationPreview } from "../../../models/publication-search/publication-search.model";
 import Icon from "../../../atoms/icon/icon";
+import { IPublicationPreview } from "../../../models/publication-search.model";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;
@@ -27,11 +27,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
         <div className={styles["icon-wrapper"]}>
           <div
             className={styles.icon}
-            onClick={() =>
-              openInNewWindow(
-                `https://pubmed.ncbi.nlm.nih.gov/${props.data.pmid}/`
-              )
-            }
+            onClick={() => openInNewWindow(props.data.link)}
           >
             <Icon name="document" />
           </div>
@@ -59,7 +55,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
           </div>
           <div className={styles.info}>
             <span className={styles["info-type"]}>Authors:</span>
-            <span>{props.data?.authors.join(", ")}</span>
+            <span>{props.data?.authors?.join(", ")}</span>
           </div>
           <div className={styles.info}>
             <span className={styles["info-type"]}>Journal:</span>

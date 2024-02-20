@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./view-vus.module.scss";
 import { IVus } from "../../../models/view-vus.model";
 import Icon from "../../../atoms/icon/icon";
+import { Link } from "react-router-dom";
 
 type ViewVusProps = {
   vus?: IVus;
@@ -100,14 +101,12 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
             ClinVar
           </div>
           {props.vus.rsidDbsnpVerified && (
-            <div
+            <Link
+              to={`/publication-view/${props.vus.variantId}`}
               className={styles["pub-icon"]}
-              onClick={() =>
-                (window.location.href = `/publication-search?rsid=${props.vus.rsid}`)
-              }
             >
-             <Icon name="publication"/>
-            </div>
+              <Icon name="publication" />
+            </Link>
           )}
         </div>
       </div>

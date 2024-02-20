@@ -18,16 +18,6 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
           </div>
         </div>
 
-        {/** Publications */}
-        <div className={styles["option-container"]}>
-          <div className={styles["option-btn"]}>Publications</div>
-          <div className={styles.options}>
-            <Link to={"/publication-search"} className={styles.option}>
-              Search
-            </Link>
-          </div>
-        </div>
-
         {/** Samples */}
         <div className={styles["option-container"]}>
           <div className={styles["option-btn"]}>Samples</div>
