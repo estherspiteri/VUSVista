@@ -4,7 +4,7 @@ from logging.config import dictConfig
 
 from server.config import SQLALCHEMY_DATABASE_URI, db
 from server.models import Base
-from server.views.litvar_views import litvar_views
+from server.views.publication_views import publication_views
 from server.views.sample_views import sample_views
 from server.views.vus_views import vus_views
 
@@ -36,7 +36,7 @@ def create_app():
 
     CORS(app)
 
-    app.register_blueprint(litvar_views, url_prefix='/litvar')
+    app.register_blueprint(publication_views, url_prefix='/publication')
     app.register_blueprint(vus_views, url_prefix='/vus')
     app.register_blueprint(sample_views, url_prefix='/sample')
 

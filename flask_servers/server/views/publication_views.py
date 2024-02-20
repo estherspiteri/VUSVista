@@ -5,12 +5,13 @@ from sqlalchemy.orm import DeclarativeMeta
 
 from server.helpers.data_helper import alchemy_encoder
 from server.services.litvar_service import get_publications
+from server.services.vus_publications_service import get_publications_by_variant_id
 
-litvar_views = Blueprint('litvar_views', __name__)
+publication_views = Blueprint('publication_views', __name__)
 
 
-@litvar_views.route('/publications/<string:rsid>', methods=['GET'])
-def get_publications_of_variant(rsid: str):
+@publication_views.route('/getByRsid/<string:rsid>', methods=['GET'])
+def get_publications_of_variant_by_rsid(rsid: str):
     # TODO: check that rsid starts with 'rs'
     current_app.logger.info(f"User requested retrieval of publications for variant with rsid {rsid}")
 
@@ -30,8 +31,17 @@ def get_publications_of_variant(rsid: str):
 
             publication_list.append(encoded_publication)
 
-        print(publication_list)
         return Response(json.dumps({'isSuccess': True,
                                     'publicationSearch': {'publications': publication_list,
                                                           "isLitvarIdFound": len(get_publications_res.data) > 0}}),
                         get_publications_res.status)
+
+
+@publication_views.route('/getByVariantId/<string:variant_id>', methods=['GET'])
+def get_publications_of_variant_by_variant_id(variant_id: str):
+    current_app.logger.info(f"User requested retrieval of publications for variant with variant id {variant_id}")
+
+    publications = get_publications_by_variant_id(variant_id)
+
+    return Response(json.dumps({'isSuccess': True, 'publications': publications}), 200)
+

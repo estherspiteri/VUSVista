@@ -165,16 +165,21 @@ class GeneAnnotations(Base):
 class Publications(Base):
     __tablename__ = 'publications'
     __table_args__ = (
-        PrimaryKeyConstraint('pmid', name='publications_pkey'),
+        PrimaryKeyConstraint('publication_id', name='publications_pkey'),
     )
 
+    publication_id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    title = mapped_column(Text)
     pmid = mapped_column(Integer)
-    title = mapped_column(Text, nullable=False)
-    match_in_sup_material = mapped_column(Boolean, nullable=False)
-    date_published = mapped_column(Date, nullable=False)
+    doi = mapped_column(Text)
     abstract = mapped_column(Text)
+    match_in_sup_material = mapped_column(Boolean)
+    date_published = mapped_column(Date)
+    authors = mapped_column(Text)
+    journal = mapped_column(Text)
+    link = mapped_column(Text)
 
-    variant: Mapped['Variants'] = relationship('Variants', secondary='variants_publications', back_populates='publications')
+    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications', back_populates='publications')
     review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
@@ -275,7 +280,7 @@ class Variants(Base):
     alt = mapped_column(Text)
     consequences = mapped_column(EnumSQL(Consequence, name='consequence'))
 
-    publications: Mapped['Publications'] = relationship('Publications', secondary='variants_publications', back_populates='variant')
+    publications: Mapped[List['Publications']] = relationship('Publications', secondary='variants_publications', back_populates='variant')
     gene: Mapped['GeneAnnotations'] = relationship('GeneAnnotations', back_populates='variants')
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True, back_populates='variant')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant')
@@ -327,10 +332,10 @@ class SamplesVariantsAcmgRules(Base):
 t_variants_publications = Table(
     'variants_publications', metadata,
     Column('variant_id', Integer, nullable=False),
-    Column('pmid', Integer, nullable=False),
-    ForeignKeyConstraint(['pmid'], ['publications.pmid'], name='fk_publications'),
+    Column('publication_id', Integer, nullable=False),
+    ForeignKeyConstraint(['publication_id'], ['publications.publication_id'], name='fk_publications'),
     ForeignKeyConstraint(['variant_id'], ['variants.variant_id'], name='fk_variants'),
-    PrimaryKeyConstraint('variant_id', 'pmid', name='variants_publications_pkey')
+    PrimaryKeyConstraint('variant_id', 'publication_id', name='variants_publications_pkey')
 )
 
 
@@ -363,9 +368,10 @@ t_reviews_acmg_rules = Table(
 t_reviews_publications = Table(
     'reviews_publications', metadata,
     Column('review_id', Integer, nullable=False),
-    Column('pmid', Integer, nullable=False),
-    ForeignKeyConstraint(['pmid'], ['publications.pmid'], name='fk_publications'),
+    Column('publication_id', Integer, nullable=False),
+    ForeignKeyConstraint(['publication_id'], ['publications.publication_id'], name='fk_publications'),
     ForeignKeyConstraint(['review_id'], ['reviews.review_id'], name='fk_reviews'),
-    PrimaryKeyConstraint('review_id', 'pmid', name='reviews_publications_pkey')
+    PrimaryKeyConstraint('review_id', 'publication_id', name='reviews_publications_pkey')
 )
+
 

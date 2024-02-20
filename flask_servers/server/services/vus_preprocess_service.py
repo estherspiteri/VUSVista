@@ -11,12 +11,14 @@ import re
 
 from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
+from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications
+from server.services.vus_publications_service import retrieve_and_store_variant_publications
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
 
@@ -274,20 +276,7 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
 
     # iterate through the dataframe
     for index, row in new_vus_df.iterrows():
-
-        try:
-            # retrieve variant if it already exists in DB
-            variant: Variants = db.session.query(Variants).filter(
-                Variants.chromosome == row['Chr'],
-                Variants.chromosome_position == row['Position'],
-                Variants.variant_type == row['Type'],
-                Variants.ref == row['Reference'],
-                Variants.alt == row['Observed Allele']
-            ).one_or_none()
-        except MultipleResultsFound as e:
-            current_app.logger.error(
-                f'The following variant :\n{row}\n exists more than once in db!')
-            continue
+        variant = get_variant_from_db(row)
 
         # if variant exists in db
         if variant is not None:
@@ -396,10 +385,6 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
             new_dbsnp = DbSnp(db_snp_id=row['RSID'],
                               external_db_snp_id=new_dbnsp_external_ref.external_references_id)
             db.session.add(new_dbsnp)
-
-            #TODO: get publications and store in db
-
-
 
         if len(row['Clinvar uid']) > 0:
             new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
@@ -520,31 +505,47 @@ def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multipl
         # store those vus that do not already exist in the db
         variant_ids = store_vus_df_in_db(vus_df)
 
-        # join existing vus_df's variant ids with the new vus variant ids
-        all_variant_ids = existing_variant_ids + variant_ids
+        # retrieve and store the publications (user links & LitVar) of new variants
+        retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(vus_df, False)
 
-        # store variants-samples entries in db
-        store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
-
-        try:
-            # Commit the session to persist changes to the database
-            db.session.commit()
-        except SQLAlchemyError as e:
-            # Changes were rolled back due to an error
-            db.session.rollback()
-
+        if retrieve_and_store_variant_pub_res.status != 200:
             current_app.logger.error(
-                f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
+                f'Get publications for new variants failed 500')
+            return Response(json.dumps({'isSuccess': False}), 200)
+        else:
+            # retrieve and store the publications (user links & LitVar) of existing variants
+            retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
 
-            response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
-            return Response(json.dumps(response), 200)
+            if retrieve_and_store_existing_variant_pub_res.status != 200:
+                current_app.logger.error(
+                    f'Get publications for existing variants failed 500')
+                return Response(json.dumps({'isSuccess': False}), 200)
+            else:
+                # join existing vus_df's variant ids with the new vus variant ids
+                all_variant_ids = existing_variant_ids + variant_ids
 
-        # update column names to camelCase format
-        new_vus_df = prep_vus_df_for_react(all_vus_df)
+                # store variants-samples entries in db
+                store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
 
-        # convert df to list
-        vus_list = convert_df_to_list(new_vus_df)
+                try:
+                    # Commit the session to persist changes to the database
+                    db.session.commit()
+                except SQLAlchemyError as e:
+                    # Changes were rolled back due to an error
+                    db.session.rollback()
 
-        return Response(
-            json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                        'vusList': vus_list}), 200)
+                    current_app.logger.error(
+                        f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
+
+                    response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
+                    return Response(json.dumps(response), 200)
+
+                # update column names to camelCase format
+                new_vus_df = prep_vus_df_for_react(all_vus_df)
+
+                # convert df to list
+                vus_list = convert_df_to_list(new_vus_df)
+
+                return Response(
+                    json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                                'vusList': vus_list}), 200)

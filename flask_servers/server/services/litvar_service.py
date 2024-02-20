@@ -1,12 +1,15 @@
+from datetime import datetime
+
 from flask import current_app, Response
 import requests
 import pandas as pd
 from urllib.parse import urlencode
 
 from server.helpers.data_helper import convert_df_to_list
+from server.models import Publications
 from server.responses.internal_response import InternalResponse
 from server.services.entrez_service import retrieve_pubmed_publications_info
-from typing import Dict
+from typing import Dict, List
 import json
 
 
@@ -45,7 +48,18 @@ def get_litvar_publications(litvar_id: str) -> InternalResponse:
             f'Response failure {litvar_publications_res.status_code}: {litvar_publications_res.reason}')
         return InternalResponse(None, litvar_publications_res.status_code, litvar_publications_res.reason)
     else:
-        return InternalResponse(litvar_publications_res.json(), 200)
+        litvar_publications_data = litvar_publications_res.json()
+
+        litvar_publications: List[Publications] = []
+
+        for publication in litvar_publications_data['results']: # TODO: include doi & fix date when received in front (convert in front)
+            date = datetime.strptime(publication['date'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y/%m/%d')
+            litvar_publications.append(Publications(title=publication['title'], pmid=publication['pmid'],
+                                                    authors=publication['authors'], journal=publication['journal'],
+                                                    date_published=date, match_in_sup_material=publication['is_sup_mat_match'],
+                                                    link=f"https://pubmed.ncbi.nlm.nih.gov/{publication['pmid']}"))
+
+        return InternalResponse(litvar_publications, 200)
 
 
 def extract_abstracts_by_pmids(pubmed_publications_info) -> Dict:
@@ -67,15 +81,37 @@ def extract_abstracts_by_pmids(pubmed_publications_info) -> Dict:
     return abstract_dict
 
 
-def add_abstracts_to_df(publications_df: pd.DataFrame, abstract_dict: Dict):
-    for pmid in abstract_dict.keys():
-        # extract rows that match the given pmid using boolean indexing
-        matching_rows = publications_df['pmid'] == pmid
+def extract_doi_by_pmids(pubmed_publications_info) -> Dict:
+    doi_dict = {}
 
-        # add the abstract to the rows
-        publications_df.loc[matching_rows, 'abstract'] = abstract_dict[pmid]
+    for pubmed_article_info in pubmed_publications_info['PubmedArticle']:
+        # extract pmid
+        pmid = int(pubmed_article_info['MedlineCitation']['PMID'])
 
-    return publications_df
+        # extract doi
+        id_list = pubmed_article_info['PubmedData']['ArticleIdList']
+        doi = [x for x in id_list if x.startswith('10.')][0]
+
+        # set key-value pair
+        doi_dict[pmid] = doi
+
+    return doi_dict
+
+
+def add_abstracts_to_publications(publications: List[Publications], abstract_dict: Dict) -> List[Publications]:
+    for publication in publications:
+        # retrieve abstract based on publication's pmid
+        publication.abstract = abstract_dict.get(publication.pmid, None)
+
+    return publications
+
+
+def add_doi_to_publications(publications: List[Publications], doi_dict: Dict) -> List[Publications]:
+    for publication in publications:
+        # retrieve doi based on publication's pmid
+        publication.doi = doi_dict.get(publication.pmid, None)
+
+    return publications
 
 
 def get_publications(rsid: str) -> InternalResponse:
@@ -102,16 +138,14 @@ def get_publications(rsid: str) -> InternalResponse:
                     f'LitVar Variant Publications query failed 500')
                 return InternalResponse({'isSuccess': False}, 500)
             else:
-                litvar_publications = litvar_publications_res.data
-                publications_df = pd.DataFrame.from_records(litvar_publications['results'])
+                litvar_publications: List[Publications] = litvar_publications_res.data
 
                 # extract pmids
-                litvar_pmids = [str(id) for id in publications_df['pmid']]
+                litvar_pmids = [str(p.pmid) for p in litvar_publications]
 
                 # retrieve more information about publications
                 current_app.logger.info(f'Retrieving PubMed information for LitVar publications')
                 pubmed_publications_res: InternalResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
-                print(pubmed_publications_res.data)
 
                 if pubmed_publications_res.status != 200:
                     current_app.logger.error(
@@ -126,15 +160,17 @@ def get_publications(rsid: str) -> InternalResponse:
                     pubmed_publications_abstracts_dict = extract_abstracts_by_pmids(pubmed_publications_info)
 
                     # add abstract column to LitVar publications df
-                    publications_df = add_abstracts_to_df(publications_df, pubmed_publications_abstracts_dict)
+                    litvar_publications = add_abstracts_to_publications(litvar_publications,
+                                                                        pubmed_publications_abstracts_dict)
 
-                    # replace NaNs with empty strings
-                    publications_df = publications_df.fillna('')
+                    # store publication doi in a dict where the key is the publication's PMID
+                    pubmed_publications_doi_dict = extract_doi_by_pmids(pubmed_publications_info)
 
-                    publications_list = convert_df_to_list(publications_df)
+                    # add abstract column to LitVar publications df
+                    litvar_publications = add_doi_to_publications(litvar_publications, pubmed_publications_doi_dict)
 
-                    current_app.logger.info(f'Sending user {len(publications_list)} publications')
-                    return InternalResponse({'isSuccess': True, 'publicationSearch': {'publications': publications_list, "isLitvarIdFound": True}}, 200)
+                    current_app.logger.info(f'Found {len(litvar_publications)} Litvar publications')
+                    return InternalResponse(litvar_publications, 200)
         else:
-            current_app.logger.info(f'Sending user 0 publications')
-            return InternalResponse({'isSuccess': True, 'publicationSearch': {'publications': [], "isLitvarIdFound": False}}, 200)
+            current_app.logger.info(f'Found 0 LitVar publications')
+            return InternalResponse([], 200)

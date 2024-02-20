@@ -1,6 +1,22 @@
 import pandas as pd
 from typing import List, Dict
 
+from sqlalchemy.orm import DeclarativeMeta
+
+
+def alchemy_encoder(obj):
+    """JSON encoder function for SQLAlchemy special classes."""
+    if isinstance(obj.__class__, DeclarativeMeta):
+        # an SQLAlchemy class
+        # this will give the individual attributes, in case you want to exclude some fields you can do so here
+        data = {}
+        for column in obj.__table__.columns:
+            data[column.name] = getattr(obj, column.name)
+        # for relation in obj.__mapper__.relationships:
+        #     data[relation.key] = [alchemy_encoder(i) for i in getattr(obj, relation.key)]
+        return data
+    raise TypeError(f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
+
 
 def convert_df_to_list(df: pd.DataFrame) -> List:
     # convert dataframe to list
