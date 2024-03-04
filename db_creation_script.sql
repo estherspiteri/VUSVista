@@ -113,13 +113,24 @@ CREATE TABLE clinvar (
             REFERENCES external_references(id)
 );
 
+-- SCIENTIFIC_MEMBERS
+CREATE TABLE scientific_members(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL
+);
+
 -- SAMPLES
 CREATE TABLE sample_files (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_uploaded TIMESTAMP NOT NULL,
-    filename TEXT NOT NULL
+    filename TEXT NOT NULL,
+	scientific_member_id INT NOT NULL,
     -- are_rsids_retrieved BOOLEAN NOT NULL,
     -- is_clinvar_accessed BOOLEAN NOT NULL
+	CONSTRAINT fk_scientific_members
+            FOREIGN KEY (scientific_member_id) 
+                REFERENCES scientific_members(id)
 );
 
 CREATE TABLE samples (
@@ -188,13 +199,6 @@ CREATE TABLE samples_variants_acmg_rules(
         FOREIGN KEY (rule_name) 
             REFERENCES acmg_rules(rule_name),
     PRIMARY KEY (variant_id, sample_id, rule_name)
-);
-
--- SCIENTIFIC_MEMBERS
-CREATE TABLE scientific_members(
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL,
-    surname TEXT NOT NULL
 );
 
 -- REVIEWS (VARIANTS/SCIENTIFIC_MEMBERS)

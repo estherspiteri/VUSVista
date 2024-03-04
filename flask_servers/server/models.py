@@ -186,13 +186,16 @@ class Publications(Base):
 class SampleFiles(Base):
     __tablename__ = 'sample_files'
     __table_args__ = (
+        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
         PrimaryKeyConstraint('id', name='sample_files_pkey'),
     )
 
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     date_uploaded = mapped_column(DateTime, nullable=False)
     filename = mapped_column(Text, nullable=False)
+    scientific_member_id = mapped_column(Integer, nullable=False)
 
+    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='sample_files')
     samples: Mapped[List['Samples']] = relationship('Samples', uselist=True, back_populates='sample_file')
 
 
@@ -206,6 +209,7 @@ class ScientificMembers(Base):
     name = mapped_column(Text, nullable=False)
     surname = mapped_column(Text, nullable=False)
 
+    sample_files: Mapped[List['SampleFiles']] = relationship('SampleFiles', uselist=True, back_populates='scientific_member')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='scientific_member')
 
 
