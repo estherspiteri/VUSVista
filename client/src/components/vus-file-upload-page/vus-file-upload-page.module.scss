@@ -150,21 +150,23 @@
         }
 
         .content {
-          padding: 8px;
-
+          padding: 8px 0px;
+          
           .info {
             display: flex;
             flex-direction: row;
           }
 
           .info:not(:last-child) {
-            padding-bottom: 16px;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #008080;
           }
         }
       }
 
       .gene-selection {
-        padding: 10px 16px 8px 8px;
+        padding: 10px 0px 8px 0px;
         margin-top: 40px;
         background-color: #008080;
         border-radius: 8px;
@@ -175,11 +177,14 @@
           display: flex;
           flex-direction: row;
           gap: 8px;
+          padding: 0px 16px 0px 8px;
           width: max-content !important;
         }
 
         .genes:not(:last-child) {
-          padding-bottom: 16px;
+          padding-bottom: 8px;
+          margin-bottom: 8px;
+          border-bottom: 1px solid white;
         }
 
         .radio {

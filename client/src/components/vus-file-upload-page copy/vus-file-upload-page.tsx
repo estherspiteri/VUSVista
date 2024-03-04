@@ -12,7 +12,7 @@ import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icon/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
 import { IHPOTerm } from "../../services/vus/vus.dto";
-import SamplePhenotypeSelection from "./sample-phenotype-selection/sample-phenotype-selection";
+import PhenotypeSelection from "../vus-file-upload-page/phenotype-selection/phenotype-selection";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -50,7 +50,6 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   const [errorMsg, setErrorMsg] = useState("");
 
   const modalRef = useRef<ModalRef>(null);
-  console.log(samplesPhenotypesSelection, "kkk");
 
   const onFileDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -144,8 +143,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
               <div className={styles["uploaded-file"]}>
                 <span className={styles["file-name"]}>{file.name}</span>
                 <div className={styles.icon} onClick={() => setFile(undefined)}>
-                  {isProcessing ||
-                  (errorMsg.length === 0 && multipleGenes?.length > 0) ? (
+                  {isProcessing || multipleGenes?.length > 0 ? (
                     <Loader width={16} thickness={2} />
                   ) : isFileProcessed ? (
                     <Icon name="checkmark" fill="#008080" />
@@ -303,29 +301,79 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
             </div>
           ) : (
             <div className={styles["modal-content-wrapper"]}>
-              <div className={styles["phenotype-selection-modal-content"]}>
-                <div className={styles.header}>
-                  <div className={styles["sample-id-field"]}>Sample Id</div>
-                  <div className={styles["selected-phenotypes-field"]}>
-                    Selected Phenotypes
+              <div className={styles["selection-content"]}>
+                <div className={styles["variant-info"]}>
+                  <div className={styles.header}>
+                    <div className={styles.field}>Sample Id</div>
                   </div>
-                  <div className={styles["phenotypes-selection-field"]} />
+                  <div className={styles.content}>
+                    {sampleIds.map((id, sampleIdIndex) => {
+                      return (
+                        <div className={styles.info}>
+                          <div className={styles.field}>{id}</div>
+                          {samplesPhenotypesSelection[sampleIdIndex] !==
+                            undefined &&
+                            samplesPhenotypesSelection[sampleIdIndex].length >
+                              0 && (
+                              <div>
+                                {samplesPhenotypesSelection[sampleIdIndex].map(
+                                  (selection) => {
+                                    return (
+                                      <div>
+                                        <Icon
+                                          name="close"
+                                          onClick={() => {
+                                            setSamplesPhenotypesSelection(
+                                              samplesPhenotypesSelection.map(
+                                                (sampleSelection, i) => {
+                                                  if (i === sampleIdIndex) {
+                                                    return sampleSelection.filter(
+                                                      (s) => s !== selection
+                                                    );
+                                                  } else {
+                                                    return sampleSelection;
+                                                  }
+                                                }
+                                              )
+                                            );
+                                            // }
+                                          }}
+                                        />
+                                        <p>
+                                          {`${selection.ontologyId}: ${selection.name}`}
+                                        </p>
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className={styles.content}>
+                <div className={styles["gene-selection"]}>
+                  {/**TODO: fix classnames */}
                   {sampleIds.map((id, sampleIdIndex) => {
                     return (
-                      <SamplePhenotypeSelection
-                        sampleId={id}
+                      <PhenotypeSelection
                         vusService={props.vusService}
-                        onSamplePhenotypesSelectionUpdate={(selection) => {
-                          const updatedSelection =
-                            samplesPhenotypesSelection.map((s, i) => {
+                        onTermClickCallback={(term) => {
+                          setSamplesPhenotypesSelection(
+                            samplesPhenotypesSelection.map((selection, i) => {
                               if (i === sampleIdIndex) {
-                                return selection;
-                              } else return s;
-                            });
+                                var updatedSelection = [term];
 
-                          setSamplesPhenotypesSelection(updatedSelection);
+                                if (selection) {
+                                  updatedSelection = selection.concat([term]);
+                                }
+                                return updatedSelection;
+                              } else {
+                                return selection;
+                              }
+                            })
+                          );
                         }}
                       />
                     );
@@ -362,9 +410,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   }
 
   function saveSamplesPhenotypeSelection() {
-    const areAllSamplePhenotypesSelected =
-      !samplesPhenotypesSelection.includes([]) &&
-      !samplesPhenotypesSelection.includes(undefined);
+    const areAllSamplePhenotypesSelected = !samplesPhenotypesSelection.includes(
+      []
+    );
 
     if (areAllSamplePhenotypesSelected) {
       processFile();
@@ -398,9 +446,6 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         vusFile: file,
         multipleGenesSelection: multipleGenesSelection?.map((g, i) => {
           return { index: multipleGenes[i].index, gene: g };
-        }),
-        samplePhenotypeSelection: samplesPhenotypesSelection?.map((p, i) => {
-          return { sampleId: sampleIds[i], phenotypesSelected: p };
         }),
       })
       .then((res) => {

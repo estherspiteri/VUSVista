@@ -4,7 +4,7 @@ from typing import List, Hashable
 from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
-from sqlalchemy.exc import SQLAlchemyError, MultipleResultsFound
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 import json
 import re

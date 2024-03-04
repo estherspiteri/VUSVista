@@ -10,18 +10,14 @@ body {
     flex-direction: row;
     cursor: pointer;
 
+    &.header-with-add-info {
+      font-weight: bold;
+      color: #008080;
+    }
+
     > * {
       padding: 16px;
       text-align: center;
-    }
-
-    .pmid {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-width: 150px;
-      background-color: #e2f9f9;
-      border-bottom: 1px solid #fff;
     }
 
     .title,
@@ -32,10 +28,11 @@ body {
 
     .title {
       text-align: left;
-      padding: 16px 16px 16px 32px;
+      padding: 16px;
       width: 100%;
     }
 
+    .title,
     .icon-wrapper,
     .icon {
       display: flex;
@@ -45,11 +42,10 @@ body {
 
     .icon-wrapper {
       background-color: #fff;
-      padding: 0px;
+      padding: 16px 0px 16px 32px;
 
       .icon {
         stroke: #008080;
-        margin-right: 16px;
         cursor: pointer;
         z-index: 100;
         padding: 4px;
@@ -117,12 +113,6 @@ body {
   }
 
   &.visible-additional-info {
-    .header {
-      .pmid {
-        border-bottom: 1px solid #e2f9f9;
-      }
-    }
-
     .additional-info {
       max-height: 1000px;
       transition: max-height 1.25s ease-in;

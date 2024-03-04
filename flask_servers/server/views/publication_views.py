@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, current_app, Response, jsonify
 from sqlalchemy.orm import DeclarativeMeta
 
-from server.helpers.data_helper import alchemy_encoder
+from server.helpers.data_helper import alchemy_encoder, get_variant_summary
 from server.services.litvar_service import get_publications
 from server.services.vus_publications_service import get_publications_by_variant_id
 
@@ -41,7 +41,9 @@ def get_publications_of_variant_by_rsid(rsid: str):
 def get_publications_of_variant_by_variant_id(variant_id: str):
     current_app.logger.info(f"User requested retrieval of publications for variant with variant id {variant_id}")
 
-    publications = get_publications_by_variant_id(variant_id)
+    variant, publications = get_publications_by_variant_id(variant_id)
 
-    return Response(json.dumps({'isSuccess': True, 'publications': publications}), 200)
+    variant_summary = get_variant_summary(variant)
+
+    return Response(json.dumps({'isSuccess': True, 'variant': variant_summary, 'publications': publications}), 200)
 

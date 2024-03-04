@@ -33,13 +33,18 @@ def get_publication_info(publication_link: str) -> InternalResponse:
         if 'published' in metadata.keys():
             date = metadata['published']
         elif 'year' in metadata.keys():
-            date = metadata['year'] + '-01-01'
+            date = metadata['year'] + '-01-01' # TODO: fix - misleading on front-end
 
         if date is not None:
             date = datetime.strptime(date, '%Y-%m-%d')
 
+        # eliminate any keywords included
+        updated_doi = metadata.get('doi', None)
+        if updated_doi is not None:
+            updated_doi = updated_doi.replace("\"", "").split(',')[0]
+
         publication = Publications(title=metadata.get('title', None), pmid=metadata.get('pmid', None),
-                                   doi=metadata.get('doi', None),
+                                   doi=updated_doi,
                                    abstract=metadata.get('abstract', None),
                                    date_published=date,
                                    link=publication_link)
@@ -109,7 +114,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
         litvar_publications: List[Publications] = []
 
         # check if user provided any literature links
-        links = row['Literature Links'].replace(' ', '')
+        links = str(row['Literature Links']).replace(' ', '')
 
         if len(links) > 0:
             links_arr = links.split('|')
@@ -161,7 +166,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
     return InternalResponse(None, 200)
 
 
-def get_publications_by_variant_id(variant_id: str) -> List[Dict]:
+def get_publications_by_variant_id(variant_id: str) -> (Variants, List[Dict]):
     variant: Variants = db.session.query(Variants).filter(Variants.variant_id == variant_id).one_or_none()
 
     publication_list = []
@@ -181,4 +186,4 @@ def get_publications_by_variant_id(variant_id: str) -> List[Dict]:
 
         publication_list.append(encoded_publication)
 
-    return publication_list
+    return variant, publication_list

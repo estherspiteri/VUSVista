@@ -19,7 +19,6 @@ export interface IVusGeneSelected {
   gene: string;
 }
 
-
 export interface ISamplePhenotypeSelected {
   sampleId: string;
   phenotypesSelected: IHPOTerm[];

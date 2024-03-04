@@ -3,12 +3,17 @@ import PublicationViewPage from "../components/publication-view-page/publication
 import { publicationService } from "../services/publication/publication.service";
 import Loader from "../atoms/loader/loader";
 import React, { useEffect, useState } from "react";
-import { IPublicationPreview } from "../models/publication-search.model";
+import {
+  IPublicationPreview,
+  IVUSSummary,
+} from "../models/publication-view.model";
 import { IGetPublicationsByVariantIdResponse } from "../services/publication/publication.dto";
 
 const PublicationViewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<IPublicationPreview[]>(undefined);
+  const [publications, setPublications] =
+    useState<IPublicationPreview[]>(undefined);
+  const [variant, setVariant] = useState<IVUSSummary>(undefined);
 
   const loc = useLocation();
   const variantId = loc.pathname.split("/publication-view/")[1];
@@ -19,7 +24,8 @@ const PublicationViewPageWrapper: React.FunctionComponent = () => {
         ?.getPublicationsByVariantId({ variantId: variantId })
         .then((res) => {
           if (res.isSuccess) {
-            setData(convertPubDates(res.publications));
+            setPublications(convertPubDates(res.publications));
+            setVariant(res.variant);
             setIsLoading(false);
           } else {
             //TODO: handle error
@@ -31,7 +37,13 @@ const PublicationViewPageWrapper: React.FunctionComponent = () => {
   if (isLoading) {
     return <Loader />;
   } else {
-    return <PublicationViewPage variantId={variantId} publications={data} />;
+    return (
+      <PublicationViewPage
+        variantId={variantId}
+        publications={publications}
+        variant={variant}
+      />
+    );
   }
 
   function convertPubDates(

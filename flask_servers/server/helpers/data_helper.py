@@ -3,6 +3,8 @@ from typing import List, Dict
 
 from sqlalchemy.orm import DeclarativeMeta
 
+from server.models import Variants
+
 
 def alchemy_encoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
@@ -57,3 +59,10 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     new_vus_df['clinvarUid'] = vus_df['Clinvar uid']
 
     return new_vus_df
+
+
+def get_variant_summary(variant: Variants) -> Dict:
+    variant_summary = {'chromosome': variant.chromosome, 'chromosomePosition': variant.chromosome_position,
+                       'gene': variant.gene_name, 'observedAllele': variant.alt, 'refAllele': variant.ref}
+
+    return variant_summary

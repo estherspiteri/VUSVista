@@ -22,13 +22,33 @@
   .publications-previews-container {
     display: flex;
     flex-direction: column;
-    gap: 32px;
 
     .status {
       align-self: center;
       font-size: 14px;
+      margin-bottom: 16px;
 
       .colour {
+        color: #008080;
+        font-weight: bold;
+      }
+    }
+
+    .variant-details {
+      align-self: center;
+      text-align: center;
+      padding: 8px 32px;
+      border: 2px solid #008080;
+      border-radius: 40px;
+      background-color: #e2f9f9;
+      font-size: 12px;
+      margin-bottom: 32px;
+
+      display: flex;
+      flex-direction: row;
+      gap: 64px;
+
+      .detail {
         color: #008080;
       }
     }
@@ -48,14 +68,11 @@
         border-top-left-radius: 4px;
         background-color: #008080;
         color: white;
+        padding-left: 64px;
 
         > * {
           padding: 16px;
           text-align: center;
-        }
-
-        .pmid {
-          min-width: 150px;
         }
       }
     }

@@ -10,3 +10,11 @@ export interface IPublicationPreview {
   doi?: string | null;
   link?: string | null;
 }
+
+export interface IVUSSummary {
+  chromosome: string;
+  chromosomePosition: string;
+  gene: string;
+  observedAllele: string;
+  refAllele: string;
+}

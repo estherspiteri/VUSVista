@@ -3,7 +3,7 @@ import {
   ISamplePhenotypeSelected,
   IVusGene,
   IVusGeneSelected,
-} from "../../models/vus_file_upload.model";
+} from "../../models/vus-file-upload.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./publication-preview.module.scss";
 import Icon from "../../../atoms/icon/icon";
-import { IPublicationPreview } from "../../../models/publication-search.model";
+import { IPublicationPreview } from "../../../models/publication-view.model";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;
@@ -10,20 +10,38 @@ type PublicationPreviewProps = {
 const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
   props: PublicationPreviewProps
 ) => {
+  const ref = useRef<HTMLDivElement>(null);
   const [isAdditionalInfoVisible, setIsAdditionalInfoVisible] = useState(false);
+
+  //close additional info on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setIsAdditionalInfoVisible(false);
+      }
+    }
+    // Bind the event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [ref]);
 
   return (
     <div
+      ref={ref}
       className={`${styles["publication-preview-container"]} ${
         isAdditionalInfoVisible ? styles["visible-additional-info"] : ""
       }`}
     >
       <div
-        className={styles.header}
+        className={`${styles.header} ${
+          isAdditionalInfoVisible ? styles["header-with-add-info"] : ""
+        }`}
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
-        <div className={styles.pmid}>{props.data?.pmid}</div>
-        <div className={styles.title}>{props.data?.title}</div>
         <div className={styles["icon-wrapper"]}>
           <div
             className={styles.icon}
@@ -32,6 +50,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
             <Icon name="document" />
           </div>
         </div>
+        <div className={styles.title}>{props.data?.title}</div>
       </div>
       <div className={styles["additional-info"]}>
         <div className={styles["additional-info-content"]}>
@@ -44,6 +63,17 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
             </div>
           )}
 
+          {/** Publication Information */}
+          <div className={styles.info}>
+            <span className={styles["info-type"]}>DOI:</span>
+            <span>{props.data.doi}</span>
+          </div>
+          {props.data.pmid && (
+            <div className={styles.info}>
+              <span className={styles["info-type"]}>PMID:</span>
+              <span>{props.data.pmid}</span>
+            </div>
+          )}
           <div className={styles.info}>
             <span className={styles["info-type"]}>Date:</span>
             <span>
@@ -53,18 +83,27 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
               {props.data?.date.getFullYear()}
             </span>
           </div>
-          <div className={styles.info}>
-            <span className={styles["info-type"]}>Authors:</span>
-            <span>{props.data?.authors?.join(", ")}</span>
-          </div>
-          <div className={styles.info}>
-            <span className={styles["info-type"]}>Journal:</span>
-            <span>{props.data?.journal}</span>
-          </div>
-          <div className={styles.info}>
-            <span className={styles["info-type"]}>Abstract:</span>
-            <span>{props.data?.abstract}</span>
-          </div>
+          {props.data.authors && (
+            <div className={styles.info}>
+              <span className={styles["info-type"]}>Authors:</span>
+              <span>
+                {props.data?.authors.slice(0, 10)?.join(", ")}
+                {props.data.authors.length > 9 ? ", ..." : ""}
+              </span>
+            </div>
+          )}
+          {props.data.journal && (
+            <div className={styles.info}>
+              <span className={styles["info-type"]}>Journal:</span>
+              <span>{props.data?.journal}</span>
+            </div>
+          )}
+          {props.data.abstract && (
+            <div className={styles.info}>
+              <span className={styles["info-type"]}>Abstract:</span>
+              <span>{props.data?.abstract}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
