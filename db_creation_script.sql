@@ -43,7 +43,7 @@ CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
 
 -- GENE ANNOTATIONS
 CREATE TABLE gene_annotations (
-    gene_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     seq_name TEXT NOT NULL,
     source TEXT NOT NULL,
     feature TEXT NOT NULL,
@@ -60,13 +60,13 @@ CREATE TABLE gene_attributes (
     attribute_value TEXT NOT NULL,
     CONSTRAINT fk_gene_annotations
         FOREIGN KEY (gene_id) 
-            REFERENCES gene_annotations(gene_id),
+            REFERENCES gene_annotations(id),
     PRIMARY KEY (gene_id, attribute_name)
 );
 
 -- VARIANTS 
 CREATE TABLE variants (
-    variant_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     chromosome VARCHAR(2) NOT NULL,
     chromosome_position TEXT NOT NULL,
     variant_type VARIANT_TYPE NOT NULL,
@@ -78,31 +78,31 @@ CREATE TABLE variants (
     gene_name TEXT NOT NULL,
     CONSTRAINT fk_gene_annotations 
         FOREIGN KEY (gene_id) 
-            REFERENCES gene_annotations(gene_id)
+            REFERENCES gene_annotations(id)
 );
 
 -- EXTERNAL REFERENCES
 -- Table that references either clinvar or db_snp based on db_type
 CREATE TABLE external_references (
-    external_references_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     error_msg TEXT,
     db_type TEXT NOT NULL,
     variant_id INT NOT NULL,
     CONSTRAINT fk_variants
             FOREIGN KEY (variant_id) 
-                REFERENCES variants(variant_id)
+                REFERENCES variants(id)
 );
 
 CREATE TABLE db_snp (
-    db_snp_id VARCHAR(15) PRIMARY KEY,
+    id VARCHAR(15) PRIMARY KEY,
     external_db_snp_id INT NOT NULL UNIQUE,
     CONSTRAINT fk_external_references
             FOREIGN KEY (external_db_snp_id) 
-                REFERENCES external_references(external_references_id)
+                REFERENCES external_references(id)
 );
 
 CREATE TABLE clinvar (
-    clinvar_id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     external_clinvar_id INT NOT NULL UNIQUE,
     canonical_spdi TEXT NOT NULL,
     classification TEXT,
@@ -110,12 +110,12 @@ CREATE TABLE clinvar (
     review_status TEXT,
     CONSTRAINT fk_external_references
         FOREIGN KEY (external_clinvar_id) 
-            REFERENCES external_references(external_references_id)
+            REFERENCES external_references(id)
 );
 
 -- SAMPLES
 CREATE TABLE sample_files (
-    sample_file_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_uploaded TIMESTAMP NOT NULL,
     filename TEXT NOT NULL
     -- are_rsids_retrieved BOOLEAN NOT NULL,
@@ -123,13 +123,13 @@ CREATE TABLE sample_files (
 );
 
 CREATE TABLE samples (
-    sample_id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     -- date_collected TIMESTAMP,
     genome_version VARCHAR(20),
     sample_file_id INT NOT NULL,
     CONSTRAINT fk_sample_files
         FOREIGN KEY (sample_file_id) 
-            REFERENCES sample_files(sample_file_id)
+            REFERENCES sample_files(id)
 
 );
 
@@ -144,7 +144,7 @@ CREATE TABLE samples_phenotypes(
     ontology_term_id TEXT NOT NULL,
     CONSTRAINT fk_samples
         FOREIGN KEY (sample_id) 
-            REFERENCES samples(sample_id),
+            REFERENCES samples(id),
     CONSTRAINT fk_phenotypes
         FOREIGN KEY (ontology_term_id) 
             REFERENCES phenotypes(ontology_term_id),
@@ -158,10 +158,10 @@ CREATE TABLE variants_samples (
     genotype GENOTYPE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
+            REFERENCES variants(id),
     CONSTRAINT fk_samples
         FOREIGN KEY (sample_id) 
-            REFERENCES samples(sample_id),
+            REFERENCES samples(id),
     PRIMARY KEY (variant_id, sample_id)
 ); 
 
@@ -180,10 +180,10 @@ CREATE TABLE samples_variants_acmg_rules(
     rule_name ACMG_RULE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
+            REFERENCES variants(id),
     CONSTRAINT fk_samples
         FOREIGN KEY (sample_id) 
-            REFERENCES samples(sample_id),
+            REFERENCES samples(id),
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (rule_name) 
             REFERENCES acmg_rules(rule_name),
@@ -192,14 +192,14 @@ CREATE TABLE samples_variants_acmg_rules(
 
 -- SCIENTIFIC_MEMBERS
 CREATE TABLE scientific_members(
-    scientific_member_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL,
     surname TEXT NOT NULL
 );
 
 -- REVIEWS (VARIANTS/SCIENTIFIC_MEMBERS)
 CREATE TABLE reviews(
-    review_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     variant_id INT NOT NULL,
     scientific_member_id INT NOT NULL,
     date_added TIMESTAMP NOT NULL,
@@ -208,10 +208,10 @@ CREATE TABLE reviews(
     classification_reason TEXT,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
+            REFERENCES variants(id),
     CONSTRAINT fk_scientific_members
         FOREIGN KEY (scientific_member_id) 
-            REFERENCES scientific_members(scientific_member_id)
+            REFERENCES scientific_members(id)
 );
 
 -- REVIEWS/ACMG_RULES
@@ -220,7 +220,7 @@ CREATE TABLE reviews_acmg_rules(
     rule_name ACMG_RULE NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
-            REFERENCES reviews(review_id),
+            REFERENCES reviews(id),
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (rule_name) 
             REFERENCES acmg_rules(rule_name),
@@ -229,7 +229,7 @@ CREATE TABLE reviews_acmg_rules(
 
 -- PUBLICATIONS
 CREATE TABLE publications(
-    publication_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     pmid INT,
     doi TEXT,
     title TEXT,
@@ -247,10 +247,10 @@ CREATE TABLE variants_publications(
     publication_id INT NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(variant_id),
+            REFERENCES variants(id),
     CONSTRAINT fk_publications
         FOREIGN KEY (publication_id) 
-            REFERENCES publications(publication_id),
+            REFERENCES publications(id),
     PRIMARY KEY (variant_id, publication_id)
 );
 
@@ -260,10 +260,10 @@ CREATE TABLE reviews_publications(
     publication_id INT NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
-            REFERENCES reviews(review_id),
+            REFERENCES reviews(id),
     CONSTRAINT fk_publications
         FOREIGN KEY (publication_id) 
-            REFERENCES publications(publication_id),
+            REFERENCES publications(id),
     PRIMARY KEY (review_id, publication_id)
 );
 
