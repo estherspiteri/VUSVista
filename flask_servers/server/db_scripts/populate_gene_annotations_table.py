@@ -47,7 +47,7 @@ def store_gtf_file_in_db(zip_filename: str, cursor) -> bool:
                     try:
                         sql_string = ("INSERT INTO gene_annotations(seq_name, source, feature, start_location, "
                                       "end_location, score, strand, frame) VALUES(%s,%s,%s,%s,%s,%s,%s,%s) "
-                                      "RETURNING gene_id;")
+                                      "RETURNING id;")
 
                         # inserting gene annotations in db
                         cursor.execute(sql_string, updated_split_annotation_line[0:8])
