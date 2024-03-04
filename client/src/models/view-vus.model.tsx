@@ -11,7 +11,7 @@ export interface IVus {
   clinvarErrorMsg?: string;
   gene: string;
   genotype: string;
-  observedAllele: string;
+  altAllele: string;
   refAllele: string;
   rsid?: string;
   rsidDbsnpVerified: boolean;

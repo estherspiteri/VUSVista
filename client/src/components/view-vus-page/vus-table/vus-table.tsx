@@ -19,7 +19,7 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
         <div>Position</div>
         <div>Gene</div>
         <div>Reference</div>
-        <div>Observed</div>
+        <div>Alternate</div>
         {props.showGenotype && <div>Genotype</div>}
         <div>RSID</div>
         <div></div>

@@ -5,7 +5,7 @@ export interface IUnprocessedVus {
   type: string;
   genotype: string;
   refAllele: string;
-  observedAllele: string;
+  altAllele: string;
 }
 
 export interface IVusGene {

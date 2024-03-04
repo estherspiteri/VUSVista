@@ -15,6 +15,6 @@ export interface IVUSSummary {
   chromosome: string;
   chromosomePosition: string;
   gene: string;
-  observedAllele: string;
+  altAllele: string;
   refAllele: string;
 }

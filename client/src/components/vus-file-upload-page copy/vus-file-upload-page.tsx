@@ -233,7 +233,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                     <div className={styles.field}>Type</div>
                     <div className={styles.field}>Genotype</div>
                     <div className={styles.field}>Reference</div>
-                    <div className={styles.field}>Observed Allele</div>
+                    <div className={styles.field}>Alternate Allele</div>
                   </div>
                   <div className={styles.content}>
                     {multipleGenes.map((x) => {
@@ -243,9 +243,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                           <div className={styles.field}>{x.vus.type}</div>
                           <div className={styles.field}>{x.vus.genotype}</div>
                           <div className={styles.field}>{x.vus.refAllele}</div>
-                          <div className={styles.field}>
-                            {x.vus.observedAllele}
-                          </div>
+                          <div className={styles.field}>{x.vus.altAllele}</div>
                         </div>
                       );
                     })}

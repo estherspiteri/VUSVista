@@ -11,7 +11,7 @@ from server.responses.internal_response import InternalResponse
 def convert_variants_to_vcf(variant_df: pd.DataFrame):
     with open('variants.vcf', 'w') as vcf_f:
         for var in variant_df.iterrows():
-            vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {var[1]['Reference']} {var[1]['Observed Allele']} . PASS\n"
+            vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {var[1]['Reference']} {var[1]['Alt']} . PASS\n"
             vcf_f.write(vcf_string)
 
 
@@ -36,7 +36,7 @@ def get_rsids(genome_version: str) -> InternalResponse:
         # extract RSIDs
         # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
         rsids = [x.split()[2] for x in rsid_vcf_res.text.split('\n') if
-                 x.strip()]  # columns: 'chromosome', 'position', 'rsid', 'reference', 'observed'
+                 x.strip()]  # columns: 'chromosome', 'position', 'rsid', 'reference', 'alt'
 
         return InternalResponse(rsids, 200)
 
@@ -101,9 +101,9 @@ def get_chr_pos_from_dbsnp_info(dbsnp_info):
     return {'CHR': chr, 'POS': pos}
 
 
-# Function to get Reference and Observed alleles from dbSNP - ONLY WORKS FOR SNV aka REF>OBSERVED
+# Function to get Reference and Alt from dbSNP - ONLY WORKS FOR SNV aka REF>ALT
 def get_alleles_from_dbsnp_info(dbsnp_info, pos):
-    ref_observed = []
+    ref_alt = []
     matching_pos_doc_sum = []
 
     if dbsnp_info:
@@ -112,19 +112,19 @@ def get_alleles_from_dbsnp_info(dbsnp_info, pos):
         matching_pos_doc_sum = [doc_sum for doc_sum in doc_sum_array if pos in doc_sum]
 
         for doc_sum in matching_pos_doc_sum:
-            # parsing hgvs notation to access reference and observed allele
-            ref_observed_allele = ''.join([x for x in doc_sum.split(':')[1].split('.')[1] if not x.isdigit()])
+            # parsing hgvs notation to access reference and alt
+            ref_alt_allele = ''.join([x for x in doc_sum.split(':')[1].split('.')[1] if not x.isdigit()])
 
-            if '>' in ref_observed_allele:
-                ref_observed_allele_split = ref_observed_allele.split('>')
+            if '>' in ref_alt_allele:
+                ref_alt_allele_split = ref_alt_allele.split('>')
 
-                ref_observed.append({'REF': ref_observed_allele_split[0], 'OBSERVED': ref_observed_allele_split[1]})
+                ref_alt.append({'REF': ref_alt_allele_split[0], 'ALT': ref_alt_allele_split[1]})
 
-    return ref_observed, matching_pos_doc_sum
+    return ref_alt, matching_pos_doc_sum
 
 
 # Function to verify that the rsid matches with the requested variant using dbSNP
-def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, observed: str) -> InternalResponse:
+def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str) -> InternalResponse:
     is_valid = True
     error_msgs = []
 
@@ -170,18 +170,18 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, observed: s
                 error_msgs.append(error_msg)
                 is_valid = False
 
-            # compare reference and observed allele
-            ref_observed_allele_array = get_alleles_from_dbsnp_info(db_snp_variant_info, chr_pos['POS'])
+            # compare reference and Alt
+            ref_alt_allele_array = get_alleles_from_dbsnp_info(db_snp_variant_info, chr_pos['POS'])
 
-            ref_observed_allele_match = False
+            ref_alt_allele_match = False
 
-            for ref_observed_allele in ref_observed_allele_array[0]:
-                if ref_observed_allele['REF'] == ref and ref_observed_allele['OBSERVED'] == observed:
-                    ref_observed_allele_match = True
+            for ref_alt_allele in ref_alt_allele_array[0]:
+                if ref_alt_allele['REF'] == ref and ref_alt_allele['ALT'] == alt:
+                    ref_alt_allele_match = True
                     break
 
-            if not ref_observed_allele_match:
-                error_msg = f"{rsid}: Variant's reference {ref} and/or observed allele {observed} do not match any of the RSID's reference and observed alleles {ref_observed_allele_array[1]}!"
+            if not ref_alt_allele_match:
+                error_msg = f"{rsid}: Variant's reference {ref} and/or alt allele {alt} do not match any of the RSID's reference and alt alleles {ref_alt_allele_array[1]}!"
                 current_app.logger.warn(error_msg)
                 error_msgs.append(error_msg)
                 is_valid = False
@@ -218,7 +218,7 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
                 rsid_verification.append({'isValid': False, 'errorMsgs': []})
             else:
                 verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
-                                row['Observed Allele'])
+                                row['Alt'])
 
                 if verify_rsid_res.status != 200:
                     current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")

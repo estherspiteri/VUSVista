@@ -366,7 +366,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     for index, row in vus_df.iterrows():
         # create new variant
         new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=row['Type'],
-                               ref=row['Reference'], alt=row['Observed Allele'], classification=row['Classification'],
+                               ref=row['Reference'], alt=row['Alt'], classification=row['Classification'],
                                gene_id=row['Gene Id'], gene_name=row['Gene'])
         # add the new variant to the session
         db.session.add(new_variant)
@@ -450,7 +450,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
     for index, row in vus_df.iterrows():
         variant_id = variant_ids[int(index)]
 
-        alt = row['Observed Allele']
+        alt = row['Alt']
         vus_genotype = row['Genotype']
 
         genotype_split = vus_genotype.split('/')

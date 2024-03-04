@@ -60,10 +60,8 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                   <p className={styles.detail}>{props.variant.refAllele}</p>
                 </div>
                 <div>
-                  <p>Observed</p>
-                  <p className={styles.detail}>
-                    {props.variant.observedAllele}
-                  </p>
+                  <p>Alternate</p>
+                  <p className={styles.detail}>{props.variant.altAllele}</p>
                 </div>
               </div>
               <div className={styles["publication-previews"]}>

@@ -34,7 +34,7 @@ def retrieve_all_vus_from_db():
 
     variants_data = [{'variantId': v.variant_id, 'chromosome': v.chromosome,
                       'chromosomePosition': v.chromosome_position, 'gene': v.gene_name,
-                      'type': v.variant_type.value, 'refAllele': v.ref, 'observedAllele': v.alt,
+                      'type': v.variant_type.value, 'refAllele': v.ref, 'altAllele': v.alt,
                       'classification': v.classification.value} for v in variants]
 
     # store the variants into a dataframe

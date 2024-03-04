@@ -52,9 +52,7 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         </div>
         <div className={styles["header-content"]}>{props.vus.gene}</div>
         <div className={styles["header-content"]}>{props.vus.refAllele}</div>
-        <div className={styles["header-content"]}>
-          {props.vus.observedAllele}
-        </div>
+        <div className={styles["header-content"]}>{props.vus.altAllele}</div>
         {props.showGenotype && (
           <div className={styles["header-content"]}>{props.vus.genotype}</div>
         )}
