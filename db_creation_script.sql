@@ -117,7 +117,9 @@ CREATE TABLE clinvar (
 CREATE TABLE scientific_members(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL,
-    surname TEXT NOT NULL
+    surname TEXT NOT NULL,
+	email TEXT NOT NULL,
+	password TEXT NOT NULL
 );
 
 -- SAMPLES

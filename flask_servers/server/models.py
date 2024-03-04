@@ -208,6 +208,8 @@ class ScientificMembers(Base):
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     name = mapped_column(Text, nullable=False)
     surname = mapped_column(Text, nullable=False)
+    email = mapped_column(Text, nullable=False)
+    password = mapped_column(Text, nullable=False)
 
     sample_files: Mapped[List['SampleFiles']] = relationship('SampleFiles', uselist=True, back_populates='scientific_member')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='scientific_member')
