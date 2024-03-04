@@ -58,7 +58,7 @@ def retrieve_all_vus_from_db():
                     DbSnp.external_db_snp_id == ref.external_references_id
                 ).one_or_none()
 
-                vus_df.at[index, 'rsid'] = dbsnp.db_snp_id
+                vus_df.at[index, 'rsid'] = dbsnp.id
                 vus_df.at[index, 'rsidDbsnpVerified'] = len(ref.error_msg) == 0
                 vus_df.at[index, 'rsidDbsnpErrorMsgs'] = ref.error_msg
 
@@ -74,7 +74,7 @@ def retrieve_all_vus_from_db():
                     clinvar_last_evaluated = None
 
                 # populate the clinvar fields
-                vus_df.at[index, 'clinvarUid'] = clinvar.clinvar_id
+                vus_df.at[index, 'clinvarUid'] = clinvar.id
                 vus_df.at[index, 'clinvarCanonicalSpdi'] = clinvar.canonical_spdi
                 vus_df.at[index, 'clinvarClassification'] = clinvar.classification
                 vus_df.at[index, 'clinvarClassificationReviewStatus'] = clinvar.review_status

@@ -113,7 +113,7 @@ class ExternalReferences(Base):
 class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
-        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.external_references_id'], name='fk_external_references'),
+        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], name='fk_external_references'),
         PrimaryKeyConstraint('clinvar_id', name='clinvar_pkey'),
         UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
@@ -131,7 +131,7 @@ class Clinvar(Base):
 class DbSnp(Base):
     __tablename__ = 'db_snp'
     __table_args__ = (
-        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.external_references_id'], name='fk_external_references'),
+        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], name='fk_external_references'),
         PrimaryKeyConstraint('db_snp_id', name='db_snp_pkey'),
         UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
@@ -179,8 +179,8 @@ class Publications(Base):
     journal = mapped_column(Text)
     link = mapped_column(Text)
 
-    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications', back_populates='publication')
-    review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publication')
+    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications', back_populates='publications')
+    review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
 class SampleFiles(Base):
@@ -365,7 +365,7 @@ t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,
     Column('review_id', Integer, nullable=False),
     Column('rule_name', EnumSQL(ACMGRule, name='acmg_rule'), nullable=False),
-    ForeignKeyConstraint(['review_id'], ['reviews.review_id'], name='fk_reviews'),
+    ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
     ForeignKeyConstraint(['rule_name'], ['acmg_rules.rule_name'], name='fk_acmg_rules'),
     PrimaryKeyConstraint('review_id', 'rule_name', name='reviews_acmg_rules_pkey')
 )
@@ -375,8 +375,8 @@ t_reviews_publications = Table(
     'reviews_publications', metadata,
     Column('review_id', Integer, nullable=False),
     Column('publication_id', Integer, nullable=False),
-    ForeignKeyConstraint(['publication_id'], ['publications.publication_id'], name='fk_publications'),
-    ForeignKeyConstraint(['review_id'], ['reviews.review_id'], name='fk_reviews'),
+    ForeignKeyConstraint(['publication_id'], ['publications.id'], name='fk_publications'),
+    ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
     PrimaryKeyConstraint('review_id', 'publication_id', name='reviews_publications_pkey')
 )
 

@@ -15,7 +15,7 @@ def retrieve_all_samples_from_db():
     # for each sample retrieve the file information and the variants it has
     for sample in all_samples:
         sample_file: SampleFiles = (
-            db.session.query(SampleFiles).filter(SampleFiles.sample_file_id == sample.sample_file_id)
+            db.session.query(SampleFiles).filter(SampleFiles.id == sample.sample_file_id)
             .one_or_none())
 
         # Query with filter condition on sample_id
@@ -34,7 +34,7 @@ def retrieve_all_samples_from_db():
             phenotypes.append(sample_phenotype)
 
         variants_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(
-            VariantsSamples.sample_id == sample.sample_id).all()
+            VariantsSamples.sample_id == sample.id).all()
 
         variants = []
 

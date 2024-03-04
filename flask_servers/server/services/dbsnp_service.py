@@ -208,8 +208,6 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
         # get variant RSIDs
         vus_df['RSID'] = get_rsids_res.data
 
-        print('hereeeeee', get_rsids_res.data)
-
         # check validity of RSIDs
         rsid_verification = []
 

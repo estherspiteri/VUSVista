@@ -32,7 +32,7 @@ def convert_df_to_list(df: pd.DataFrame) -> List:
 def prep_unprocessed_vus_dict_for_react(vus: Dict) -> Dict:
     # to match React camelCase syntax
     new_vus = {'locus': vus['Locus'], 'type': vus['Type'], 'genotype': vus['Genotype'], 'refAllele': vus['Reference'],
-               'observedAllele': vus['Observed Allele']}
+               'altAllele': vus['Alt']}
 
     return new_vus
 
@@ -46,7 +46,7 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     new_vus_df['type'] = vus_df['Type']
     new_vus_df['genotype'] = vus_df['Genotype']
     new_vus_df['refAllele'] = vus_df['Reference']
-    new_vus_df['observedAllele'] = vus_df['Observed Allele']
+    new_vus_df['altAllele'] = vus_df['Alt']
     new_vus_df['classification'] = vus_df['Classification']
     new_vus_df['rsid'] = vus_df['RSID']
     new_vus_df['rsidDbsnpVerified'] = vus_df['RSID dbSNP verified']
@@ -63,6 +63,6 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
 
 def get_variant_summary(variant: Variants) -> Dict:
     variant_summary = {'chromosome': variant.chromosome, 'chromosomePosition': variant.chromosome_position,
-                       'gene': variant.gene_name, 'observedAllele': variant.alt, 'refAllele': variant.ref}
+                       'gene': variant.gene_name, 'altAllele': variant.alt, 'refAllele': variant.ref}
 
     return variant_summary
