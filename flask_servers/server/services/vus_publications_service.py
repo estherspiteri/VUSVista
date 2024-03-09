@@ -167,7 +167,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
 
 
 def get_publications_by_variant_id(variant_id: str) -> (Variants, List[Dict]):
-    variant: Variants = db.session.query(Variants).filter(Variants.variant_id == variant_id).one_or_none()
+    variant: Variants = db.session.query(Variants).filter(Variants.id == variant_id).one_or_none()
 
     publication_list = []
 

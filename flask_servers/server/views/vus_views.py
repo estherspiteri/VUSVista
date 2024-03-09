@@ -4,8 +4,6 @@ from urllib.parse import urlencode
 import requests
 from flask import Blueprint, Response, current_app, request
 import json
-import pandas as pd
-from server.responses.internal_response import InternalResponse
 from server.services.view_vus_service import retrieve_all_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file
 

@@ -199,7 +199,7 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
     # iterate through the dataframe
     for index, row in new_vus_df.iterrows():
         # Retrieving gene ids from Gene Annotations table where the VUS is located
-        gene_ids: List[GeneAnnotations.gene_id] = db.session.query(GeneAnnotations.gene_id).filter(
+        gene_ids: List[GeneAnnotations.gene_id] = db.session.query(GeneAnnotations.id).filter(
             GeneAnnotations.seq_name == row['Chr'],
             row['Position'] >= GeneAnnotations.start_location,
             GeneAnnotations.end_location >= row['Position']
@@ -242,7 +242,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 DbSnp.external_db_snp_id == ref.external_references_id
             ).one_or_none()
 
-            vus_df.at[index, 'RSID'] = dbsnp.db_snp_id
+            vus_df.at[index, 'RSID'] = dbsnp.id
             vus_df.at[index, 'RSID dbSNP verified'] = len(ref.error_msg) == 0
             vus_df.at[index, 'RSID dbSNP errorMsgs'] = ref.error_msg
 
@@ -258,7 +258,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 clinvar_last_evaluated = None
 
             # populate the clinvar fields
-            vus_df.at[index, 'Clinvar uid'] = clinvar.clinvar_id
+            vus_df.at[index, 'Clinvar uid'] = clinvar.id
             vus_df.at[index, 'Clinvar canonical spdi'] = clinvar.canonical_spdi
             vus_df.at[index, 'Clinvar classification'] = clinvar.classification
             vus_df.at[index, 'Clinvar classification review status'] = clinvar.review_status

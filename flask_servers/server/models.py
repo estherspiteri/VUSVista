@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, CHAR, Column, Date, DateTime, Double, Enum as En
     Integer, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
+from flask_login import UserMixin
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -199,7 +200,7 @@ class SampleFiles(Base):
     samples: Mapped[List['Samples']] = relationship('Samples', uselist=True, back_populates='sample_file')
 
 
-class ScientificMembers(Base):
+class ScientificMembers(UserMixin, Base):
     __tablename__ = 'scientific_members'
     __table_args__ = (
         PrimaryKeyConstraint('id', name='scientific_members_pkey'),
