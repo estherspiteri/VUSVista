@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, Response
 from flask_login import current_user, login_required
 
-from server.services.auth_service import signup_scientific_member, login_scientific_member
+from server.services.auth_service import register_scientific_member, login_scientific_member
 
 profile_views = Blueprint('profile_views', __name__)
 

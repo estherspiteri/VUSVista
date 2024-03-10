@@ -9,7 +9,10 @@ from sqlalchemy.orm import declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped
 from flask_login import UserMixin
 
+from server import db
+
 Base = declarative_base()
+Base.query = db.session.query_property()
 metadata = Base.metadata
 
 

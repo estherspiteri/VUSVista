@@ -1,0 +1,29 @@
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .input-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    input {
+      width: 200px;
+      padding: 8px;
+      border: 2px solid #008080;
+      border-left-width: 4px;
+      border-right-width: 4px;
+      border-radius: 4px !important;
+
+      &:focus {
+        outline: none !important;
+        border-color: #9bdede;
+      }
+    }
+  }
+  .error {
+    color: rgb(142, 27, 27);
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,75 @@
+.login-page-container {
+  width: 1248px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .title {
+    font-family: "Poppins-Bold", sans-serif;
+    font-size: 48px;
+    margin-bottom: 32px;
+  }
+
+  .login-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+
+    .field-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .field {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+
+        .field-name {
+          min-width: 100px;
+        }
+      }
+
+      .remember-me {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-self: flex-end;
+        accent-color: #008080;
+      }
+    }
+
+    .login-btn-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+
+      .error {
+        color: rgb(142, 27, 27);
+        font-size: 12px;
+        text-align: center;
+        width: 400px;
+      }
+    }
+  }
+
+  .register {
+    font-size: 12px;
+    margin-top: 8px;
+
+    .link {
+      color: #008080;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        font-weight: bold;
+      }
+    }
+  }
+}

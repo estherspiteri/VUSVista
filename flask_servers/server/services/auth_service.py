@@ -7,8 +7,8 @@ from server.models import ScientificMembers
 from server.responses.internal_response import InternalResponse
 
 
-def signup_scientific_member(email: str, name: str, surname: str, password: str) -> InternalResponse:
-    current_app.logger.info(f'Sign up in progress...')
+def register_scientific_member(email: str, name: str, surname: str, password: str) -> InternalResponse:
+    current_app.logger.info(f'Registration in progress...')
 
     # if this returns a scientific member, then the email already exists in database
     scientific_member = db.session.query(ScientificMembers).filter(ScientificMembers.email == email).first()

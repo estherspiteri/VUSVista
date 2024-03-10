@@ -58,7 +58,6 @@ export class VusService {
   }
 
   async getHPOTerms(input: IGetHPOTermsRequest): Promise<IGetHPOTermsResponse> {
-    console.log("hereeeee", input.phenotype);
     const result: IGetHPOTermsResponse = await fetch(
       `/vus/phenotype/${input.phenotype}`,
       {
