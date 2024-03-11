@@ -3,6 +3,7 @@ import styles from "./header.module.scss";
 import { Link } from "react-router-dom";
 import Button from "../../atoms/button/button";
 import { AuthService } from "../../services/auth/auth.service";
+import Icon from "../../atoms/icon/icon";
 
 type HeaderProps = { isUserLoggedIn: boolean; authService: AuthService };
 
@@ -37,12 +38,17 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
               </div>
             </div>
 
-            <div className={styles["logout-btn"]}>
-              <Button
-                text="Log out"
-                icon="logout"
-                onClick={() => props.authService.logout()} //TODO: redirect to login
-              />
+            <div className={styles["side-btns"]}>
+              <Link
+                to="/login"
+                className={styles["logout-btn"]}
+                onClick={() => props.authService.logout()}
+              >
+                <Button text="Log out" icon="logout" />
+              </Link>
+              <Link className={styles.profile} to="/profile">
+                <Icon name="profile" />
+              </Link>
             </div>
           </>
         )}

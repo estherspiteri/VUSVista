@@ -76,16 +76,44 @@
       }
     }
 
-    .logout-btn {
-      svg {
-        stroke: #fff;
-        fill: transparent;
+    .side-btns {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .logout-btn {
+        svg {
+          stroke: #fff;
+          fill: transparent;
+        }
+
+        &:hover {
+          svg {
+            stroke: #008080;
+            fill: #ffff !important;
+          }
+        }
       }
 
-      &:hover {
+      .profile {
+        cursor: pointer;
+        border-radius: 2px;
+        height: 38.5px;
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        box-sizing: border-box;
+
         svg {
-          stroke: #008080;
-          fill: #ffff !important;
+          stroke: #fff !important;
+        }
+
+        &:hover {
+          background-color: #fff;
+
+          svg {
+            stroke: #008080 !important;
+          }
         }
       }
     }

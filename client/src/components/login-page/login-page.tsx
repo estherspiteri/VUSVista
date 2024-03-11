@@ -115,9 +115,8 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
       props.authService
         .login({ email: email, password: password, remember: rememberMe })
         .then((res) => {
-          console.log(res);
           if (res.isUserLoggedIn) {
-            //redirect to profile page
+            window.location.href = "/profile";
           } else {
             setLoginErrorMsg(
               "The credentials you have inputted do not match any existing user. Kindly check and try again."

@@ -11,6 +11,7 @@ import PublicationViewPageWrapper from "./wrappers/publication-view-page-wrapper
 import LoginPage from "./components/login-page/login-page";
 import { authService } from "./services/auth/auth.service";
 import RegisterPage from "./components/register-page/register-page";
+import ProfilePageWrapper from "./wrappers/profile-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -62,6 +63,7 @@ const App: React.FunctionComponent<AppProps> = () => {
           path="/register"
           element={<RegisterPage authService={authService} />}
         />
+        <Route path="/profile" element={<ProfilePageWrapper />} />
         {/*TODO: handle no route match*/}
         {/* <Route path="*" element={<NoMatch />} /> */}
       </Routes>

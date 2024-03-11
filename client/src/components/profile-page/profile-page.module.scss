@@ -1,0 +1,66 @@
+.profile-page-container {
+  width: 1248px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .title {
+    font-family: "Poppins-Bold", sans-serif;
+    font-size: 48px;
+    margin-bottom: 32px;
+  }
+
+  .profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+
+    .field-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .field {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+
+        .field-name {
+          min-width: 100px;
+        }
+      }
+    }
+
+    .register-btn-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+
+      .error {
+        color: rgb(142, 27, 27);
+        font-size: 12px;
+        text-align: center;
+        width: 400px;
+      }
+    }
+  }
+
+  .login {
+    font-size: 12px;
+    margin-top: 8px;
+
+    .link {
+      color: #008080;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:hover {
+        font-weight: bold;
+      }
+    }
+  }
+}

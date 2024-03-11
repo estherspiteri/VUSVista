@@ -48,7 +48,7 @@ def create_app():
 
     # specify user loader: tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
     login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth_views.login'
     login_manager.init_app(app)
 
     @login_manager.user_loader

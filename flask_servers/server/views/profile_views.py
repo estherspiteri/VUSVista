@@ -11,4 +11,5 @@ profile_views = Blueprint('profile_views', __name__)
 @profile_views.route('/profile', methods=['GET'])
 @login_required
 def profile():
-    return Response(json.dumps({'name': current_user.name}), 200, mimetype='application/json')
+    return Response(json.dumps({'profile': {'name': current_user.name, 'surname': current_user.surname,
+                                            'email': current_user.email}}), 200, mimetype='application/json')
