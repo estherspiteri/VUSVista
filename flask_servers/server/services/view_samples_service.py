@@ -20,7 +20,7 @@ def retrieve_all_samples_from_db():
 
         # Query with filter condition on sample_id
         phenotype_ontology_term_ids_res: List[str] = (db.session.query(t_samples_phenotypes.c.ontology_term_id)
-                                                  .filter(t_samples_phenotypes.c.sample_id == sample.sample_id).all())
+                                                  .filter(t_samples_phenotypes.c.sample_id == sample.id).all())
 
         phenotype_ontology_term_ids = [x[0] for x in phenotype_ontology_term_ids_res]
 
@@ -42,7 +42,7 @@ def retrieve_all_samples_from_db():
             variant_sample = {'variantId': v.variant_id, 'genotype': v.genotype.value}
             variants.append(variant_sample)
 
-        samples_arr.append({'sampleId': sample.sample_id, 'phenotype': phenotypes,
+        samples_arr.append({'sampleId': sample.id, 'phenotype': phenotypes,
                             'genomeVersion': sample.genome_version, 'fileUploadName': sample_file.filename,
                             'dateOfFileUpload': str(sample_file.date_uploaded.date()), 'variants': variants})
 

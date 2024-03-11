@@ -32,7 +32,7 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
 def retrieve_all_vus_from_db():
     variants: List[Variants] = db.session.query(Variants).all()
 
-    variants_data = [{'variantId': v.variant_id, 'chromosome': v.chromosome,
+    variants_data = [{'variantId': v.id, 'chromosome': v.chromosome,
                       'chromosomePosition': v.chromosome_position, 'gene': v.gene_name,
                       'type': v.variant_type.value, 'refAllele': v.ref, 'altAllele': v.alt,
                       'classification': v.classification.value} for v in variants]
@@ -55,7 +55,7 @@ def retrieve_all_vus_from_db():
             if ref.db_type == 'db_snp':
                 # retrieve dbsnp entry related to the variant
                 dbsnp: DbSnp = db.session.query(DbSnp).filter(
-                    DbSnp.external_db_snp_id == ref.external_references_id
+                    DbSnp.external_db_snp_id == ref.id
                 ).one_or_none()
 
                 vus_df.at[index, 'rsid'] = dbsnp.id
@@ -65,7 +65,7 @@ def retrieve_all_vus_from_db():
             elif ref.db_type == 'clinvar':
                 # retrieve clinvar entry related to the variant
                 clinvar: Clinvar = db.session.query(Clinvar).filter(
-                    Clinvar.external_clinvar_id == ref.external_references_id
+                    Clinvar.external_clinvar_id == ref.id
                 ).one_or_none()
 
                 if clinvar.last_evaluated is not None:

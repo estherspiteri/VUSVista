@@ -5,6 +5,7 @@ import { ISample } from "../../../models/view-samples.model";
 
 type SampleTableProps = {
   sampleList: ISample[];
+  selectedSampleId?: string;
   onSampleClickCallback?: (sampleId: string) => void;
 };
 
@@ -22,6 +23,7 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
         return (
           <ViewSample
             sample={sample}
+            isSelected={props.selectedSampleId === sample.sampleId}
             isColoured={index % 2 === 0}
             onClickCallback={props.onSampleClickCallback}
           />

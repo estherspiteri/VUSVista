@@ -36,6 +36,7 @@ const ViewAllSamples: React.FunctionComponent<ViewAllSamplesProps> = (
       {sampleList ? (
         <div className={styles["samples-container"]}>
           <SampleTable
+            selectedSampleId={selectedSample?.sampleId}
             sampleList={sampleList}
             onSampleClickCallback={(sampleId) =>
               setSelectedSample(

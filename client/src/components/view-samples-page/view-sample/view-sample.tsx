@@ -6,6 +6,7 @@ import { ISample } from "../../../models/view-samples.model";
 type ViewSampleProps = {
   sample: ISample;
   isColoured: boolean;
+  isSelected?: boolean;
   onClickCallback?: (sampleId: string) => void;
 };
 
@@ -16,7 +17,7 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
     <div
       className={`${styles["view-vus-container"]} ${
         props.isColoured ? styles.coloured : ""
-      }`}
+      } ${props.isSelected ? styles.selected : ""}`}
     >
       <div
         className={styles.header}
@@ -24,7 +25,9 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
           props.onClickCallback && props.onClickCallback(props.sample.sampleId)
         }
       >
-        <div className={`${styles["header-content"]} ${styles.id}`}>{props.sample.sampleId}</div>
+        <div className={`${styles["header-content"]} ${styles.id}`}>
+          {props.sample.sampleId}
+        </div>
         <div className={`${styles["header-content"]} ${styles.variants}`}>
           {props.sample.variants.length}
         </div>

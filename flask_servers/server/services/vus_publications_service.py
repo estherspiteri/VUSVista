@@ -177,7 +177,7 @@ def get_publications_by_variant_id(variant_id: str) -> (Variants, List[Dict]):
         encoded_publication = alchemy_encoder(p)
 
         # changing keys of dictionary
-        encoded_publication['publicationId'] = encoded_publication.pop('publication_id')
+        encoded_publication['publicationId'] = encoded_publication.pop('id')
         encoded_publication['date'] = encoded_publication.pop('date_published').strftime('%Y/%m/%d')
         encoded_publication['isSupplementaryMaterialMatch'] = encoded_publication.pop('match_in_sup_material')
 

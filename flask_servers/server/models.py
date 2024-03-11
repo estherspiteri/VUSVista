@@ -118,11 +118,11 @@ class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
         ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], name='fk_external_references'),
-        PrimaryKeyConstraint('clinvar_id', name='clinvar_pkey'),
+        PrimaryKeyConstraint('id', name='clinvar_pkey'),
         UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
 
-    clinvar_id = mapped_column(Text)
+    id = mapped_column(Text)
     external_clinvar_id = mapped_column(Integer, nullable=False)
     canonical_spdi = mapped_column(Text, nullable=False)
     classification = mapped_column(Text)
@@ -136,11 +136,11 @@ class DbSnp(Base):
     __tablename__ = 'db_snp'
     __table_args__ = (
         ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], name='fk_external_references'),
-        PrimaryKeyConstraint('db_snp_id', name='db_snp_pkey'),
+        PrimaryKeyConstraint('id', name='db_snp_pkey'),
         UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
 
-    db_snp_id = mapped_column(String(15))
+    id = mapped_column(String(15))
     external_db_snp_id = mapped_column(Integer, nullable=False)
 
     external_db_snp: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='db_snp')

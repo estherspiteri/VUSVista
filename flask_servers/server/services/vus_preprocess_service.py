@@ -4,6 +4,7 @@ from typing import List, Hashable
 from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
+from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 import json
@@ -372,22 +373,22 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
         db.session.add(new_variant)
 
         db.session.flush()
-        variant_ids.append(new_variant.variant_id)
+        variant_ids.append(new_variant.id)
 
         if len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
-            new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
+            new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.id,
                                                         db_type='db_snp',
                                                         error_msg=row['RSID dbSNP errorMsgs'])
             db.session.add(new_dbnsp_external_ref)
 
             db.session.flush()
 
-            new_dbsnp = DbSnp(db_snp_id=row['RSID'],
-                              external_db_snp_id=new_dbnsp_external_ref.external_references_id)
+            new_dbsnp = DbSnp(id=row['RSID'],
+                              external_db_snp_id=new_dbnsp_external_ref.id)
             db.session.add(new_dbsnp)
 
         if len(row['Clinvar uid']) > 0:
-            new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.variant_id,
+            new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.id,
                                                           db_type='clinvar',
                                                           error_msg=row['Clinvar error msg'])
             db.session.add(new_clinvar_external_ref)
@@ -398,8 +399,8 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
             if len(row['Clinvar classification last eval']):
                 clinvar_last_evaluated = datetime.strptime(row['Clinvar classification last eval'], '%Y/%m/%d %H:%M')
 
-            new_clinvar = Clinvar(clinvar_id=row['Clinvar uid'],
-                                  external_clinvar_id=new_clinvar_external_ref.external_references_id,
+            new_clinvar = Clinvar(id=row['Clinvar uid'],
+                                  external_clinvar_id=new_clinvar_external_ref.id,
                                   canonical_spdi=row['Clinvar canonical spdi'],
                                   classification=row['Clinvar classification'],
                                   review_status=row['Clinvar classification review status'],
@@ -411,7 +412,8 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
 
 def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, sample_phenotype_selection: List):
     # store the file in the db
-    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now())
+    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now(),
+                                  scientific_member_id=current_user.id)
     db.session.add(new_sample_file)
 
     db.session.flush()
@@ -426,7 +428,7 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
 
     # store each unique sample in the db
     for selection in sample_phenotype_selection:
-        new_sample = Samples(sample_id=selection['sampleId'], sample_file_id=new_sample_file.sample_file_id, genome_version='GRCh37')
+        new_sample = Samples(id=selection['sampleId'], sample_file_id=new_sample_file.id, genome_version='GRCh37')
         db.session.add(new_sample)
 
         for phenotype in selection['phenotypesSelected']:
