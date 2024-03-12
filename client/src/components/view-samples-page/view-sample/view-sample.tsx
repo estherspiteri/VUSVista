@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./view-sample.module.scss";
 import { IVus } from "../../../models/view-vus.model";
-import { ISample } from "../../../models/view-samples.model";
+import { ISample, ISampleSummary } from "../../../models/view-samples.model";
+import { Link } from "react-router-dom";
 
 type ViewSampleProps = {
-  sample: ISample;
+  sample: ISampleSummary;
   isColoured: boolean;
-  isSelected?: boolean;
   onClickCallback?: (sampleId: string) => void;
 };
 
@@ -14,10 +14,11 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
   props: ViewSampleProps
 ) => {
   return (
-    <div
+    <Link
+      to={`/sample/${props.sample.sampleId}`}
       className={`${styles["view-vus-container"]} ${
         props.isColoured ? styles.coloured : ""
-      } ${props.isSelected ? styles.selected : ""}`}
+      } `}
     >
       <div
         className={styles.header}
@@ -29,7 +30,7 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
           {props.sample.sampleId}
         </div>
         <div className={`${styles["header-content"]} ${styles.variants}`}>
-          {props.sample.variants.length}
+          {props.sample.numOfVariants}
         </div>
         <div className={`${styles["header-content"]} ${styles.date}`}>
           {`${props.sample.dateOfFileUpload.getDate()}/${
@@ -37,7 +38,7 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
           }/${props.sample.dateOfFileUpload.getFullYear()}`}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

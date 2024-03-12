@@ -7,7 +7,6 @@ import {
   IPublicationPreview,
   IVUSSummary,
 } from "../models/publication-view.model";
-import { IGetPublicationsByVariantIdResponse } from "../services/publication/publication.dto";
 
 const PublicationViewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);

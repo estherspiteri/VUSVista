@@ -1,12 +1,11 @@
 import React from "react";
 import styles from "./sample-table.module.scss";
 import ViewSample from "../view-sample/view-sample";
-import { ISample } from "../../../models/view-samples.model";
+import { ISample, ISampleSummary } from "../../../models/view-samples.model";
 
 type SampleTableProps = {
-  sampleList: ISample[];
+  sampleList: ISampleSummary[];
   selectedSampleId?: string;
-  onSampleClickCallback?: (sampleId: string) => void;
 };
 
 const SampleTable: React.FunctionComponent<SampleTableProps> = (
@@ -15,19 +14,18 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
   return (
     <div className={styles["sample-table-container"]}>
       <div className={styles.header}>
-        <div className={`${styles['header-content']} ${styles.id}`}>Sample Id</div>
-        <div className={`${styles['header-content']} ${styles.variants}`}>No. of Variants</div>
-        <div className={`${styles['header-content']} ${styles.date}`}>Date uploaded</div>
+        <div className={`${styles["header-content"]} ${styles.id}`}>
+          Sample Id
+        </div>
+        <div className={`${styles["header-content"]} ${styles.variants}`}>
+          No. of Variants
+        </div>
+        <div className={`${styles["header-content"]} ${styles.date}`}>
+          Date uploaded
+        </div>
       </div>
       {props.sampleList.map((sample, index) => {
-        return (
-          <ViewSample
-            sample={sample}
-            isSelected={props.selectedSampleId === sample.sampleId}
-            isColoured={index % 2 === 0}
-            onClickCallback={props.onSampleClickCallback}
-          />
-        );
+        return <ViewSample sample={sample} isColoured={index % 2 === 0} />;
       })}
     </div>
   );

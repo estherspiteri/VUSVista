@@ -12,6 +12,7 @@ import LoginPage from "./components/login-page/login-page";
 import { authService } from "./services/auth/auth.service";
 import RegisterPage from "./components/register-page/register-page";
 import ProfilePageWrapper from "./wrappers/profile-page-wrapper";
+import SamplePageWrapper from "./wrappers/sample-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -46,6 +47,10 @@ const App: React.FunctionComponent<AppProps> = () => {
         <Route
           path="/view-samples"
           element={<ViewAllSamples sampleService={samplesService} />}
+        />
+        <Route
+          path="/sample/*"
+          element={<SamplePageWrapper />}
         />
         <Route
           path="/view-vus"

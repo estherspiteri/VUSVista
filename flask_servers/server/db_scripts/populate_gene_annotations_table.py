@@ -73,7 +73,7 @@ def main():
         host="localhost",
         database="vus-app-db",
         user="postgres",
-        password="21641"
+        password="21641" #TODO: store securely
         )
 
     # creating a cursor
