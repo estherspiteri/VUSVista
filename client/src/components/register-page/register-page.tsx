@@ -128,7 +128,7 @@ const RegisterPage: React.FunctionComponent<RegisterPageProps> = (
     if (isValid) {
       setPasswordErrorMsg("");
     } else {
-      setPasswordErrorMsg("Please enter your email");
+      setPasswordErrorMsg("Please enter your password");
     }
 
     return isValid;
