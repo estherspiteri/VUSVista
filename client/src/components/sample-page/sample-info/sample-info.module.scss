@@ -1,0 +1,103 @@
+.sample-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+
+  &.no-sample-selected-container {
+    height: 200px;
+  }
+
+  .no-selected-sample {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+
+    background-color: #008080;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 32px 16px;
+    text-align: center;
+    color: #fff;
+  }
+
+  .sample-info {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    .info {
+      display: flex;
+      flex-direction: row;
+
+      .info-title {
+        min-width: 200px;
+        color: #008080;
+        font-weight: bold;
+      }
+
+      &.info-container {
+        flex-direction: column;
+        gap: 8px;
+
+        .info-container-content {
+          background-color: #008080;
+          color: #fff;
+          border-radius: 4px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          font-size: 14px;
+          width: 70%;
+
+          .variants {
+            > :not(:last-child) {
+              border-bottom: 1px solid #fff;
+            }
+          }
+
+          .variant-titles,
+          .variant {
+            display: flex;
+            flex-direction: row;
+
+            .variant-id,
+            .genotype {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              width: 150px;
+            }
+          }
+
+          .variant-titles {
+            font-weight: bold;
+            padding-bottom: 4px;
+          }
+
+          .variant {
+            padding: 8px 0px;
+          }
+        }
+
+        .variant-phenotypes {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .phenotype {
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+
+            .ontology-id {
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+  }
+}
