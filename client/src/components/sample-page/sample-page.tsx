@@ -3,10 +3,11 @@ import styles from "./sample-page.module.scss";
 import { ISample } from "../../models/view-samples.model";
 import SampleInfo from "./sample-info/sample-info";
 import { SampleService } from "../../services/sample/sample.service";
+import { IAcmgRule } from "../../models/acmg-rule.model";
 
 type SamplePageProps = {
   sample: ISample;
-  acmgRuleNames: string[];
+  acmgRules: IAcmgRule[];
   sampleService: SampleService;
 };
 
@@ -22,7 +23,7 @@ const SamplePage: React.FunctionComponent<SamplePageProps> = (
 
       <SampleInfo
         sample={props.sample}
-        acmgRuleNames={props.acmgRuleNames}
+        acmgRules={props.acmgRules}
         sampleService={props.sampleService}
       />
     </div>

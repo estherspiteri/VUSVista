@@ -2,7 +2,7 @@ import json
 
 from flask import Blueprint, current_app, Response, request
 
-from server.services.acmg_service import get_acmg_rule_names, add_acmg_rule_to_sample_variant, \
+from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_sample_variant, \
     remove_acmg_rule_to_sample_variant
 from server.services.view_samples_service import retrieve_all_samples_from_db, retrieve_sample_from_db
 
@@ -15,9 +15,9 @@ def get_sample(sample_id: str):
 
     sample = retrieve_sample_from_db(sample_id)
 
-    acmg_rule_names = get_acmg_rule_names()
+    acmg_rules = get_acmg_rules()
 
-    return Response(json.dumps({'isSuccess': True, 'sample': sample, 'acmgRuleNames': acmg_rule_names}), 200,
+    return Response(json.dumps({'isSuccess': True, 'sample': sample, 'acmgRules': acmg_rules}), 200,
                     mimetype='application/json')
 
 

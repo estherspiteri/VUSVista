@@ -1,3 +1,4 @@
+import { IAcmgRule } from "../../models/acmg-rule.model";
 import { ISample, ISampleSummary } from "../../models/view-samples.model";
 
 export interface ILoadAllSamplesResponse {
@@ -12,11 +13,11 @@ export interface IGetSampleRequest {
 export interface IGetSampleResponse {
   isSuccess: boolean;
   sample: ISample;
-  acmgRuleNames: string[]; //TODO: enum?
+  acmgRules: IAcmgRule[];
 }
 
 export interface IAddAcmgRuleRequest {
   sampleId: string;
   variantId: number;
-  ruleName: string;
+  ruleId: number;
 }

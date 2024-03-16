@@ -85,16 +85,19 @@ class ReviewStatus(Enum):
 class AcmgRules(Base):
     __tablename__ = 'acmg_rules'
     __table_args__ = (
-        PrimaryKeyConstraint('rule_name', name='acmg_rules_pkey'),
+        PrimaryKeyConstraint('id', name='acmg_rules_pkey'),
     )
 
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     rule_name = mapped_column(EnumSQL(ACMGRule, name='acmg_rule'))
     description = mapped_column(Text, nullable=False)
     default_strength = mapped_column(EnumSQL(ACMGStrength, name='acmg_strength'), nullable=False)
     requires_lab_verification = mapped_column(Boolean, nullable=False)
 
     review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_acmg_rules', back_populates='acmg_rules')
-    samples_variants_acmg_rules: Mapped[List['SamplesVariantsAcmgRules']] = relationship('SamplesVariantsAcmgRules', uselist=True, back_populates='acmg_rules')
+    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
+                                                                                         uselist=True,
+                                                                                         back_populates='acmg_rules')
 
 
 class ExternalReferences(Base):
@@ -104,7 +107,9 @@ class ExternalReferences(Base):
         PrimaryKeyConstraint('id', name='external_references_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     db_type = mapped_column(Text, nullable=False)
     variant_id = mapped_column(Integer, nullable=False)
     error_msg = mapped_column(Text)
@@ -152,7 +157,9 @@ class GeneAnnotations(Base):
         PrimaryKeyConstraint('id', name='gene_annotations_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     seq_name = mapped_column(Text, nullable=False)
     source = mapped_column(Text, nullable=False)
     feature = mapped_column(Text, nullable=False)
@@ -162,7 +169,8 @@ class GeneAnnotations(Base):
     strand = mapped_column(EnumSQL(Strand, name='strand'))
     frame = mapped_column(CHAR(1))
 
-    gene_attributes: Mapped[List['GeneAttributes']] = relationship('GeneAttributes', uselist=True, back_populates='gene')
+    gene_attributes: Mapped[List['GeneAttributes']] = relationship('GeneAttributes', uselist=True,
+                                                                   back_populates='gene')
     variants: Mapped[List['Variants']] = relationship('Variants', uselist=True, back_populates='gene')
 
 
@@ -172,7 +180,9 @@ class Publications(Base):
         PrimaryKeyConstraint('id', name='publications_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     title = mapped_column(Text)
     pmid = mapped_column(Integer)
     doi = mapped_column(Text)
@@ -183,7 +193,8 @@ class Publications(Base):
     journal = mapped_column(Text)
     link = mapped_column(Text)
 
-    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications', back_populates='publications')
+    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications',
+                                                     back_populates='publications')
     review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
@@ -194,7 +205,9 @@ class SampleFiles(Base):
         PrimaryKeyConstraint('id', name='sample_files_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     date_uploaded = mapped_column(DateTime, nullable=False)
     filename = mapped_column(Text, nullable=False)
     scientific_member_id = mapped_column(Integer, nullable=False)
@@ -209,13 +222,16 @@ class ScientificMembers(UserMixin, Base):
         PrimaryKeyConstraint('id', name='scientific_members_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     name = mapped_column(Text, nullable=False)
     surname = mapped_column(Text, nullable=False)
     email = mapped_column(Text, nullable=False)
     password = mapped_column(Text, nullable=False)
 
-    sample_files: Mapped[List['SampleFiles']] = relationship('SampleFiles', uselist=True, back_populates='scientific_member')
+    sample_files: Mapped[List['SampleFiles']] = relationship('SampleFiles', uselist=True,
+                                                             back_populates='scientific_member')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='scientific_member')
 
 
@@ -244,10 +260,14 @@ class Samples(Base):
     sample_file_id = mapped_column(Integer, nullable=False)
     genome_version = mapped_column(String(20))
 
-    ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes', back_populates='sample')
+    ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes',
+                                                             back_populates='sample')
     sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', back_populates='samples')
-    samples_variants_acmg_rules: Mapped[List['SamplesVariantsAcmgRules']] = relationship('SamplesVariantsAcmgRules', uselist=True, back_populates='sample')
-    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='sample')
+    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
+                                                                                         uselist=True,
+                                                                                         back_populates='sample')
+    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
+                                                                     back_populates='sample')
 
 
 class Phenotypes(Base):
@@ -259,7 +279,8 @@ class Phenotypes(Base):
     ontology_term_id = mapped_column(Text)
     term_name = mapped_column(Text)
 
-    sample: Mapped[List['Samples']] = relationship('Samples', secondary='samples_phenotypes', back_populates='ontology_term')
+    sample: Mapped[List['Samples']] = relationship('Samples', secondary='samples_phenotypes',
+                                                   back_populates='ontology_term')
 
 
 t_samples_phenotypes = Table(
@@ -279,7 +300,9 @@ class Variants(Base):
         PrimaryKeyConstraint('id', name='variants_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     chromosome = mapped_column(String(2), nullable=False)
     chromosome_position = mapped_column(Text, nullable=False)
     variant_type = mapped_column(EnumSQL(VariantType, name='variant_type'), nullable=False)
@@ -290,12 +313,17 @@ class Variants(Base):
     alt = mapped_column(Text)
     consequences = mapped_column(EnumSQL(Consequence, name='consequence'))
 
-    publications: Mapped[List['Publications']] = relationship('Publications', secondary='variants_publications', back_populates='variant')
+    publications: Mapped[List['Publications']] = relationship('Publications', secondary='variants_publications',
+                                                              back_populates='variant')
     gene: Mapped['GeneAnnotations'] = relationship('GeneAnnotations', back_populates='variants')
-    external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True, back_populates='variant')
+    external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
+                                                                           back_populates='variant')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant')
-    samples_variants_acmg_rules: Mapped[List['SamplesVariantsAcmgRules']] = relationship('SamplesVariantsAcmgRules', uselist=True, back_populates='variant')
-    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='variant')
+    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
+                                                                                         uselist=True,
+                                                                                         back_populates='variant')
+    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
+                                                                     back_populates='variant')
 
 
 class Reviews(Base):
@@ -306,7 +334,9 @@ class Reviews(Base):
         PrimaryKeyConstraint('id', name='reviews_pkey')
     )
 
-    id= mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
     variant_id = mapped_column(Integer, nullable=False)
     scientific_member_id = mapped_column(Integer, nullable=False)
     date_added = mapped_column(DateTime, nullable=False)
@@ -314,29 +344,30 @@ class Reviews(Base):
     review_status = mapped_column(EnumSQL(ReviewStatus, name='review_status'))
     classification_reason = mapped_column(Text)
 
-
-    publications: Mapped['Publications'] = relationship('Publications', secondary='reviews_publications', back_populates='review')
+    publications: Mapped['Publications'] = relationship('Publications', secondary='reviews_publications',
+                                                        back_populates='review')
     scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='reviews')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='reviews')
     acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
 
 
-class SamplesVariantsAcmgRules(Base):
-    __tablename__ = 'samples_variants_acmg_rules'
+class VariantsSamplesAcmgRules(Base):
+    __tablename__ = 'variants_samples_acmg_rules'
     __table_args__ = (
-        ForeignKeyConstraint(['rule_name'], ['acmg_rules.rule_name'], name='fk_acmg_rules'),
+        ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
         ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
         ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
-        PrimaryKeyConstraint('variant_id', 'sample_id', 'rule_name', name='samples_variants_acmg_rules_pkey')
+        PrimaryKeyConstraint('variant_id', 'sample_id', 'acmg_rule_id', name='samples_variants_acmg_rules_pkey')
     )
 
     variant_id = mapped_column(Integer, nullable=False)
     sample_id = mapped_column(Integer, nullable=False)
+    acmg_rule_id = mapped_column(Integer, nullable=False)
     rule_name = mapped_column(EnumSQL(ACMGRule, name='acmg_rule'), nullable=False)
 
-    acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', back_populates='samples_variants_acmg_rules')
-    sample: Mapped['Samples'] = relationship('Samples', back_populates='samples_variants_acmg_rules')
-    variant: Mapped['Variants'] = relationship('Variants', back_populates='samples_variants_acmg_rules')
+    acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', back_populates='variants_samples_acmg_rules')
+    sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples_acmg_rules')
+    variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples_acmg_rules')
 
 
 t_variants_publications = Table(
@@ -368,12 +399,11 @@ class VariantsSamples(Base):
 t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,
     Column('review_id', Integer, nullable=False),
-    Column('rule_name', EnumSQL(ACMGRule, name='acmg_rule'), nullable=False),
+    Column('acmg_rule_id', EnumSQL(ACMGRule, name='acmg_rule'), nullable=False),
     ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
-    ForeignKeyConstraint(['rule_name'], ['acmg_rules.rule_name'], name='fk_acmg_rules'),
-    PrimaryKeyConstraint('review_id', 'rule_name', name='reviews_acmg_rules_pkey')
+    ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
+    PrimaryKeyConstraint('review_id', 'acmg_rule_id', name='reviews_acmg_rules_pkey')
 )
-
 
 t_reviews_publications = Table(
     'reviews_publications', metadata,
@@ -383,5 +413,3 @@ t_reviews_publications = Table(
     ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
     PrimaryKeyConstraint('review_id', 'publication_id', name='reviews_publications_pkey')
 )
-
-

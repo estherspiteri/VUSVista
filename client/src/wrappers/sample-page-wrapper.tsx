@@ -4,11 +4,12 @@ import React, { useEffect, useState } from "react";
 import { ISample } from "../models/view-samples.model";
 import { samplesService } from "../services/sample/sample.service";
 import SamplePage from "../components/sample-page/sample-page";
+import { IAcmgRule } from "../models/acmg-rule.model";
 
 const SamplePageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sample, setSample] = useState<ISample>(undefined);
-  const [acmgRuleNames, setAcmgRuleNames] = useState<string[]>([]);
+  const [acmgRules, setAcmgRules] = useState<IAcmgRule[]>([]);
 
   const loc = useLocation();
   const sampleId = loc.pathname.split("/sample/")[1];
@@ -18,7 +19,7 @@ const SamplePageWrapper: React.FunctionComponent = () => {
       samplesService?.getSample({ sampleId: sampleId }).then((res) => {
         if (res.isSuccess) {
           setSample(res.sample);
-          setAcmgRuleNames(res.acmgRuleNames);
+          setAcmgRules(res.acmgRules);
           setIsLoading(false);
         } else {
           //TODO: handle error
@@ -33,7 +34,7 @@ const SamplePageWrapper: React.FunctionComponent = () => {
     return (
       <SamplePage
         sample={sample}
-        acmgRuleNames={acmgRuleNames}
+        acmgRules={acmgRules}
         sampleService={samplesService}
       />
     );

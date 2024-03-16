@@ -1,4 +1,5 @@
 import { IHPOTerm } from "../services/vus/vus.dto";
+import { IAcmgRule } from "./acmg-rule.model";
 
 export enum Genotype {
   Homozygous = "HOMOZYGOUS",
@@ -8,7 +9,7 @@ export enum Genotype {
 export interface ISampleVariant {
   variantId: number;
   genotype: Genotype;
-  acmgRuleNames?: string[];
+  acmgRules?: IAcmgRule[];
 }
 
 export interface ISample {

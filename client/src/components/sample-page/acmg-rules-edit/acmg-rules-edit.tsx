@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import styles from "./acmg-rules-edit.module.scss";
 import Icon from "../../../atoms/icon/icon";
 import { SampleService } from "../../../services/sample/sample.service";
+import { IAcmgRule } from "../../../models/acmg-rule.model";
 
 type AcmgRulesEditProps = {
   sampleId: string;
   variantId: number;
-  variantAcmgRules: string[];
-  allAcmgRules: string[];
+  variantAcmgRules: IAcmgRule[];
+  allAcmgRules: IAcmgRule[];
   sampleService: SampleService;
 };
 
@@ -18,28 +19,28 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
   const [selectedAcmgRules, setSelectedAcmgRules] = useState(
     props.variantAcmgRules ?? []
   );
-  const [mouseOverRule, setMouseOverRule] = useState("");
+  const [mouseOverRule, setMouseOverRule] = useState<number>(undefined);
 
   return (
     <div className={styles.acmg}>
       {/** Selected Acmg Rules */}
       {selectedAcmgRules?.map((r) => {
-        const styleClass = r.substring(0, r.length - 1).toLowerCase();
+        const styleClass = r.name.substring(0, r.name.length - 1).toLowerCase();
 
         return (
           <div
-            onMouseOver={() => setMouseOverRule(r)}
-            onMouseLeave={() => setMouseOverRule("")}
+            onMouseOver={() => setMouseOverRule(r.id)}
+            onMouseLeave={() => setMouseOverRule(undefined)}
             className={`${styles["selected-acmg"]} ${styles[`${styleClass}`]}`}
           >
-            {mouseOverRule === r ? (
+            {mouseOverRule === r.id ? (
               <Icon
                 name="bin"
                 className={styles.bin}
-                onClick={() => removeAcmgRule(r)}
+                onClick={() => removeAcmgRule(r.id)}
               />
             ) : (
-              r
+              r.name
             )}
           </div>
         );
@@ -57,7 +58,7 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
             onClick={() => setIsAddMenuVisible(false)}
           />
           {getAvailableAcmgRules().map((r) => {
-            return <div onClick={() => addAcmgRule(r)}>{r}</div>;
+            return <div onClick={() => addAcmgRule(r.id)}>{r.name}</div>;
           })}
         </div>
       ) : (
@@ -77,23 +78,25 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
     </div>
   );
 
-  function addAcmgRule(rule_name: string) {
-    setSelectedAcmgRules(selectedAcmgRules.concat(rule_name));
+  function addAcmgRule(rule_id: number) {
+    setSelectedAcmgRules(
+      selectedAcmgRules.concat(props.allAcmgRules.find((r) => r.id === rule_id))
+    );
 
     props.sampleService.addAcmgRule({
       sampleId: props.sampleId,
       variantId: props.variantId,
-      ruleName: rule_name,
+      ruleId: rule_id,
     });
   }
 
-  function removeAcmgRule(rule_name: string) {
-    setSelectedAcmgRules(selectedAcmgRules.filter((r) => r !== rule_name));
+  function removeAcmgRule(rule_id: number) {
+    setSelectedAcmgRules(selectedAcmgRules.filter((r) => r.id !== rule_id));
 
     props.sampleService.removeAcmgRule({
       sampleId: props.sampleId,
       variantId: props.variantId,
-      ruleName: rule_name,
+      ruleId: rule_id,
     });
   }
 

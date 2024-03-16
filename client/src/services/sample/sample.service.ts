@@ -48,7 +48,7 @@ export class SampleService {
     return {
       isSuccess: result.isSuccess,
       sample: updatedSample,
-      acmgRuleNames: result.acmgRuleNames,
+      acmgRules: result.acmgRules,
     };
   }
 
@@ -58,7 +58,7 @@ export class SampleService {
     // Append the JSON string as a blob to the FormData
     data.append("sampleId", input.sampleId);
     data.append("variantId", input.variantId.toString());
-    data.append("ruleName", input.ruleName);
+    data.append("ruleId", input.ruleId.toString());
 
     await fetch(`/sample/add-acmg-rule`, {
       method: "POST",
@@ -72,7 +72,7 @@ export class SampleService {
     // Append the JSON string as a blob to the FormData
     data.append("sampleId", input.sampleId);
     data.append("variantId", input.variantId.toString());
-    data.append("ruleName", input.ruleName);
+    data.append("ruleId", input.ruleId.toString());
 
     await fetch(`/sample/remove-acmg-rule`, {
       method: "POST",

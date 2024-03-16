@@ -180,16 +180,18 @@ CREATE TABLE variants_samples (
 
 -- ACMG_RULES
 CREATE TABLE acmg_rules(
-    rule_name ACMG_RULE PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    rule_name ACMG_RULE,
     description TEXT NOT NULL,
     default_strength ACMG_STRENGTH NOT NULL,
     requires_lab_verification BOOLEAN NOT NULL
 );
 
 -- SAMPLES/VARIANTS/ACMG_RULES
-CREATE TABLE samples_variants_acmg_rules(
+CREATE TABLE variants_samples_acmg_rules(
     variant_id INT NOT NULL,
     sample_id TEXT NOT NULL,
+    acmg_rule_id INT NOT NULL,
     rule_name ACMG_RULE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
@@ -198,9 +200,9 @@ CREATE TABLE samples_variants_acmg_rules(
         FOREIGN KEY (sample_id) 
             REFERENCES samples(id),
     CONSTRAINT fk_acmg_rules
-        FOREIGN KEY (rule_name) 
-            REFERENCES acmg_rules(rule_name),
-    PRIMARY KEY (variant_id, sample_id, rule_name)
+        FOREIGN KEY (acmg_rule_id) 
+            REFERENCES acmg_rules(id),
+    PRIMARY KEY (variant_id, sample_id, acmg_rule_id)
 );
 
 -- REVIEWS (VARIANTS/SCIENTIFIC_MEMBERS)
@@ -223,14 +225,14 @@ CREATE TABLE reviews(
 -- REVIEWS/ACMG_RULES
 CREATE TABLE reviews_acmg_rules(
     review_id INT NOT NULL,
-    rule_name ACMG_RULE NOT NULL,
+    acmg_rule_id INT NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
             REFERENCES reviews(id),
     CONSTRAINT fk_acmg_rules
-        FOREIGN KEY (rule_name) 
-            REFERENCES acmg_rules(rule_name),
-    PRIMARY KEY (review_id, rule_name)
+        FOREIGN KEY (acmg_rule_id) 
+            REFERENCES acmg_rules(id),
+    PRIMARY KEY (review_id, acmg_rule_id)
 );
 
 -- PUBLICATIONS

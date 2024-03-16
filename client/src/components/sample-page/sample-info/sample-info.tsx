@@ -4,11 +4,12 @@ import { Genotype, ISample } from "../../../models/view-samples.model";
 import Icon from "../../../atoms/icon/icon";
 import AcmgRulesEdit from "../acmg-rules-edit/acmg-rules-edit";
 import { SampleService } from "../../../services/sample/sample.service";
+import { IAcmgRule } from "../../../models/acmg-rule.model";
 
 type SampleInfoProps = {
   sample: ISample;
-  acmgRuleNames: string[];
-  sampleService: SampleService
+  acmgRules: IAcmgRule[];
+  sampleService: SampleService;
 };
 
 const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
@@ -76,8 +77,8 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                       <AcmgRulesEdit
                         variantId={v.variantId}
                         sampleId={props.sample.sampleId}
-                        variantAcmgRules={v.acmgRuleNames}
-                        allAcmgRules={props.acmgRuleNames}
+                        variantAcmgRules={v.acmgRules}
+                        allAcmgRules={props.acmgRules}
                         sampleService={props.sampleService}
                       />
                     </div>

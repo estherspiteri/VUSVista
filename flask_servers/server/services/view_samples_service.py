@@ -4,7 +4,7 @@ import pandas as pd
 
 from server import db
 from server.models import Samples, SampleFiles, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    SamplesVariantsAcmgRules
+    VariantsSamplesAcmgRules
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
@@ -33,8 +33,8 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
     variants = []
 
     for v in variants_samples:
-        samples_variants_acmg_rules: List[SamplesVariantsAcmgRules] = db.session.query(SamplesVariantsAcmgRules).filter(SamplesVariantsAcmgRules.sample_id == sample.id,
-                                                          SamplesVariantsAcmgRules.variant_id == v.variant_id).all()
+        samples_variants_acmg_rules: List[VariantsSamplesAcmgRules] = db.session.query(VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.sample_id == sample.id,
+                                                                                                                        VariantsSamplesAcmgRules.variant_id == v.variant_id).all()
 
         acmg_rule_names = [r.rule_name.value for r in samples_variants_acmg_rules]
 
