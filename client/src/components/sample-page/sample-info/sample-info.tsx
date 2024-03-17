@@ -89,7 +89,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                         <AcmgRulesEdit
                           variantId={v.variantId}
                           sampleId={props.sample.sampleId}
-                          variantAcmgRules={v.acmgRules}
+                          variantAcmgRuleIds={v.acmgRuleIds}
                           allAcmgRules={props.acmgRules}
                           sampleService={props.sampleService}
                           onMenuAcmgRuleHover={(acmgRuleId?: number) =>

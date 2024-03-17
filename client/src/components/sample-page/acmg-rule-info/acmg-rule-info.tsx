@@ -31,7 +31,7 @@ const AcmgRuleInfo: React.FunctionComponent<AcmgRuleInfoProps> = (
         <>
           <p className={styles.title}>ACMG Rule Info</p>
           <p className={styles.description}>
-            Hover on a rule to view information related to the rule.
+            Hover on a rule from the ACMG menu (+) to view information related to the rule.
           </p>
         </>
       )}

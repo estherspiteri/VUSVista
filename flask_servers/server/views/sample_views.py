@@ -37,9 +37,9 @@ def add_acmg_rule():
 
     sample_id = request.form['sampleId']
     variant_id = request.form['variantId']
-    rule_name = request.form['ruleName']
+    rule_id = request.form['ruleId']
 
-    add_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_name)
+    add_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
 
     return Response(json.dumps({'isSuccess': True}), 200,
                     mimetype='application/json')
@@ -51,9 +51,9 @@ def remove_acmg_rule():
 
     sample_id = request.form['sampleId']
     variant_id = request.form['variantId']
-    rule_name = request.form['ruleName']
+    rule_id = request.form['ruleId']
 
-    remove_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_name)
+    remove_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
 
     return Response(json.dumps({'isSuccess': True}), 200,
                     mimetype='application/json')

@@ -11,7 +11,7 @@ export interface ISampleVariant {
   variantId: number;
   variant: IVUSSummary;
   genotype: Genotype;
-  acmgRules?: IAcmgRule[];
+  acmgRuleIds?: number[];
 }
 
 export interface ISample {

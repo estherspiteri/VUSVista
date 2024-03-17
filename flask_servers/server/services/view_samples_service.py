@@ -37,13 +37,13 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
         samples_variants_acmg_rules: List[VariantsSamplesAcmgRules] = db.session.query(VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.sample_id == sample.id,
                                                                                                                         VariantsSamplesAcmgRules.variant_id == v.variant_id).all()
 
-        acmg_rule_names = [r.rule_name.value for r in samples_variants_acmg_rules]
+        acmg_rule_ids = [r.acmg_rule_id for r in samples_variants_acmg_rules]
 
         variant_details: Variants = db.session.query(Variants).filter(Variants.id == v.variant_id).first()
 
         variant_summary = get_variant_summary(variant_details)
 
-        variant_sample = {'variantId': v.variant_id, 'variant': variant_summary, 'genotype': v.genotype.value, 'acmgRuleNames': acmg_rule_names}
+        variant_sample = {'variantId': v.variant_id, 'variant': variant_summary, 'genotype': v.genotype.value, 'acmgRuleIds': acmg_rule_ids}
         variants.append(variant_sample)
 
     return {'sampleId': sample.id, 'phenotype': phenotypes,
