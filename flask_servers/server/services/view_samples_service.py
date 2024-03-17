@@ -3,8 +3,9 @@ from typing import List, Dict
 import pandas as pd
 
 from server import db
+from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, SampleFiles, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    VariantsSamplesAcmgRules
+    VariantsSamplesAcmgRules, Variants
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
@@ -38,7 +39,11 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
 
         acmg_rule_names = [r.rule_name.value for r in samples_variants_acmg_rules]
 
-        variant_sample = {'variantId': v.variant_id, 'genotype': v.genotype.value, 'acmgRuleNames': acmg_rule_names}
+        variant_details: Variants = db.session.query(Variants).filter(Variants.id == v.variant_id).first()
+
+        variant_summary = get_variant_summary(variant_details)
+
+        variant_sample = {'variantId': v.variant_id, 'variant': variant_summary, 'genotype': v.genotype.value, 'acmgRuleNames': acmg_rule_names}
         variants.append(variant_sample)
 
     return {'sampleId': sample.id, 'phenotype': phenotypes,

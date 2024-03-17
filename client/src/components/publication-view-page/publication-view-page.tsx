@@ -5,6 +5,7 @@ import {
   IPublicationPreview,
   IVUSSummary,
 } from "../../models/publication-view.model";
+import VariantSummary from "../shared/variant-summary/variant-summary";
 
 type PublicationViewPageProps = {
   variantId: string;
@@ -36,34 +37,9 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                 {props.publications.length === 1
                   ? "publication"
                   : "publications"}
-                &nbsp;found for Variant with&nbsp;
-                <span className={styles.colour}>Id {props.variantId}</span>
+                &nbsp;found for the below variant
               </span>
-
-              <div className={styles["variant-details"]}>
-                <div>
-                  <p>Chromosome</p>
-                  <p className={styles.detail}>{props.variant.chromosome}</p>
-                </div>
-                <div>
-                  <p>Position</p>
-                  <p className={styles.detail}>
-                    {props.variant.chromosomePosition}
-                  </p>
-                </div>
-                <div>
-                  <p>Gene</p>
-                  <p className={styles.detail}>{props.variant.gene}</p>
-                </div>
-                <div>
-                  <p>Reference</p>
-                  <p className={styles.detail}>{props.variant.refAllele}</p>
-                </div>
-                <div>
-                  <p>Alternate</p>
-                  <p className={styles.detail}>{props.variant.altAllele}</p>
-                </div>
-              </div>
+              <VariantSummary variant={props.variant} />
               <div className={styles["publication-previews"]}>
                 <div className={styles.header}>
                   <span>Title</span>

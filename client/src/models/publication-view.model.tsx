@@ -12,6 +12,7 @@ export interface IPublicationPreview {
 }
 
 export interface IVUSSummary {
+  id: number;
   chromosome: string;
   chromosomePosition: string;
   gene: string;

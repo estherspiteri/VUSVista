@@ -10,7 +10,7 @@ from server.models import AcmgRules, VariantsSamplesAcmgRules
 def get_acmg_rules() -> List[Dict[str, str]]:
     acmg_rules: List[AcmgRules] = db.session.query(AcmgRules).all()
 
-    return [{'id': r.id, 'name': r.rule_name.value} for r in acmg_rules]
+    return [{'id': r.id, 'name': r.rule_name.value, 'description': r.description, 'defaultStrength': r.default_strength.value} for r in acmg_rules]
 
 
 def add_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_id: str):

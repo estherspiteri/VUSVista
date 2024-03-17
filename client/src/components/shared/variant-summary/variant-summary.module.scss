@@ -1,0 +1,22 @@
+.variant-summary-container {
+  align-self: center;
+  text-align: center;
+  padding: 8px 20px;
+  border: 2px solid #008080;
+  border-radius: 40px;
+  background-color: #e2f9f9;
+  font-size: 12px;
+  width: fit-content;
+
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+
+  .detail-name {
+    color: black;
+  }
+
+  .detail {
+    color: #008080;
+  }
+}

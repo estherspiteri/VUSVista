@@ -62,7 +62,7 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_variant_summary(variant: Variants) -> Dict:
-    variant_summary = {'chromosome': variant.chromosome, 'chromosomePosition': variant.chromosome_position,
+    variant_summary = {'id': variant.id, 'chromosome': variant.chromosome, 'chromosomePosition': variant.chromosome_position,
                        'gene': variant.gene_name, 'altAllele': variant.alt, 'refAllele': variant.ref}
 
     return variant_summary

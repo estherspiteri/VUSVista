@@ -10,6 +10,7 @@ type AcmgRulesEditProps = {
   variantAcmgRules: IAcmgRule[];
   allAcmgRules: IAcmgRule[];
   sampleService: SampleService;
+  onMenuAcmgRuleHover?: (amcgRuleId?: number) => void;
 };
 
 const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
@@ -23,58 +24,75 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
 
   return (
     <div className={styles.acmg}>
-      {/** Selected Acmg Rules */}
-      {selectedAcmgRules?.map((r) => {
-        const styleClass = r.name.substring(0, r.name.length - 1).toLowerCase();
+      <div className={styles["selected-rules"]}>
+        {/** Selected Acmg Rules */}
+        {selectedAcmgRules?.map((r) => {
+          const styleClass = r.name
+            .substring(0, r.name.length - 1)
+            .toLowerCase();
 
-        return (
-          <div
-            onMouseOver={() => setMouseOverRule(r.id)}
-            onMouseLeave={() => setMouseOverRule(undefined)}
-            className={`${styles["selected-acmg"]} ${styles[`${styleClass}`]}`}
-          >
-            {mouseOverRule === r.id ? (
-              <Icon
-                name="bin"
-                className={styles.bin}
-                onClick={() => removeAcmgRule(r.id)}
-              />
-            ) : (
-              r.name
-            )}
-          </div>
-        );
-      })}
-
+          return (
+            <div
+              onMouseOver={() => setMouseOverRule(r.id)}
+              onMouseLeave={() => setMouseOverRule(undefined)}
+              className={`${styles["selected-acmg"]} ${
+                styles[`${styleClass}`]
+              }`}
+            >
+              {mouseOverRule === r.id ? (
+                <Icon
+                  name="bin"
+                  className={styles.bin}
+                  onClick={() => removeAcmgRule(r.id)}
+                />
+              ) : (
+                r.name
+              )}
+            </div>
+          );
+        })}
+      </div>
       {/** Add Menu */}
-      {isAddMenuVisible ? (
-        <div className={styles["add-menu"]}>
+
+      {getAvailableAcmgRules().length > 0 &&
+        (isAddMenuVisible ? (
+          <div className={styles["add-menu"]}>
+            <Icon
+              name="remove"
+              fill="white"
+              width={20}
+              height={20}
+              className={styles["add-menu-icon"]}
+              onClick={() => setIsAddMenuVisible(false)}
+            />
+            {getAvailableAcmgRules().map((r) => {
+              return (
+                <div
+                  onClick={() => addAcmgRule(r.id)}
+                  onMouseOver={() => {
+                    props.onMenuAcmgRuleHover &&
+                      props.onMenuAcmgRuleHover(r.id);
+                  }}
+                  onMouseLeave={() => {
+                    props.onMenuAcmgRuleHover &&
+                      props.onMenuAcmgRuleHover(undefined);
+                  }}
+                >
+                  {r.name}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
           <Icon
-            name="add"
+            className={styles["add-acmg"]}
+            name="add-outline"
             fill="white"
-            width={20}
-            height={20}
-            className={styles["add-menu-icon"]}
-            onClick={() => setIsAddMenuVisible(false)}
+            width={40}
+            height={40}
+            onClick={() => setIsAddMenuVisible(true)}
           />
-          {getAvailableAcmgRules().map((r) => {
-            return <div onClick={() => addAcmgRule(r.id)}>{r.name}</div>;
-          })}
-        </div>
-      ) : (
-        <Icon
-          className={styles["add-acmg"]}
-          name="add-outline"
-          fill="white"
-          width={37}
-          height={37}
-          onClick={() => {
-            if (getAvailableAcmgRules().length > 0) {
-              setIsAddMenuVisible(true);
-            }
-          }}
-        />
-      )}
+        ))}
     </div>
   );
 

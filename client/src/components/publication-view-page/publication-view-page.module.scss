@@ -34,32 +34,14 @@
       }
     }
 
-    .variant-details {
-      align-self: center;
-      text-align: center;
-      padding: 8px 32px;
-      border: 2px solid #008080;
-      border-radius: 40px;
-      background-color: #e2f9f9;
-      font-size: 12px;
-      margin-bottom: 32px;
-
-      display: flex;
-      flex-direction: row;
-      gap: 64px;
-
-      .detail {
-        color: #008080;
-      }
-    }
-
     .publication-previews {
       width: 100%;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
       border: 1px solid #e2f9f9;
-
+      margin-top: 32px;
+      
       .header {
         display: flex;
         flex-direction: row;
