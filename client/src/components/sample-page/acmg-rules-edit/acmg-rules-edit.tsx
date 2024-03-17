@@ -90,8 +90,8 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
             className={styles["add-acmg"]}
             name="add-outline"
             fill="white"
-            width={40}
-            height={40}
+            width={35}
+            height={35}
             onClick={() => setIsAddMenuVisible(true)}
           />
         ))}
