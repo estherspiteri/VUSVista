@@ -1,9 +1,13 @@
 import json
+import urllib
+from urllib.parse import urlencode
 
+import requests
 from flask import Blueprint, current_app, Response, request
 
 from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_sample_variant, \
     remove_acmg_rule_to_sample_variant
+from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
 from server.services.view_samples_service import retrieve_all_samples_from_db, retrieve_sample_from_db
 
 sample_views = Blueprint('sample_views', __name__)
@@ -39,10 +43,9 @@ def add_acmg_rule():
     variant_id = request.form['variantId']
     rule_id = request.form['ruleId']
 
-    add_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
+    res = add_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
 
-    return Response(json.dumps({'isSuccess': True}), 200,
-                    mimetype='application/json')
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
 
 
 @sample_views.route('/remove-acmg-rule', methods=['POST'])
@@ -53,7 +56,49 @@ def remove_acmg_rule():
     variant_id = request.form['variantId']
     rule_id = request.form['ruleId']
 
-    remove_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
+    res = remove_acmg_rule_to_sample_variant(sample_id, int(variant_id), rule_id)
 
-    return Response(json.dumps({'isSuccess': True}), 200,
-                    mimetype='application/json')
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@sample_views.route('/phenotype/<string:phenotype>', methods=['GET'])
+def get_phenotype_terms(phenotype: str):
+    hpo_res = get_hpo_terms(phenotype)
+
+    return Response(json.dumps(hpo_res.data), hpo_res.status, mimetype='application/json')
+
+
+@sample_views.route('/add-phenotype', methods=['POST'])
+def add_phenotype():
+    current_app.logger.info(f"Adding Phenotype")
+
+    sample_id = request.form['sampleId']
+    phenotype = request.form['phenotype']
+
+    # Parse the JSON string into a Python object
+    if phenotype:
+        phenotype_dict = json.loads(phenotype)
+    else:
+        phenotype_dict = {}
+
+    res = add_phenotype_to_existing_sample(sample_id, phenotype_dict)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@sample_views.route('/remove-phenotype', methods=['POST'])
+def remove_phenotype():
+    current_app.logger.info(f"Removing Phenotype")
+
+    sample_id = request.form['sampleId']
+    phenotype = request.form['phenotype']
+
+    # Parse the JSON string into a Python object
+    if phenotype:
+        phenotype_dict = json.loads(phenotype)
+    else:
+        phenotype_dict = {}
+
+    res = remove_phenotype_to_sample(sample_id, phenotype_dict)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)

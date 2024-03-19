@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.models import AcmgRules, VariantsSamplesAcmgRules
+from server.responses.internal_response import InternalResponse
 
 
 def get_acmg_rules() -> List[Dict[str, str]]:
@@ -22,15 +23,17 @@ def add_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_i
     try:
         # Commit the session to persist changes to the database
         db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
     except SQLAlchemyError as e:
         # Changes were rolled back due to an error
         db.session.rollback()
 
         current_app.logger.error(
             f'Rollback carried out since insertion of SamplesVariantsAcmgRules entry in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
 
 
-def remove_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_id: str):
+def remove_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_id: str) -> InternalResponse:
     samples_variants_acmg_rules = db.session.query(VariantsSamplesAcmgRules).filter_by(sample_id=sample_id, variant_id=variant_id, acmg_rule_id=acmg_rule_id).first()
 
     db.session.delete(samples_variants_acmg_rules)
@@ -38,9 +41,11 @@ def remove_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rul
     try:
         # Commit the session to persist changes to the database
         db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
     except SQLAlchemyError as e:
         # Changes were rolled back due to an error
         db.session.rollback()
 
         current_app.logger.error(
             f'Rollback carried out since deletion of SamplesVariantsAcmgRules entry in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)

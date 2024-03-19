@@ -17,7 +17,6 @@ export interface IStoreAndVerifyVusFileResponse {
   isClinvarAccessed: boolean;
   vusList: IVus[];
   multipleGenes?: IVusGene[] | null;
-  uniqueSampleIds?: string[] | null;
 }
 
 export interface ILoadAllVusResponse {
@@ -25,16 +24,3 @@ export interface ILoadAllVusResponse {
   vusList?: IVus[] | null;
 }
 
-export interface IGetHPOTermsRequest {
-  phenotype: string;
-}
-
-export interface IHPOTerm {
-  ontologyId: string;
-  name: string;
-}
-
-export interface IGetHPOTermsResponse {
-  isSuccess: boolean;
-  hpoTerms: IHPOTerm[];
-}

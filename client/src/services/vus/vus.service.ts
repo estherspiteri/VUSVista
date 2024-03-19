@@ -1,6 +1,4 @@
 import {
-  IGetHPOTermsRequest,
-  IGetHPOTermsResponse,
   ILoadAllVusResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
@@ -19,12 +17,6 @@ export class VusService {
 
     // Append the JSON string as a blob to the FormData
     data.append("multipleGenesSelection", multipleGenesSelectionJsonData);
-
-    const samplePhenotypeSelectionJsonData = input.samplePhenotypeSelection
-      ? JSON.stringify(input.samplePhenotypeSelection)
-      : "";
-
-    data.append("samplePhenotypeSelection", samplePhenotypeSelectionJsonData);
 
     const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/file`, {
       method: "POST",
@@ -49,24 +41,6 @@ export class VusService {
         "Content-Type": "application/json;charset=UTF-8",
       },
     })
-      .then((response: Response) => {
-        return response.json();
-      })
-      .catch((error) => console.error("error============:", error)); //TODO: handle error
-
-    return result;
-  }
-
-  async getHPOTerms(input: IGetHPOTermsRequest): Promise<IGetHPOTermsResponse> {
-    const result: IGetHPOTermsResponse = await fetch(
-      `/vus/phenotype/${input.phenotype}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-        },
-      }
-    )
       .then((response: Response) => {
         return response.json();
       })

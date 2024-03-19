@@ -7,6 +7,7 @@ import { SampleService } from "../../../services/sample/sample.service";
 import { IAcmgRule } from "../../../models/acmg-rule.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import AcmgRuleInfo from "../acmg-rule-info/acmg-rule-info";
+import SamplePhenotypeSelection from "../sample-phenotype-selection/sample-phenotype-selection";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -29,44 +30,40 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
     >
       {props.sample ? (
         <div className={styles["sample-info"]}>
-          <div className={styles.info}>
-            <div className={styles["info-title"]}>Sample Id:</div>
-            {props.sample.sampleId}
-          </div>
+          <div className={styles["top-container"]}>
+            {/** General information */}
+            <div className={styles.information}>
+              <div className={styles.info}>
+                <div className={styles["info-title"]}>Sample Id:</div>
+                {props.sample.sampleId}
+              </div>
 
-          <div className={styles.info}>
-            <div className={styles["info-title"]}>Genome Version:</div>
-            {props.sample.genomeVersion}
-          </div>
+              <div className={styles.info}>
+                <div className={styles["info-title"]}>Genome Version:</div>
+                {props.sample.genomeVersion}
+              </div>
 
-          <div className={styles.info}>
-            <div className={styles["info-title"]}>File upload name:</div>
-            {props.sample.fileUploadName}
-          </div>
-
-          <div className={`${styles.info} ${styles["info-container"]}`}>
-            <div className={styles["info-title"]}>Phenotypes:</div>
-            <div className={`${styles.info} ${styles["variant-phenotypes"]}`}>
-              {props.sample.phenotype.map((p) => {
-                return (
-                  <div className={styles.phenotype}>
-                    <div>&#x2022;</div>&nbsp;
-                    <div>
-                      <span className={styles["ontology-id"]}>
-                        {p.ontologyId}
-                      </span>
-                      : {p.name}
-                    </div>
-                  </div>
-                );
-              })}
-              {/* </div> */}
+              <div className={styles.info}>
+                <div className={styles["info-title"]}>File upload name:</div>
+                {props.sample.fileUploadName}
+              </div>
             </div>
           </div>
 
-          <div className={`${styles.info} ${styles["info-container"]}`}>
+          {/** Phenotypes */}
+          <div className={styles.phenotypes}>
+            <div className={styles["info-title"]}>Phenotypes:</div>
+            <SamplePhenotypeSelection
+              sampleService={props.sampleService}
+              sampleId={props.sample.sampleId}
+              selectedPhenotypes={props.sample.phenotype}
+            />
+          </div>
+
+          {/** Variants */}
+          <div className={styles["sample-variant-container"]}>
             <div className={styles["info-title"]}>Variants:</div>
-            <div className={styles["info-container-content"]}>
+            <div className={styles["sample-variant-container-content"]}>
               <div className={styles["variants-container"]}>
                 <div className={styles["variant-titles"]}>
                   <div className={styles["variant-summary"]}>
@@ -84,7 +81,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                           <VariantSummary variant={v.variant} />
                         </div>
                         <div className={styles.genotype}>
-                          {v.genotype == Genotype.Heterozygous ? "Aa" : "AA"}
+                          {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
                         </div>
                         <AcmgRulesEdit
                           variantId={v.variantId}

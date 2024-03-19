@@ -34,6 +34,11 @@
       }
     }
 
+    .variant-summary {
+      width: 40%;
+      align-self: center;
+    }
+
     .publication-previews {
       width: 100%;
       display: flex;
@@ -41,7 +46,7 @@
       box-sizing: border-box;
       border: 1px solid #e2f9f9;
       margin-top: 32px;
-      
+
       .header {
         display: flex;
         flex-direction: row;

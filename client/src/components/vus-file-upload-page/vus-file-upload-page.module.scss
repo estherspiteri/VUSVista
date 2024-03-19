@@ -193,37 +193,6 @@
       }
     }
 
-    .phenotype-selection-modal-content {
-      .header {
-        display: flex;
-        flex-direction: row;
-        text-align: center;
-        box-sizing: border-box;
-        padding: 8px 0;
-
-        .sample-id-field {
-          flex-grow: 1;
-          text-align: left;
-        }
-
-        .selected-phenotypes-field {
-          width: 432px;
-        }
-
-        .phenotypes-selection-field {
-          width: 300px;
-        }
-      }
-
-      .content {
-        border-top: 2px solid #008080;
-
-        [class*="phenotype-selection-input-container"] {
-          padding: 16px;
-        }
-      }
-    }
-
     .error-msg {
       color: rgb(142, 27, 27);
       margin-bottom: -16px;

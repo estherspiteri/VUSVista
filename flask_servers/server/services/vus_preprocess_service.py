@@ -19,6 +19,7 @@ from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications
+from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
 from server.services.vus_publications_service import retrieve_and_store_variant_publications
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
@@ -139,27 +140,12 @@ def extract_sample_ids(sample_ids: str) -> List :
     return re.split(',|;', sample_ids.replace(' ', ''))
 
 
-def extract_all_unique_sample_ids(vus_df: pd.DataFrame) -> List:
-    sample_ids = []
-
-    for index, row in vus_df.iterrows():
-        # get the sample ids
-        row_sample_ids = extract_sample_ids(str(row['Sample Ids']))
-        sample_ids.extend(row_sample_ids)
-
-    unique_sample_ids = list(set(sample_ids))
-
-    return unique_sample_ids
-
-
 def filter_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResponse:
     if one_time_filter_flag:
         multiple_genes = check_for_multiple_genes(vus_df)
         # TODO: remove other function for multiple genes
 
-        unique_sample_ids = extract_all_unique_sample_ids(vus_df)
-
-        return InternalResponse({'multiple_genes': multiple_genes, 'unique_sample_ids': unique_sample_ids}, 200)
+        return InternalResponse({'multiple_genes': multiple_genes}, 200)
 
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
@@ -240,7 +226,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
         if ref.db_type == 'db_snp':
             # retrieve dbsnp entry related to the variant
             dbsnp: DbSnp = db.session.query(DbSnp).filter(
-                DbSnp.external_db_snp_id == ref.external_references_id
+                DbSnp.external_db_snp_id == ref.id
             ).one_or_none()
 
             vus_df.at[index, 'RSID'] = dbsnp.id
@@ -250,7 +236,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
         elif ref.db_type == 'clinvar':
             # retrieve clinvar entry related to the variant
             clinvar: Clinvar = db.session.query(Clinvar).filter(
-                Clinvar.external_clinvar_id == ref.external_references_id
+                Clinvar.external_clinvar_id == ref.id
             ).one_or_none()
 
             if clinvar.last_evaluated is not None:
@@ -286,9 +272,9 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
             vus_df.at[index, 'Classification'] = str(variant.classification)
             # vus_df.at[index, ''] = variant.consequences TODO: add consequence to variant info
 
-            existing_variant_ids.append(variant.variant_id)
+            existing_variant_ids.append(variant.id)
 
-            vus_df = get_external_references(variant.variant_id, index, vus_df)
+            vus_df = get_external_references(variant.id, index, vus_df)
 
     existing_vus_df = vus_df[vus_df['Exists in DB']]
     vus_df = vus_df[~vus_df['Exists in DB']]
@@ -316,15 +302,13 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     return vus_df
 
 
-def preprocess_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResponse:
-    filter_vus_res = filter_vus(vus_df, one_time_filter_flag)
+def preprocess_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
+    filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
 
-    if one_time_filter_flag:
-        if filter_vus_res.data['multiple_genes'] is not None:
-            current_app.logger.info(f'Some VUS contain multiple genes!')
+    if filter_vus_res.data['multiple_genes'] is not None:
+        current_app.logger.info(f'Some VUS contain multiple genes!')
         return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
-                                 'multiple_genes': filter_vus_res.data['multiple_genes'],
-                                 'unique_sample_ids': filter_vus_res.data['unique_sample_ids']}, 200)
+                                 'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
     else:
         vus_df = filter_vus_res.data['filtered_df']
 
@@ -410,7 +394,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     return variant_ids
 
 
-def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, sample_phenotype_selection: List):
+def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage):
     # store the file in the db
     new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now(),
                                   scientific_member_id=current_user.id)
@@ -418,31 +402,52 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
 
     db.session.flush()
 
-    unique_samples = []
+    # retrieve all unique samples and their phenotypes
+    unique_samples = {}
 
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # extract sample ids
-        samples = extract_sample_ids(str(row['Sample Ids']))
-        unique_samples.extend(samples)
+        sample_ids = extract_sample_ids(str(row['Sample Ids']))\
 
-    # store each unique sample in the db
-    for selection in sample_phenotype_selection:
-        new_sample = Samples(id=selection['sampleId'], sample_file_id=new_sample_file.id, genome_version='GRCh37')
+        phenotypes = []
+
+        # extract phenotypes
+        row_phenotypes = str(row['Sample Phenotypes'])
+        if row_phenotypes != 'nan':
+            phenotypes = re.split(',', row_phenotypes)
+            phenotypes = [p.strip() for p in phenotypes]
+
+        # get phenotype terms (aka ontology ids & their names)
+        phenotype_terms = []
+
+        for p in phenotypes:
+            hpo_res = get_hpo_term_from_phenotype_name(p)
+
+            if hpo_res.status != 200:
+                current_app.logger.error(f'Failed to get HPO term for phenotype {p}')
+            else:
+                phenotype_terms.append(hpo_res.data)
+
+        # take note of each phenotype for every sample
+        for sample_id in sample_ids:
+            sample_phenotypes = unique_samples.get(sample_id, [])
+            sample_phenotypes.extend(phenotype_terms)
+
+            # ensure there are no repeated phenotypes for a given sample
+            unique_samples[sample_id] = []
+            for p in sample_phenotypes:
+                if p not in unique_samples[sample_id]:
+                    unique_samples[sample_id].append(p)
+
+    # store each unique sample in the db & its phenotypes #TODO: check for existing samples & if so merge
+    for selection in unique_samples:
+        new_sample = Samples(id=selection, sample_file_id=new_sample_file.id, genome_version='GRCh37')
         db.session.add(new_sample)
 
-        for phenotype in selection['phenotypesSelected']:
-            phenotype_selected: Phenotypes = db.session.query(Phenotypes).filter(
-                Phenotypes.ontology_term_id == phenotype['ontologyId'],
-            ).one_or_none()
-
-            if phenotype_selected is None:
-                new_phenotype = Phenotypes(ontology_term_id=phenotype['ontologyId'], term_name=phenotype['name'])
-                db.session.add(new_phenotype)
-
-                new_sample.ontology_term.append(new_phenotype)
-            else:
-                new_sample.ontology_term.append(phenotype_selected)
+        # append phenotypes to the respective sample
+        for phenotype_term in unique_samples[new_sample.id]:
+            append_phenotype_to_sample(new_sample, phenotype_term)
 
     db.session.flush()
 
@@ -469,18 +474,18 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
             db.session.add(new_variants_samples)
 
 
-def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multiple_genes_selection: List) -> Response:
+def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:
     vus_df = pd.read_excel(file, header=0)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
     # handle multiple genes selection
-    for selection in multiple_genes_selection:
-        selection_row = vus_df.iloc[int(selection['index'])]
-        selection_row['Gene'] = selection['gene']
+    if len(multiple_genes_selection) > 0:
+        for selection in multiple_genes_selection:
+            selection_row = vus_df.iloc[int(selection['index'])]
+            selection_row['Gene'] = selection['gene']
 
-    # a vus file will consist of at least a single sample which needs its phenotype
-    # therefore if no phenotypes are returned then the system still needs to request the phenotypes from the user
-    one_time_filter_flag = len(sample_phenotype_selection) == 0
+    # flag indicating that check is required for multiple genes for a single variant
+    one_time_filter_flag = len(multiple_genes_selection) == 0
 
     preprocess_vus_res = preprocess_vus(vus_df, one_time_filter_flag)
 
@@ -489,8 +494,7 @@ def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multipl
         response['isSuccess'] = False
         return Response(json.dumps(response), 200)
     elif one_time_filter_flag:
-        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes'],
-                                    'uniqueSampleIds': preprocess_vus_res.data['unique_sample_ids']}),
+        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes']}),
                         200, mimetype='application/json')
     else:
         existing_vus_df = preprocess_vus_res.data['existing_vus_df']
@@ -502,7 +506,7 @@ def handle_vus_file(file: FileStorage, sample_phenotype_selection: List, multipl
         all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
 
         # store file and samples entries
-        create_file_and_sample_entries_in_db(all_vus_df, file, sample_phenotype_selection)
+        create_file_and_sample_entries_in_db(all_vus_df, file)
 
         # store those vus that do not already exist in the db
         variant_ids = store_vus_df_in_db(vus_df)

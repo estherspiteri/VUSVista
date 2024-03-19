@@ -1,5 +1,4 @@
-import { IHPOTerm } from "../services/vus/vus.dto";
-import { IAcmgRule } from "./acmg-rule.model";
+import { IHPOTerm } from "../services/sample/sample.dto";
 import { IVUSSummary } from "./publication-view.model";
 
 export enum Genotype {

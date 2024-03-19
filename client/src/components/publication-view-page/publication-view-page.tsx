@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import styles from "./publication-view-page.module.scss";
 import PublicationPreview from "./publication-preview/publication-preview";
 import {
@@ -39,7 +39,9 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                   : "publications"}
                 &nbsp;found for the below variant
               </span>
-              <VariantSummary variant={props.variant} />
+              <div className={styles["variant-summary"]}>
+                <VariantSummary variant={props.variant} />
+              </div>
               <div className={styles["publication-previews"]}>
                 <div className={styles.header}>
                   <span>Title</span>

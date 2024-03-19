@@ -21,3 +21,54 @@ export interface IAddAcmgRuleRequest {
   variantId: number;
   ruleId: number;
 }
+
+export interface IAddAcmgRuleResponse {
+  isSuccess: boolean;
+}
+
+export interface IRemoveAcmgRuleRequest {
+  sampleId: string;
+  variantId: number;
+  ruleId: number;
+}
+
+export interface IRemoveAcmgRuleResponse {
+  isSuccess: boolean;
+}
+
+export interface IGetHPOTermsRequest {
+  phenotype: string;
+}
+
+export interface IHPOTerm {
+  ontologyId: string;
+  name: string;
+}
+
+export interface IGetHPOTermsResponse {
+  isSuccess: boolean;
+  hpoTerms: IHPOTerm[];
+}
+
+export interface IPhenotype {
+  ontologyId: string;
+  name: string;
+}
+
+export interface IAddPhenotypeRequest {
+  phenotype: IPhenotype;
+  sampleId: string;
+}
+
+export interface IAddPhenotypeResponse {
+  isSuccess: boolean;
+}
+
+export interface IRemovePhenotypeRequest {
+  phenotype: IPhenotype;
+  sampleId: string;
+}
+
+export interface IRemovePhenotypeResponse {
+  isSuccess: boolean;
+}

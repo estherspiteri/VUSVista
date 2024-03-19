@@ -4,13 +4,22 @@
   .phenotype-selection-input {
     width: 100%;
     box-sizing: border-box;
-    height: 32px;
-    border: 2px solid #008080;
+    border: none;
+    background-color: #008080;
+    color: #fff;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 21px;
+
+    &::placeholder {
+      color: #e2f9f9;
+      font-weight: bold;
+    }
   }
 
   .dropdown-container {
     position: absolute;
-    width: calc(100% - 32px);
+    width: calc(100% + 16px);
     border-radius: 4px;
     font-size: 14px;
 

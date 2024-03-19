@@ -1,8 +1,17 @@
 import {
   IAddAcmgRuleRequest,
+  IAddAcmgRuleResponse,
+  IAddPhenotypeRequest,
+  IAddPhenotypeResponse,
+  IGetHPOTermsRequest,
+  IGetHPOTermsResponse,
   IGetSampleRequest,
   IGetSampleResponse,
   ILoadAllSamplesResponse,
+  IRemoveAcmgRuleRequest,
+  IRemoveAcmgRuleResponse,
+  IRemovePhenotypeRequest,
+  IRemovePhenotypeResponse,
 } from "./sample.dto";
 
 export class SampleService {
@@ -52,7 +61,7 @@ export class SampleService {
     };
   }
 
-  async addAcmgRule(input: IAddAcmgRuleRequest) {
+  async addAcmgRule(input: IAddAcmgRuleRequest): Promise<IAddAcmgRuleResponse> {
     let data = new FormData();
 
     // Append the JSON string as a blob to the FormData
@@ -60,13 +69,21 @@ export class SampleService {
     data.append("variantId", input.variantId.toString());
     data.append("ruleId", input.ruleId.toString());
 
-    await fetch(`/sample/add-acmg-rule`, {
+    const result: IAddAcmgRuleResponse = await fetch(`/sample/add-acmg-rule`, {
       method: "POST",
       body: data,
-    }).catch((error) => console.error("error============:", error)); //TODO: handle error
+    })
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
   }
 
-  async removeAcmgRule(input: IAddAcmgRuleRequest) {
+  async removeAcmgRule(
+    input: IRemoveAcmgRuleRequest
+  ): Promise<IRemoveAcmgRuleResponse> {
     let data = new FormData();
 
     // Append the JSON string as a blob to the FormData
@@ -74,10 +91,85 @@ export class SampleService {
     data.append("variantId", input.variantId.toString());
     data.append("ruleId", input.ruleId.toString());
 
-    await fetch(`/sample/remove-acmg-rule`, {
-      method: "POST",
-      body: data,
-    }).catch((error) => console.error("error============:", error)); //TODO: handle error
+    const result: IRemoveAcmgRuleResponse = await fetch(
+      `/sample/remove-acmg-rule`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async getHPOTerms(input: IGetHPOTermsRequest): Promise<IGetHPOTermsResponse> {
+    const result: IGetHPOTermsResponse = await fetch(
+      `/sample/phenotype/${input.phenotype}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addPhenotype(
+    input: IAddPhenotypeRequest
+  ): Promise<IAddPhenotypeResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("sampleId", input.sampleId);
+    data.append("phenotype", JSON.stringify(input.phenotype));
+
+    const result: IGetHPOTermsResponse = await fetch(
+      `/sample/add-phenotype`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async removePhenotype(
+    input: IRemovePhenotypeRequest
+  ): Promise<IRemovePhenotypeResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("sampleId", input.sampleId);
+    data.append("phenotype", JSON.stringify(input.phenotype));
+
+    const result: IGetHPOTermsResponse = await fetch(
+      `/sample/remove-phenotype`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
   }
 }
 

@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import styles from "./sample-phenotype-selection.module.scss";
-import { VusService } from "../../../services/vus/vus.service";
 import Icon from "../../../atoms/icon/icon";
-import { IHPOTerm } from "../../../services/vus/vus.dto";
 import PhenotypeSelection from "../phenotype-selection/phenotype-selection";
+import { IHPOTerm } from "../../../services/sample/sample.dto";
+import { SampleService } from "../../../services/sample/sample.service";
 
 type SamplePhenotypeSelectionProps = {
   sampleId: string;
-  vusService?: VusService;
-  onSamplePhenotypesSelectionUpdate?: (
-    samplePhenotypesSelection: IHPOTerm[]
-  ) => void;
+  selectedPhenotypes?: IHPOTerm[];
+  sampleService?: SampleService;
 };
 
 const SamplePhenotypeSelection: React.FunctionComponent<
@@ -18,13 +16,14 @@ const SamplePhenotypeSelection: React.FunctionComponent<
 > = (props: SamplePhenotypeSelectionProps) => {
   const [samplePhenotypesSelection, setSamplePhenotypesSelection] = useState<
     IHPOTerm[]
-  >([]);
+  >(props.selectedPhenotypes ?? []);
 
   return (
     <div className={styles["sample-phenotype-selection-container"]}>
-      <div className={styles["sample-id-container"]}>
-        <div>{props.sampleId}</div>
-      </div>
+      <PhenotypeSelection
+        sampleService={props.sampleService}
+        onTermClickCallback={(term) => addToSelection(term)}
+      />
       <div className={styles["phenotypes-selected"]}>
         {samplePhenotypesSelection !== undefined &&
           samplePhenotypesSelection.length > 0 &&
@@ -43,24 +42,22 @@ const SamplePhenotypeSelection: React.FunctionComponent<
             );
           })}
       </div>
-      <div className={styles['phenotype-selection']}>
-        <PhenotypeSelection
-          vusService={props.vusService}
-          onTermClickCallback={(term) => addToSelection(term)}
-        />
-      </div>
     </div>
   );
 
   function removeSelection(term: IHPOTerm) {
-    const updatedSelection = samplePhenotypesSelection.filter(
-      (s) => s !== term
-    );
+    if (samplePhenotypesSelection.some((s) => s === term)) {
+      const updatedSelection = samplePhenotypesSelection.filter(
+        (s) => s !== term
+      );
 
-    setSamplePhenotypesSelection(updatedSelection);
+      props.sampleService.removePhenotype({
+        sampleId: props.sampleId,
+        phenotype: term,
+      });
 
-    props.onSamplePhenotypesSelectionUpdate &&
-      props.onSamplePhenotypesSelectionUpdate(updatedSelection);
+      setSamplePhenotypesSelection(updatedSelection);
+    }
   }
 
   function addToSelection(term: IHPOTerm) {
@@ -72,12 +69,15 @@ const SamplePhenotypeSelection: React.FunctionComponent<
 
     if (!isHPOTermSelectedAlready) {
       updatedSelection = samplePhenotypesSelection.concat([term]);
+
+      // add phenotype to db
+      props.sampleService.addPhenotype({
+        sampleId: props.sampleId,
+        phenotype: term,
+      });
     }
 
     setSamplePhenotypesSelection(updatedSelection);
-
-    props.onSamplePhenotypesSelectionUpdate &&
-      props.onSamplePhenotypesSelectionUpdate(updatedSelection);
   }
 };
 

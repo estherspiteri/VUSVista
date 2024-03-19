@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { VusService } from "../../../services/vus/vus.service";
-import { IHPOTerm } from "../../../services/vus/vus.dto";
 import styles from "./phenotype-selection.module.scss";
+import { IHPOTerm } from "../../../services/sample/sample.dto";
+import { SampleService } from "../../../services/sample/sample.service";
 
 type PhenotypeSelectionProps = {
-  vusService?: VusService;
+  sampleService?: SampleService;
   onTermClickCallback?: (term: IHPOTerm) => void;
 };
 
@@ -35,40 +35,47 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
       <input
         className={styles["phenotype-selection-input"]}
         type="text"
-        placeholder="Select phenotype"
+        placeholder="Type in a phenotype . . ."
         onFocus={retrieveHPOTerms}
         onChange={retrieveHPOTerms}
       />
       {showHPOTerms && (
         <div className={styles["dropdown-container"]} ref={dropdownRef}>
-          {HPOTerms.map((term) => {
-            return (
-              <p
-                onClick={() => {
-                  props.onTermClickCallback && props.onTermClickCallback(term);
-                  setShowHPOTerms(false);
-                }}
-              >
-                {term.ontologyId}: {term.name}
-              </p>
-            );
-          })}
+          {HPOTerms.length === 0 ? (
+            <p>No results found.</p>
+          ) : (
+            HPOTerms.map((term) => {
+              return (
+                <p
+                  onClick={() => {
+                    props.onTermClickCallback &&
+                      props.onTermClickCallback(term);
+                    setShowHPOTerms(false);
+                  }}
+                >
+                  {term.ontologyId}: {term.name}
+                </p>
+              );
+            })
+          )}
         </div>
       )}
     </div>
   );
 
   function retrieveHPOTerms(e) {
-    if (e.currentTarget.value.length > 3) {
-      props.vusService
+    if (e.currentTarget.value.length > 2) {
+      props.sampleService
         ?.getHPOTerms({
           phenotype: e.currentTarget?.value,
         })
         .then((res) => {
           if (res.isSuccess && res.hpoTerms.length > 0) {
             setHPOTerms(res.hpoTerms);
-            setShowHPOTerms(true);
+          } else {
+            setHPOTerms([]);
           }
+          setShowHPOTerms(true);
         });
     }
   }

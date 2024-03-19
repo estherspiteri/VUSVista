@@ -2,10 +2,13 @@
   border: 2px solid #008080;
   padding: 8px;
   border-radius: 4px;
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  position: -webkit-sticky; //* Safari */
+  position: sticky;
+  top: 20px;
 
   .title,
   .strength {

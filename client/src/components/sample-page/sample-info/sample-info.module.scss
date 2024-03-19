@@ -25,95 +25,100 @@
   .sample-info {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 32px;
+
+    .info-title {
+      min-width: 200px;
+      color: #008080;
+      font-weight: bold;
+    }
 
     .info {
       display: flex;
       flex-direction: row;
+    }
 
-      .info-title {
-        min-width: 200px;
-        color: #008080;
-        font-weight: bold;
-      }
+    .top-container {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      justify-content: space-between;
 
-      &.info-container {
+      .information {
+        display: flex;
         flex-direction: column;
+        gap: 24px;
+      }
+    }
+
+    .phenotypes,
+    .sample-variant-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .phenotypes {
+      width: 80%;
+    }
+
+    .sample-variant-container {
+      .sample-variant-container-content {
+        display: flex;
+        flex-direction: row;
         gap: 8px;
 
-        .info-container-content {
+        .variants-container {
+          background-color: #008080;
+          color: #fff;
+          border-radius: 4px;
+          padding: 16px;
           display: flex;
-          flex-direction: row;
-          gap: 8px;
+          flex-direction: column;
+          font-size: 14px;
+          box-sizing: border-box;
+          min-width: 80%;
 
-          .variants-container {
-            background-color: #008080;
-            color: #fff;
-            border-radius: 4px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            font-size: 14px;
-            box-sizing: border-box;
-            min-width: 80%;
-
-            .variants {
-              > :not(:last-child) {
-                border-bottom: 1px solid #fff;
-              }
-            }
-
-            .variant-titles,
-            .variant {
-              display: flex;
-              flex-direction: row;
-              align-items: center;
-              gap: 16px;
-
-              .variant-summary {
-                min-width: 510px;
-                margin-right: -16px;
-              }
-
-              .genotype {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                min-width: 100px;
-              }
-            }
-
-            .variant-titles {
-              font-weight: bold;
-              padding-bottom: 4px;
-            }
-
-            .variant {
-              padding: 8px 0px;
+          .variants {
+            > :not(:last-child) {
+              border-bottom: 1px solid #fff;
             }
           }
 
-          .acmg-info {
-            position: sticky;
-            flex-grow: 1;
+          .variant-titles,
+          .variant {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 16px;
+
+            .variant-summary {
+              width: 420px;
+              margin-right: -16px;
+            }
+
+            .genotype {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              min-width: 70px;
+            }
+          }
+
+          .variant-titles {
+            font-weight: bold;
+            padding-bottom: 4px;
+          }
+
+          .variant {
+            padding: 16px 0px;
           }
         }
 
-        .variant-phenotypes {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-
-          .phenotype {
-            display: flex;
-            flex-direction: row;
-            gap: 4px;
-
-            .ontology-id {
-              text-decoration: underline;
-            }
-          }
+        .acmg-info {
+          position: sticky;
+          flex-grow: 1;
         }
       }
     }
