@@ -35,7 +35,7 @@ const SamplePhenotypeSelection: React.FunctionComponent<
                   onClick={() => removeSelection(term)}
                   stroke="#008080"
                 />
-                <span>
+                <span className={styles['phenotype-term']} onClick={() => openInNewWindow(`https://hpo.jax.org/app/browse/term/${term.ontologyId}`)}>
                   <b>{term.ontologyId}</b>: {term.name}
                 </span>
               </p>
@@ -78,6 +78,12 @@ const SamplePhenotypeSelection: React.FunctionComponent<
     }
 
     setSamplePhenotypesSelection(updatedSelection);
+  }
+
+  //TODO: extract function in common helper file
+  function openInNewWindow(url: string) {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) newWindow.opener = null;
   }
 };
 

@@ -26,6 +26,14 @@
         flex-shrink: 0;
         cursor: pointer;
       }
+
+      .phenotype-term{
+        cursor: pointer;
+
+        &:hover {
+          color: #008080;
+        }
+      }
     }
   }
 }
