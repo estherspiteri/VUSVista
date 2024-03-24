@@ -20,9 +20,6 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
         <div className={`${styles["header-content"]} ${styles.variants}`}>
           No. of Variants
         </div>
-        <div className={`${styles["header-content"]} ${styles.date}`}>
-          Date uploaded
-        </div>
       </div>
       {props.sampleList.map((sample, index) => {
         return <ViewSample sample={sample} isColoured={index % 2 === 0} />;

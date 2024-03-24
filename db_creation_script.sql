@@ -138,12 +138,20 @@ CREATE TABLE sample_files (
 CREATE TABLE samples (
     id TEXT PRIMARY KEY,
     -- date_collected TIMESTAMP,
-    genome_version VARCHAR(20),
+    genome_version VARCHAR(20)
+);
+
+-- SAMPLES/SAMPLE FILES
+CREATE TABLE samples_sample_files(
+    sample_id TEXT NOT NULL,
     sample_file_id INT NOT NULL,
+    CONSTRAINT fk_samples
+        FOREIGN KEY (sample_id) 
+            REFERENCES samples(id),
     CONSTRAINT fk_sample_files
         FOREIGN KEY (sample_file_id) 
-            REFERENCES sample_files(id)
-
+            REFERENCES sample_files(id),
+    PRIMARY KEY (sample_id, sample_file_id)
 );
 
 CREATE TABLE phenotypes (

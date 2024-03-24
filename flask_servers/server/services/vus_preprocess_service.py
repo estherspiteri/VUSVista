@@ -432,6 +432,7 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
         # get phenotype terms (aka ontology ids & their names)
         phenotype_terms = []
 
+        # retrieve HPO term for each phenotype
         for p in phenotypes:
             hpo_res = get_hpo_term_from_phenotype_name(p)
 
@@ -454,14 +455,24 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
                 if p not in unique_samples[sample_id]:
                     unique_samples[sample_id].append(p)
 
-    # store each unique sample in the db & its phenotypes #TODO: check for existing samples & if so merge
-    for selection in unique_samples:
-        new_sample = Samples(id=selection, sample_file_id=new_sample_file.id, genome_version='GRCh37')
-        db.session.add(new_sample)
+    # store each unique sample in the db & its phenotypes
+    for unique_sample_id in unique_samples:
+        # check if sample already exists
+        sample: Samples = db.session.query(Samples).filter(Samples.id == unique_sample_id).one_or_none()
 
-        # append phenotypes to the respective sample
-        for phenotype_term in unique_samples[new_sample.id]:
-            append_phenotype_to_sample(new_sample, phenotype_term)
+        # if the sample is new, add it to database
+        if sample is None:
+            sample = Samples(id=unique_sample_id, genome_version='GRCh37')
+            db.session.add(sample)
+
+        sample.sample_file.append(new_sample_file)
+
+        sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
+
+        # append phenotypes to the respective sample, if the sample does not already have that phenotype
+        for phenotype_term in unique_samples[sample.id]:
+            if phenotype_term['ontologyId'] not in sample_ontology_term_ids:
+                append_phenotype_to_sample(sample, phenotype_term)
 
     db.session.flush()
 
@@ -488,8 +499,13 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
         samples = extract_sample_ids(str(row['Sample Ids']))
 
         for sample in samples:
-            new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)
-            db.session.add(new_variants_samples)
+            # check if variants_samples entry already exists
+            existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample).one_or_none()
+
+            # if variants_samples entry does not exist, add new entry
+            if existing_variants_samples is None:
+                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)
+                db.session.add(new_variants_samples)
 
 
 def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:

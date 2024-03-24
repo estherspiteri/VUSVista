@@ -18,7 +18,7 @@ const SamplePage: React.FunctionComponent<SamplePageProps> = (
     <div className={styles["sample-page-container"]}>
       <div className={styles.title}>Sample Information</div>
       <div className={styles.description}>
-        <p>Below you can find information about the sample.</p>
+        <p>Below you can find information about the selected sample.</p>
       </div>
 
       <SampleInfo

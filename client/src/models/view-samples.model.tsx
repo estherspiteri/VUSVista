@@ -13,17 +13,20 @@ export interface ISampleVariant {
   acmgRuleIds?: number[];
 }
 
+export interface IFile {
+  filename: string;
+  dateOfFileUpload: Date;
+}
+
 export interface ISample {
   sampleId: string;
   genomeVersion: string;
-  fileUploadName: string;
-  dateOfFileUpload: Date;
+  files: IFile[];
   variants: ISampleVariant[];
   phenotype?: IHPOTerm[] | null;
 }
 
 export interface ISampleSummary {
   sampleId: string;
-  dateOfFileUpload: Date;
   numOfVariants: number;
 }

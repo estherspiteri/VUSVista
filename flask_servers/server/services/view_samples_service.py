@@ -9,9 +9,9 @@ from server.models import Samples, SampleFiles, VariantsSamples, t_samples_pheno
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
-    sample_file: SampleFiles = (
-        db.session.query(SampleFiles).filter(SampleFiles.id == sample.sample_file_id)
-        .one_or_none())
+    sample_files: List[SampleFiles] = sample.sample_file
+
+    files = [{'filename': f.filename, 'dateOfFileUpload': str(f.date_uploaded.date())} for f in sample_files]
 
     # Query with filter condition on sample_id
     phenotype_ontology_term_ids_res: List[str] = (db.session.query(t_samples_phenotypes.c.ontology_term_id)
@@ -46,9 +46,8 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
         variant_sample = {'variantId': v.variant_id, 'variant': variant_summary, 'genotype': v.genotype.value, 'acmgRuleIds': acmg_rule_ids}
         variants.append(variant_sample)
 
-    return {'sampleId': sample.id, 'phenotype': phenotypes,
-                        'genomeVersion': sample.genome_version, 'fileUploadName': sample_file.filename,
-                        'dateOfFileUpload': str(sample_file.date_uploaded.date()), 'variants': variants}
+    return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version, 'files': files,
+            'variants': variants}
 
 
 def retrieve_all_samples_from_db():
@@ -57,16 +56,12 @@ def retrieve_all_samples_from_db():
     # retrieve all samples
     all_samples = db.session.query(Samples).all()
 
-    # for each sample retrieve the file information and the variants it has
+    # for each sample retrieve the number of variants it has
     for sample in all_samples:
-        sample_file: SampleFiles = (
-            db.session.query(SampleFiles).filter(SampleFiles.id == sample.sample_file_id)
-            .one_or_none())
-
         variants_count: List[VariantsSamples] = db.session.query(VariantsSamples).filter(
             VariantsSamples.sample_id == sample.id).count()
 
-        samples_arr.append({'sampleId': sample.id, 'dateOfFileUpload': str(sample_file.date_uploaded.date()), 'numOfVariants': variants_count})
+        samples_arr.append({'sampleId': sample.id, 'numOfVariants': variants_count})
 
     return samples_arr
 

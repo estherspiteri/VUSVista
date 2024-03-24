@@ -1,3 +1,4 @@
+import { IFile, ISample } from "../../models/view-samples.model";
 import {
   IAddAcmgRuleRequest,
   IAddAcmgRuleResponse,
@@ -27,11 +28,7 @@ export class SampleService {
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
-    let updatedSampleList = result?.sampleList?.map((s) => {
-      return { ...s, dateOfFileUpload: new Date(s.dateOfFileUpload) };
-    });
-
-    return { isSuccess: result.isSuccess, sampleList: updatedSampleList };
+    return result;
   }
 
   async getSample(input: IGetSampleRequest): Promise<IGetSampleResponse> {
@@ -49,9 +46,17 @@ export class SampleService {
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
-    let updatedSample = {
+    let files: IFile[] = [];
+    result.sample.files.forEach((f) => {
+      files = files.concat({
+        ...f,
+        dateOfFileUpload: new Date(f.dateOfFileUpload),
+      });
+    });
+
+    let updatedSample: ISample = {
       ...result.sample,
-      dateOfFileUpload: new Date(result.sample.dateOfFileUpload),
+      files: files,
     };
 
     return {
@@ -133,13 +138,10 @@ export class SampleService {
     data.append("sampleId", input.sampleId);
     data.append("phenotype", JSON.stringify(input.phenotype));
 
-    const result: IGetHPOTermsResponse = await fetch(
-      `/sample/add-phenotype`,
-      {
-        method: "POST",
-        body: data,
-      }
-    )
+    const result: IGetHPOTermsResponse = await fetch(`/sample/add-phenotype`, {
+      method: "POST",
+      body: data,
+    })
       .then((response: Response) => {
         return response.json();
       })

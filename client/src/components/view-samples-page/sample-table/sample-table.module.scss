@@ -22,11 +22,9 @@
         padding-left: 32px;
       }
 
-      &.variants,
-      &.date {
+      &.variants {
         flex-shrink: 0;
-        width: 300px;
-
+        width: 200px;
       }
     }
   }

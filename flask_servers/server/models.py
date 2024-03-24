@@ -213,7 +213,7 @@ class SampleFiles(Base):
     scientific_member_id = mapped_column(Integer, nullable=False)
 
     scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='sample_files')
-    samples: Mapped[List['Samples']] = relationship('Samples', uselist=True, back_populates='sample_file')
+    sample: Mapped[List['Samples']] = relationship('Samples', secondary='samples_sample_files', back_populates='sample_file')
 
 
 class ScientificMembers(UserMixin, Base):
@@ -252,22 +252,30 @@ class GeneAttributes(Base):
 class Samples(Base):
     __tablename__ = 'samples'
     __table_args__ = (
-        ForeignKeyConstraint(['sample_file_id'], ['sample_files.id'], name='fk_sample_files'),
-        PrimaryKeyConstraint('id', name='samples_pkey')
+        PrimaryKeyConstraint('id', name='samples_pkey'),
     )
 
     id = mapped_column(Text)
-    sample_file_id = mapped_column(Integer, nullable=False)
     genome_version = mapped_column(String(20))
 
     ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes',
                                                              back_populates='sample')
-    sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', back_populates='samples')
+    sample_file: Mapped[List['SampleFiles']] = relationship('SampleFiles', secondary='samples_sample_files', back_populates='sample')
     variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
                                                                                          uselist=True,
                                                                                          back_populates='sample')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='sample')
+
+
+t_samples_sample_files = Table(
+    'samples_sample_files', metadata,
+    Column('sample_id', Text, nullable=False),
+    Column('sample_file_id', Integer, nullable=False),
+    ForeignKeyConstraint(['sample_file_id'], ['sample_files.id'], name='fk_sample_files'),
+    ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
+    PrimaryKeyConstraint('sample_id', 'sample_file_id', name='samples_sample_files_pkey')
+)
 
 
 class Phenotypes(Base):
@@ -291,7 +299,6 @@ t_samples_phenotypes = Table(
     ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
     PrimaryKeyConstraint('sample_id', 'ontology_term_id', name='samples_phenotypes_pkey')
 )
-
 
 class Variants(Base):
     __tablename__ = 'variants'

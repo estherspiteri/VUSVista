@@ -44,8 +44,19 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               </div>
 
               <div className={styles.info}>
-                <div className={styles["info-title"]}>File upload name:</div>
-                {props.sample.fileUploadName}
+                <div className={styles["info-title"]}>File uploads:</div>
+                <div>
+                  {props.sample.files.map((f) => {
+                    return (
+                      <p>
+                        {f.filename}&nbsp;
+                        {`(${f.dateOfFileUpload.getDate()}/${
+                          f.dateOfFileUpload.getMonth() + 1
+                        }/${f.dateOfFileUpload.getFullYear()})`}
+                      </p>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

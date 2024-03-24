@@ -32,11 +32,6 @@ const ViewSample: React.FunctionComponent<ViewSampleProps> = (
         <div className={`${styles["header-content"]} ${styles.variants}`}>
           {props.sample.numOfVariants}
         </div>
-        <div className={`${styles["header-content"]} ${styles.date}`}>
-          {`${props.sample.dateOfFileUpload.getDate()}/${
-            props.sample.dateOfFileUpload.getMonth() + 1
-          }/${props.sample.dateOfFileUpload.getFullYear()}`}
-        </div>
       </div>
     </Link>
   );
