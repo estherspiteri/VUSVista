@@ -25,7 +25,6 @@ def convert_df_to_list(df: pd.DataFrame) -> List:
     final_list = []
     for index, row in df.iterrows():
         final_list.append(row.to_dict())
-    print(final_list)
     return final_list
 
 

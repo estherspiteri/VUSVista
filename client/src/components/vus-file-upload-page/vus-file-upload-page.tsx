@@ -11,6 +11,8 @@ import { IVusGene } from "../../models/vus-file-upload.model";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icon/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
+import { INoHPOTermPhenotype } from "../../services/vus/vus.dto";
+import { Link } from "react-router-dom";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -26,6 +28,8 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   const [isProcessing, setIsProcessing] = useState(false);
   const [isFileProcessed, setIsFileUploaded] = useState(false);
   const [vusList, setVusList] = useState<IVus[]>(undefined);
+  const [noHpoTermPhenotypes, setNoHpoTermPhenootypes] =
+    useState<INoHPOTermPhenotype[]>(undefined);
 
   const [multipleGenes, setMultipleGenes] = useState<IVusGene[]>(undefined);
   const [multipleGenesSelection, setMultipleGenesSelection] = useState<
@@ -155,41 +159,93 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 isFileProcessed ? newFileUpload() : processFile()
               }
             />
-            {isFileProcessed && vusList && (
-              <div className={styles["file-content"]}>
-                <div className={styles["file-summary"]}>
-                  <div className={styles.summary}>
-                    <p>RSIDs</p>
-                    <p>
-                      {
-                        vusList.filter(
-                          (vus) =>
-                            vus.rsid !== "NORSID" && vus.rsidDbsnpVerified
-                        ).length
+            {isFileProcessed && (
+              <>
+                {noHpoTermPhenotypes?.length > 0 && (
+                  <div className={styles["no-hpo-terms-phenotypes-container"]}>
+                    <div
+                      className={
+                        styles["no-hpo-terms-phenotypes-title-container"]
                       }
-                    </p>
+                    >
+                      <p className={styles["no-hpo-terms-phenotypes-title"]}>
+                        <Icon name="warning" fill="#008080" /> Phenotypes
+                        warning!
+                      </p>
+                      <p>
+                        No exact match was found with an HPO term for the below
+                        phenotypes. Kindly access the sample pages to add
+                        existing HPO terms that can replace the inputted
+                        phenotypes.
+                      </p>
+                    </div>
+                    <div className={styles["no-hpo-terms-phenotypes"]}>
+                      {noHpoTermPhenotypes.map((noHpoTermPhenotype) => (
+                        <div className={styles["no-hpo-terms-phenotype"]}>
+                          <p>
+                            <span className={styles.phenotype}>
+                              {noHpoTermPhenotype.phenotype}
+                            </span>
+                            &nbsp;was observed in the following samples:
+                          </p>
+                          <div
+                            className={
+                              styles["no-hpo-terms-phenotypes-samples"]
+                            }
+                          >
+                            {noHpoTermPhenotype.samples.map((s) => (
+                              // open in new window the sample page
+                              <Link
+                                to={`/sample/${s}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {s}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className={`${styles.summary} ${styles["num-vus"]}`}>
-                    <p>VUS</p> <p>{vusList.length}</p>
-                  </div>
-                  <div className={styles.summary}>
-                    <p>ClinVar</p>
-                    <p>
-                      {
-                        vusList.filter(
-                          (vus) => vus.clinvarErrorMsg.length === 0
-                        ).length
-                      }
-                    </p>
-                  </div>
-                </div>
+                )}
+                {vusList && (
+                  <div className={styles["file-content"]}>
+                    <div className={styles["file-summary"]}>
+                      <div className={styles.summary}>
+                        <p>RSIDs</p>
+                        <p>
+                          {
+                            vusList.filter(
+                              (vus) =>
+                                vus.rsid !== "NORSID" && vus.rsidDbsnpVerified
+                            ).length
+                          }
+                        </p>
+                      </div>
+                      <div className={`${styles.summary} ${styles["num-vus"]}`}>
+                        <p>VUS</p> <p>{vusList.length}</p>
+                      </div>
+                      <div className={styles.summary}>
+                        <p>ClinVar</p>
+                        <p>
+                          {
+                            vusList.filter(
+                              (vus) => vus.clinvarErrorMsg.length === 0
+                            ).length
+                          }
+                        </p>
+                      </div>
+                    </div>
 
-                <VusTable
-                  vusList={vusList}
-                  showGenotype={true}
-                  showZygosity={false}
-                />
-              </div>
+                    <VusTable
+                      vusList={vusList}
+                      showGenotype={true}
+                      showZygosity={false}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -301,6 +357,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     setIsProcessing(false);
     setIsFileUploaded(false);
     setVusList(undefined);
+    setNoHpoTermPhenootypes(undefined);
+    setMultipleGenes(undefined);
+    setMultipleGenesSelection(undefined);
 
     setErrorMsg("");
   }
@@ -335,6 +394,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
             setMultipleGenes(undefined);
             setMultipleGenesSelection(undefined);
             setVusList(res.vusList);
+            setNoHpoTermPhenootypes(res.noHpoTermPhenotypes);
           }
         }
 

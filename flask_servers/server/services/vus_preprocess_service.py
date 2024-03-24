@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Hashable
+from typing import List, Hashable, Dict
 
 from flask import current_app, Response
 import pandas as pd
@@ -394,6 +394,15 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     return variant_ids
 
 
+def convert_no_hpo_term_phenotypes_to_array(no_hpo_term_phenotypes_dict: Dict) -> List:
+    no_hpo_term_phenotypes_arr = []
+
+    for phenotype in no_hpo_term_phenotypes_dict.keys():
+        no_hpo_term_phenotypes_arr.append({'phenotype': phenotype, 'samples': no_hpo_term_phenotypes_dict[phenotype]})
+
+    return no_hpo_term_phenotypes_arr
+
+
 def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage):
     # store the file in the db
     new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now(),
@@ -404,6 +413,8 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
 
     # retrieve all unique samples and their phenotypes
     unique_samples = {}
+
+    no_hpo_term_phenotypes_dict = {}
 
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
@@ -425,6 +436,9 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
             hpo_res = get_hpo_term_from_phenotype_name(p)
 
             if hpo_res.status != 200:
+                samples_no_hpo_terms = no_hpo_term_phenotypes_dict.get(p, [])
+                samples_no_hpo_terms.extend(sample_ids)
+                no_hpo_term_phenotypes_dict[p] = list(set(samples_no_hpo_terms))
                 current_app.logger.error(f'Failed to get HPO term for phenotype {p}')
             else:
                 phenotype_terms.append(hpo_res.data)
@@ -450,6 +464,10 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
             append_phenotype_to_sample(new_sample, phenotype_term)
 
     db.session.flush()
+
+    no_hpo_term_phenotypes = convert_no_hpo_term_phenotypes_to_array(no_hpo_term_phenotypes_dict)
+
+    return InternalResponse({'no_hpo_term_phenotypes': no_hpo_term_phenotypes}, 200)
 
 
 def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int]):
@@ -506,7 +524,10 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
         all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
 
         # store file and samples entries
-        create_file_and_sample_entries_in_db(all_vus_df, file)
+        create_file_and_sample_entries_in_db_res = create_file_and_sample_entries_in_db(all_vus_df, file)
+
+        # store phenotypes (and respective samples) which do not have an exact match to an HPO term
+        no_hpo_term_phenotypes = create_file_and_sample_entries_in_db_res.data['no_hpo_term_phenotypes']
 
         # store those vus that do not already exist in the db
         variant_ids = store_vus_df_in_db(vus_df)
@@ -554,4 +575,4 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
 
                 return Response(
                     json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                                'vusList': vus_list}), 200)
+                                'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)

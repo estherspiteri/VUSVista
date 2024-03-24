@@ -85,6 +85,52 @@
         }
       }
 
+      .no-hpo-terms-phenotypes-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        border: 2px solid #008080;
+        border-radius: 4px;
+        padding: 16px;
+
+        .no-hpo-terms-phenotypes-title-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .no-hpo-terms-phenotypes-title {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            font-weight: bold;
+          }
+        }
+
+        .no-hpo-terms-phenotypes {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .no-hpo-terms-phenotype {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .phenotype{
+              text-decoration: underline;
+            }
+          }
+
+          .no-hpo-terms-phenotypes-samples {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-left: 16px;
+          }
+        }
+      }
+
       .file-content {
         display: flex;
         flex-direction: column;
@@ -151,7 +197,7 @@
 
         .content {
           padding: 8px 0px;
-          
+
           .info {
             display: flex;
             flex-direction: row;
