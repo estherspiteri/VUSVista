@@ -99,4 +99,8 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
     variant_data['numHeterozygous'] = num_heterozygous
     variant_data['numHomozygous'] = num_homozygous
 
+    # retrieve samples that have this variant
+    variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant.id).all()
+    variant_data['samples'] = [vs.sample_id for vs in variant_samples]
+
     return variant_data

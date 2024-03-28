@@ -91,10 +91,28 @@
           .variant-titles {
             font-weight: bold;
             padding-bottom: 4px;
+            padding-left: 40px;
           }
 
           .variant {
             padding: 16px 0px;
+
+            .external-link {
+              cursor: pointer;
+              border-radius: 4px;
+
+              svg {
+                fill: #fff;
+              }
+
+              &:hover {
+                background-color: #fff;
+
+                svg {
+                  fill: #008080;
+                }
+              }
+            }
           }
         }
 

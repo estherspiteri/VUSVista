@@ -7,6 +7,8 @@ import { IAcmgRule } from "../../../models/acmg-rule.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import AcmgRuleInfo from "../acmg-rule-info/acmg-rule-info";
 import SamplePhenotypeSelection from "../sample-phenotype-selection/sample-phenotype-selection";
+import Icon from "../../../atoms/icons/icon";
+import { openInNewWindow } from "../../../helpers/open-links";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -79,6 +81,11 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 {props.sample.variants.map((v) => {
                   return (
                     <div className={styles.variant}>
+                      <Icon
+                        name="external-link"
+                        className={styles["external-link"]}
+                        onClick={() => openInNewWindow(`/vus/${v.variantId}`)}
+                      />
                       <div className={styles["variant-summary"]}>
                         {/*TODO: on click take to VUS page*/}
                         <VariantSummary variant={v.variant} />

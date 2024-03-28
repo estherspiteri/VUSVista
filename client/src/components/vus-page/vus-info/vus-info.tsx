@@ -49,12 +49,13 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             <div className={styles.info}>
               <div className={styles["info-title"]}>Publications:</div>
               {props.vus.rsidDbsnpVerified && (
-                <Link
-                  to={`/publication-view/${props.vus.id}`}
+                <Icon
+                  name="publication"
                   className={styles["pub-icon"]}
-                >
-                  <Icon name="publication" width={24} height={24}/>
-                </Link>
+                  onClick={() =>
+                    openInNewWindow(`/publication-view/${props.vus.id}`)
+                  }
+                />
               )}
             </div>
           </div>
@@ -66,13 +67,15 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <div className={styles["info-container"]}>
             <div className={styles["external-ref-title-container"]}>
               <p className={styles["info-title"]}>
-                ClinVar{" "}
-                {props.vus.clinvarClassification?.length > 0 &&
-                  !props.vus.rsidDbsnpVerified &&
-                  "of suggested dbSNP RSID"}
-                :
+                {`ClinVar${
+                  props.vus.clinvarClassification?.length > 0 &&
+                  !props.vus.rsidDbsnpVerified
+                    ? " of suggested dbSNP RSID"
+                    : ""
+                }:`}
               </p>
-              <div
+              <Icon
+                name="external-link"
                 className={`${styles["external-link"]} ${styles.clinvar} ${
                   props.vus.clinvarClassification?.length === 0
                     ? styles.disabled
@@ -88,9 +91,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     );
                   }
                 }}
-              >
-                <Icon name="external-link"/>
-              </div>
+              />
             </div>
             <div
               className={`${styles.info} ${
@@ -137,7 +138,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <div className={styles["info-container"]}>
             <div className={styles["external-ref-title-container"]}>
               <p className={styles["info-title"]}>dbSNP:</p>
-              <div
+              <Icon
+                name="external-link"
                 className={`${styles["external-link"]} ${styles.dbsnp} ${
                   props.vus.rsidDbsnpVerified
                     ? styles.active
@@ -153,9 +155,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     );
                   }
                 }}
-              >
-                <Icon name="external-link" />
-              </div>
+              />
             </div>
 
             <div
@@ -212,6 +212,22 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        <div className={styles["samples-container"]}>
+          <p className={styles["info-title"]}>Samples with this variant:</p>
+          <div className={styles.samples}>
+            {props.vus.samples.map((s) => (
+              <div className={styles.sample}>
+                <Icon
+                  name="external-link"
+                  className={styles["external-link-sample"]}
+                  onClick={() => openInNewWindow(`/sample/${s}`)}
+                />
+                <p>{s}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

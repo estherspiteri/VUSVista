@@ -18,4 +18,5 @@ export interface IVus {
   type: string; //TODO: change to enum?
   numHeterozygous?: number;
   numHomozygous?: number;
+  samples: string[];
 }

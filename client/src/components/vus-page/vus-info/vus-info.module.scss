@@ -39,30 +39,24 @@
     }
 
     .pub-icon,
-    .external-link {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 3px;
-      border-radius: 10px;
-      background-color: #008080;
+    .external-link,
+    .external-link-sample {
       cursor: pointer;
-      box-sizing: border-box !important;
+      border-radius: 4px;
 
       svg {
-        fill: #fff;
+        fill: #008080;
       }
     }
 
     .external-link.active,
-    .pub-icon {
+    .pub-icon,
+    .external-link-sample {
       &:hover {
-        background-color: #fff;
-        border: 1px solid #008080;
-        padding: 2px;
+        background-color: #008080;
 
         svg {
-          fill: #008080;
+          fill: #fff;
         }
       }
     }
@@ -126,6 +120,29 @@
               color: #fff;
             }
           }
+        }
+      }
+    }
+
+    .samples-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .samples {
+        display: flex;
+        flex-direction: column;
+        border: 2px solid #008080;
+        border-radius: 4px;
+        padding: 16px;
+        gap: 16px;
+        font-size: 14px;
+
+        .sample {
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          align-items: center;
         }
       }
     }
