@@ -1,0 +1,51 @@
+.view-vus-container {
+  position: relative;
+
+  &.coloured {
+    .header,
+    .additional-info {
+      background-color: #e2f9f9;
+    }
+  }
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    color: black;
+    cursor: pointer;
+    background-color: #fff;
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      width: calc(100% / 7);
+      box-sizing: border-box;
+    }
+
+    &:hover {
+      background-color: #cfe7e7ca !important;
+    }
+  }
+
+  .additional-info {
+    background-color: #fff;
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s ease-out;
+
+    .additional-info-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      border-top: 0.5px dashed #008080;
+      border-left: 4px solid #008080;
+      border-right: 4px solid #008080;
+    }
+  }
+}

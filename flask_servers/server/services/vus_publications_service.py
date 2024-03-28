@@ -178,8 +178,11 @@ def get_publications_by_variant_id(variant_id: str) -> (Variants, List[Dict]):
 
         # changing keys of dictionary
         encoded_publication['publicationId'] = encoded_publication.pop('id')
-        encoded_publication['date'] = encoded_publication.pop('date_published').strftime('%Y/%m/%d')
+        date_published = encoded_publication.pop('date_published')
         encoded_publication['isSupplementaryMaterialMatch'] = encoded_publication.pop('match_in_sup_material')
+
+        if date_published is not None:
+            encoded_publication['date'] = date_published.strftime('%Y/%m/%d')
 
         if p.authors is not None:
             encoded_publication['authors'] = p.authors.replace('\"', '').strip('{}').split(',')

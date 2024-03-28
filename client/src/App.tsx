@@ -3,7 +3,7 @@ import styles from "./App.module.scss";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { vusService } from "./services/vus/vus.service";
 import Header from "./components/header/header";
-import ViewVusPage from "./components/view-vus-page/view-vus-page";
+import ViewVusPage from "./components/view-all-vus-page/view-all-vus-page";
 import VusFileUploadPage from "./components/vus-file-upload-page/vus-file-upload-page";
 import ViewAllSamples from "./components/view-samples-page/view-samples-page";
 import { samplesService } from "./services/sample/sample.service";
@@ -49,18 +49,12 @@ const App: React.FunctionComponent<AppProps> = () => {
           path="/view-samples"
           element={<ViewAllSamples sampleService={samplesService} />}
         />
-        <Route
-          path="/sample/*"
-          element={<SamplePageWrapper />}
-        />
+        <Route path="/sample/*" element={<SamplePageWrapper />} />
         <Route
           path="/view-vus"
           element={<ViewVusPage vusService={vusService} />}
         />
-        <Route
-          path="/vus/*"
-          element={<VusPageWrapper />}
-        />
+        <Route path="/vus/*" element={<VusPageWrapper />} />
         <Route
           path="/publication-view/*"
           element={<PublicationViewPageWrapper />}

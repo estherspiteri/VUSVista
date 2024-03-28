@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./publication-preview.module.scss";
 import Icon from "../../../atoms/icons/icon";
 import { IPublicationPreview } from "../../../models/publication-view.model";
+import { openInNewWindow } from "../../../helpers/open-links";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;
@@ -126,11 +127,6 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
     ];
 
     return months[month];
-  }
-
-  function openInNewWindow(url: string) {
-    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-    if (newWindow) newWindow.opener = null;
   }
 };
 

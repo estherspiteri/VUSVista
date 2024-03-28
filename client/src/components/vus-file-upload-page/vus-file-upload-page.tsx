@@ -6,7 +6,7 @@ import uploadGif from "./upload.gif";
 import { Banner } from "../../atoms/banner/banner";
 import Loader from "../../atoms/loader/loader";
 import { IVus } from "../../models/view-vus.model";
-import VusTable from "../view-vus-page/vus-table/vus-table";
+import VusTable from "../view-all-vus-page/vus-table/vus-table";
 import { IVusGene } from "../../models/vus-file-upload.model";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icons/icon";
@@ -238,11 +238,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                       </div>
                     </div>
 
-                    <VusTable
-                      vusList={vusList}
-                      showGenotype={true}
-                      showZygosity={false}
-                    />
+                    <VusTable vusList={vusList} />
                   </div>
                 )}
               </>
@@ -266,7 +262,6 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 <div className={styles.header}>
                   <div className={styles.field}>Locus</div>
                   <div className={styles.field}>Type</div>
-                  <div className={styles.field}>Genotype</div>
                   <div className={styles.field}>Reference</div>
                   <div className={styles.field}>Alternate Allele</div>
                 </div>
@@ -276,7 +271,6 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                       <div className={styles.info}>
                         <div className={styles.field}>{x.vus.locus}</div>
                         <div className={styles.field}>{x.vus.type}</div>
-                        <div className={styles.field}>{x.vus.genotype}</div>
                         <div className={styles.field}>{x.vus.refAllele}</div>
                         <div className={styles.field}>{x.vus.altAllele}</div>
                       </div>

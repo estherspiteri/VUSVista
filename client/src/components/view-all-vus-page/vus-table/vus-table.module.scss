@@ -20,11 +20,5 @@
     :last-child {
       width: 195px;
     }
-
-    &.genotype-included {
-      > * {
-        width: calc(100% / 8);
-      }
-    }
   }
 }

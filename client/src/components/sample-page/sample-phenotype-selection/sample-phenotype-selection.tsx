@@ -4,6 +4,7 @@ import Icon from "../../../atoms/icons/icon";
 import PhenotypeSelection from "../phenotype-selection/phenotype-selection";
 import { IHPOTerm } from "../../../services/sample/sample.dto";
 import { SampleService } from "../../../services/sample/sample.service";
+import { openInNewWindow } from "../../../helpers/open-links";
 
 type SamplePhenotypeSelectionProps = {
   sampleId: string;
@@ -85,12 +86,6 @@ const SamplePhenotypeSelection: React.FunctionComponent<
     }
 
     setSamplePhenotypesSelection(updatedSelection);
-  }
-
-  //TODO: extract function in common helper file
-  function openInNewWindow(url: string) {
-    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-    if (newWindow) newWindow.opener = null;
   }
 };
 

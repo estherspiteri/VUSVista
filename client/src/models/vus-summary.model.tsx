@@ -5,6 +5,6 @@ export interface IVUSSummary {
   gene: string;
   altAllele: string;
   refAllele: string;
-  rsid: string;
-  rsidDbsnpVerified: boolean;
+  rsid?: string;
+  rsidDbsnpVerified?: boolean;
 }

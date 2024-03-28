@@ -9,6 +9,11 @@
     flex-direction: column;
     gap: 32px;
 
+    .vus-summary {
+      width: 40%;
+      align-self: center;
+    }
+
     .info-title {
       min-width: 200px;
       color: #008080;
@@ -30,6 +35,100 @@
         display: flex;
         flex-direction: column;
         gap: 24px;
+      }
+    }
+
+    .pub-icon,
+    .external-link {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3px;
+      border-radius: 10px;
+      background-color: #008080;
+      cursor: pointer;
+      box-sizing: border-box !important;
+
+      svg {
+        fill: #fff;
+      }
+    }
+
+    .external-link.active,
+    .pub-icon {
+      &:hover {
+        background-color: #fff;
+        border: 1px solid #008080;
+        padding: 2px;
+
+        svg {
+          fill: #008080;
+        }
+      }
+    }
+
+    .external-ref {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+
+      .external-ref-title-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding-right: 24px;
+
+        .external-link {
+          height: 22px;
+
+          &.disabled {
+            opacity: 0.4;
+            background-color: #8f8e94 !important;
+          }
+
+          &.unverified-rsid {
+            opacity: 0.8;
+            background-color: #a51534 !important;
+          }
+        }
+      }
+
+      .info-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        color: #fff;
+        width: 50%;
+
+        .info {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          background-color: #008080;
+          padding: 16px;
+          border-radius: 4px;
+          font-size: 14px;
+
+          &.disabled {
+            opacity: 0.6;
+            background-color: #8f8e94 !important;
+          }
+
+          &.unverified-rsid {
+            opacity: 0.6;
+            background-color: #a51534 !important;
+          }
+
+          .information {
+            display: flex;
+            flex-direction: row;
+
+            .info-title {
+              min-width: 150px;
+              color: #fff;
+            }
+          }
+        }
       }
     }
   }

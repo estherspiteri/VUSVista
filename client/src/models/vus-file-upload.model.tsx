@@ -3,7 +3,6 @@ import { IHPOTerm } from "../services/vus/vus.dto";
 export interface IUnprocessedVus {
   locus: string;
   type: string;
-  genotype: string;
   refAllele: string;
   altAllele: string;
 }

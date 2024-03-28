@@ -10,7 +10,6 @@ export interface IVus {
   clinvarUid?: string;
   clinvarErrorMsg?: string;
   gene: string;
-  genotype: string;
   altAllele: string;
   refAllele: string;
   rsid?: string;
