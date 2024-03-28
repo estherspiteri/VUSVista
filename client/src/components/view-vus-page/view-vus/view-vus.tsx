@@ -117,8 +117,8 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         <div className={styles["additional-info-content"]}>
           {props.showZygosityQty && (
             <>
-              <p>Num of Homozygous samples: {props.vus.numHomozygous}</p>
-              <p>Num of Heterozygous samples: {props.vus.numHeterozygous}</p>
+              <p>Homozygotes: {props.vus.numHomozygous}</p>
+              <p>Heterozygotes: {props.vus.numHeterozygous}</p>
             </>
           )}
           <div
