@@ -48,7 +48,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
             className={styles.icon}
             onClick={() => openInNewWindow(props.data.link)}
           >
-            <Icon name="document" />
+            <Icon name="external-link" />
           </div>
         </div>
         <div className={styles.title}>{props.data?.title}</div>

@@ -44,15 +44,21 @@ body {
       padding: 16px 0px 16px 32px;
 
       .icon {
-        stroke: #008080;
         cursor: pointer;
         z-index: 100;
         padding: 4px;
 
+        svg {
+          fill: #008080;
+        }
+
         &:hover {
-          stroke: #fff;
           background-color: #008080;
           border-radius: 4px;
+
+          svg {
+            fill: #fff;
+          }
         }
       }
     }
