@@ -15,6 +15,10 @@
     }
 
     .description {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      
       margin-bottom: 32px;
     }
   }
@@ -55,7 +59,6 @@
         border-top-left-radius: 4px;
         background-color: #008080;
         color: white;
-        padding-left: 64px;
 
         > * {
           padding: 16px;
