@@ -4,7 +4,6 @@ import { IVus } from "../../../models/view-vus.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import Icon from "../../../atoms/icons/icon";
 import { openInNewWindow } from "../../../helpers/open-links";
-import { Link } from "react-router-dom";
 
 type VusInfoProps = {
   vus: IVus;
@@ -224,12 +223,46 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <div className={styles.samples}>
             {props.vus.samples.map((s) => (
               <div className={styles.sample}>
+                <div className={styles.bullet}>{"\u25CF"}</div>
+                <div>
+                  <p onClick={() => openInNewWindow(`/sample/${s}`)}>{s}</p>{" "}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles["phenotypes-container"]}>
+          <p className={styles["info-title"]}>
+            Phenotypes of the above samples:
+          </p>
+          <p className={styles["info-description"]}>
+            Checkout if there are any publications for this variant in relation
+            the a phenotype by clicking on the book icon next to the phenotype.
+          </p>
+          <div className={styles.phenotypes}>
+            {props.vus.phenotypes.map((p) => (
+              <div className={styles["phenotype-container"]}>
+                <div className={styles.bullet}>{"\u25CF"}</div>
+                <div
+                  className={styles.phenotype}
+                  onClick={() =>
+                    openInNewWindow(
+                      `https://hpo.jax.org/app/browse/term/${p.ontologyId}`
+                    )
+                  }
+                >
+                  <b>{p.ontologyId}</b>: {p.name}
+                </div>
                 <Icon
-                  name="external-link"
-                  className={styles["external-link-sample"]}
-                  onClick={() => openInNewWindow(`/sample/${s}`)}
+                  name="publication"
+                  className={styles["pub-icon"]}
+                  onClick={() =>
+                    openInNewWindow(
+                      `/publication-phenotype-view/${props.vus.id}?rsid=${props.vus.rsid}&phenotype=${p.name}`
+                    )
+                  }
                 />
-                <p>{s}</p>
               </div>
             ))}
           </div>

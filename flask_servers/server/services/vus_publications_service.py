@@ -133,7 +133,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
 
         if not variants_already_stored_in_db and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
             # retrieve LitVar publications
-            litvar_publications_res = get_publications(row['RSID'])
+            litvar_publications_res = get_publications(row['RSID'], None)
 
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
@@ -166,7 +166,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
     return InternalResponse(None, 200)
 
 
-def get_publications_by_variant_id(variant_id: str) -> (Variants, List[Dict]):
+def get_publications_by_variant_id_from_db(variant_id: str) -> (Variants, List[Dict]):
     variant: Variants = db.session.query(Variants).filter(Variants.id == variant_id).one_or_none()
 
     publication_list = []

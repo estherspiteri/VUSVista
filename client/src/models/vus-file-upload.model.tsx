@@ -1,4 +1,4 @@
-import { IHPOTerm } from "../services/vus/vus.dto";
+import { IHPOTerm } from "../services/sample/sample.dto";
 
 export interface IUnprocessedVus {
   locus: string;

@@ -5,7 +5,7 @@ import pandas as pd
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
-from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype
+from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples
 
 
 def retrieve_all_vus_summaries_from_db():
@@ -102,5 +102,18 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
     # retrieve samples that have this variant
     variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant.id).all()
     variant_data['samples'] = [vs.sample_id for vs in variant_samples]
+
+    # retrieve all the unique phenotypes that these samples have
+    phenotypes = []
+    phenotype_ids = []
+
+    samples: List[Samples] = [vs.sample for vs in variant_samples]
+    for s in samples:
+        for term in s.ontology_term:
+            if term.ontology_term_id not in phenotype_ids:
+                phenotype_ids.append(term.ontology_term_id)
+                phenotypes.append({'ontologyId': term.ontology_term_id, 'name': term.term_name})
+
+    variant_data['phenotypes'] = phenotypes
 
     return variant_data

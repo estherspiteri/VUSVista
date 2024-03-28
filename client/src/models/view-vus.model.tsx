@@ -1,3 +1,5 @@
+import { IPhenotype } from "./phenotype.model";
+
 export interface IVus {
   id: number;
   chromosome: string;
@@ -19,4 +21,5 @@ export interface IVus {
   numHeterozygous?: number;
   numHomozygous?: number;
   samples: string[];
+  phenotypes: IPhenotype[];
 }

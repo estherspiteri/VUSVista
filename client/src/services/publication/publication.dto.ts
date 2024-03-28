@@ -10,3 +10,15 @@ export interface IGetPublicationsByVariantIdResponse {
   publications?: IPublicationPreview[];
   variant: IVUSSummary;
 }
+
+export interface IGetPublicationsByRsidAndWithOptionalTextRequest {
+  variantId: string;
+  rsid: string;
+  optionalText: string;
+}
+
+export interface IGetPublicationsByRsidAndWithOptionalTextResponse {
+  isSuccess: boolean;
+  publications?: IPublicationPreview[];
+  variant: IVUSSummary;
+}

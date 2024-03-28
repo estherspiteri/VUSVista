@@ -1,4 +1,5 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
+import { IPhenotype } from "../../models/phenotype.model";
 import { ISample, ISampleSummary } from "../../models/view-samples.model";
 
 export interface ILoadAllSamplesResponse {
@@ -48,11 +49,6 @@ export interface IHPOTerm {
 export interface IGetHPOTermsResponse {
   isSuccess: boolean;
   hpoTerms: IHPOTerm[];
-}
-
-export interface IPhenotype {
-  ontologyId: string;
-  name: string;
 }
 
 export interface IAddPhenotypeRequest {

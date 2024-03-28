@@ -14,6 +14,7 @@ import RegisterPage from "./components/register-page/register-page";
 import ProfilePageWrapper from "./wrappers/profile-page-wrapper";
 import SamplePageWrapper from "./wrappers/sample-page-wrapper";
 import VusPageWrapper from "./wrappers/vus-page-wrapper";
+import PublicationPhenotypeViewPageWrapper from "./wrappers/publication-phenotype-view-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -58,6 +59,10 @@ const App: React.FunctionComponent<AppProps> = () => {
         <Route
           path="/publication-view/*"
           element={<PublicationViewPageWrapper />}
+        />
+        <Route
+          path="/publication-phenotype-view/*"
+          element={<PublicationPhenotypeViewPageWrapper />}
         />
         <Route
           path="/login"

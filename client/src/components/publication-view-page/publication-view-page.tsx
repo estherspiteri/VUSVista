@@ -6,6 +6,7 @@ import VariantSummary from "../shared/variant-summary/variant-summary";
 import { IVUSSummary } from "../../models/vus-summary.model";
 
 type PublicationViewPageProps = {
+  description?: string;
   variantId: string;
   variant: IVUSSummary;
   publications?: IPublicationPreview[];
@@ -18,17 +19,12 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
     <div className={styles["publication-view-container"]}>
       <div className={styles["title-container"]}>
         <div className={styles.title}>Publications</div>
-        <div className={styles.description}>
-          <p>
-            Below you can find the publications for VUS with Id&nbsp;
-            {props.variantId}.
-          </p>
-          <p>
-            Click on a title to view a summary of the respective publication.
-            You can view the publications in a new window by clicking on the
-            button found on the right-side of each title.
-          </p>
-        </div>
+        {props.description && (
+          <div
+            className={styles.description}
+            dangerouslySetInnerHTML={{ __html: props.description }}
+          />
+        )}
       </div>
 
       {props.publications && (
