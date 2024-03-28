@@ -4,24 +4,6 @@
   gap: 8px;
   box-sizing: border-box;
 
-  &.no-sample-selected-container {
-    height: 200px;
-  }
-
-  .no-selected-sample {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-
-    background-color: #008080;
-    margin-left: -16px;
-    margin-right: -16px;
-    padding: 32px 16px;
-    text-align: center;
-    color: #fff;
-  }
-
   .sample-info {
     display: flex;
     flex-direction: column;
