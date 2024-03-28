@@ -89,7 +89,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   }
                 }}
               >
-                <Icon name="external-link" width={16} height={16} />
+                <Icon name="external-link"/>
               </div>
             </div>
             <div
@@ -154,7 +154,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   }
                 }}
               >
-                <Icon name="external-link" width={16} height={16} />
+                <Icon name="external-link" />
               </div>
             </div>
 
