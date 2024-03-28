@@ -4,6 +4,7 @@ import { IVus } from "../../../models/view-vus.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import Icon from "../../../atoms/icons/icon";
 import { openInNewWindow } from "../../../helpers/open-links";
+import Button from "../../../atoms/button/button";
 
 type VusInfoProps = {
   vus: IVus;
@@ -26,6 +27,15 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               altAllele: props.vus.altAllele,
             }}
           />
+          {props.vus.rsidDbsnpVerified && (
+            <Button
+              text="View Publications"
+              icon="publication"
+              onClick={() =>
+                openInNewWindow(`/publication-view/${props.vus.id}`)
+              }
+            />
+          )}
         </div>
         <div className={styles["top-container"]}>
           {/** General information */}
@@ -43,19 +53,6 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             <div className={styles.info}>
               <div className={styles["info-title"]}>Heterozygotes:</div>
               {props.vus.numHeterozygous}
-            </div>
-
-            <div className={styles.info}>
-              <div className={styles["info-title"]}>Publications:</div>
-              {props.vus.rsidDbsnpVerified && (
-                <Icon
-                  name="publication"
-                  className={styles["pub-icon"]}
-                  onClick={() =>
-                    openInNewWindow(`/publication-view/${props.vus.id}`)
-                  }
-                />
-              )}
             </div>
           </div>
         </div>
