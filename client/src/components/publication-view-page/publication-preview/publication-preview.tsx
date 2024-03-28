@@ -43,6 +43,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
         }`}
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
+        <div className={styles.title}>{props.data?.title}</div>
         <div className={styles["icon-wrapper"]}>
           <div
             className={styles.icon}
@@ -51,7 +52,6 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
             <Icon name="external-link" />
           </div>
         </div>
-        <div className={styles.title}>{props.data?.title}</div>
       </div>
       <div className={styles["additional-info"]}>
         <div className={styles["additional-info-content"]}>
