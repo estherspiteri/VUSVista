@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./button.module.scss";
-import Icon, { IconName } from "../icon/icon";
+import Icon, { IconName } from "../icons/icon";
 
 export type ButtonType = "default";
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./sample-phenotype-selection.module.scss";
-import Icon from "../../../atoms/icon/icon";
+import Icon from "../../../atoms/icons/icon";
 import PhenotypeSelection from "../phenotype-selection/phenotype-selection";
 import { IHPOTerm } from "../../../services/sample/sample.dto";
 import { SampleService } from "../../../services/sample/sample.service";
@@ -35,7 +35,14 @@ const SamplePhenotypeSelection: React.FunctionComponent<
                   onClick={() => removeSelection(term)}
                   stroke="#008080"
                 />
-                <span className={styles['phenotype-term']} onClick={() => openInNewWindow(`https://hpo.jax.org/app/browse/term/${term.ontologyId}`)}>
+                <span
+                  className={styles["phenotype-term"]}
+                  onClick={() =>
+                    openInNewWindow(
+                      `https://hpo.jax.org/app/browse/term/${term.ontologyId}`
+                    )
+                  }
+                >
                   <b>{term.ontologyId}</b>: {term.name}
                 </span>
               </p>

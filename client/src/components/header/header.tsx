@@ -3,7 +3,7 @@ import styles from "./header.module.scss";
 import { Link } from "react-router-dom";
 import Button from "../../atoms/button/button";
 import { AuthService } from "../../services/auth/auth.service";
-import Icon from "../../atoms/icon/icon";
+import Icon from "../../atoms/icons/icon";
 
 type HeaderProps = { isUserLoggedIn: boolean; authService: AuthService };
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./sample-info.module.scss";
 import { Genotype, ISample } from "../../../models/view-samples.model";
-import Icon from "../../../atoms/icon/icon";
+import Icon from "../../../atoms/icons/icon";
 import AcmgRulesEdit from "../acmg-rules-edit/acmg-rules-edit";
 import { SampleService } from "../../../services/sample/sample.service";
 import { IAcmgRule } from "../../../models/acmg-rule.model";

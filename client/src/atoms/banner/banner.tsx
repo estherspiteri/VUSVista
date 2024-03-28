@@ -1,6 +1,6 @@
 import React, { FunctionComponent, PropsWithChildren, useState } from "react";
 import styles from "./banner.module.scss";
-import Icon from "../icon/icon";
+import Icon from "../icons/icon";
 
 type BannerProps = { isClosable: boolean } & PropsWithChildren;
 

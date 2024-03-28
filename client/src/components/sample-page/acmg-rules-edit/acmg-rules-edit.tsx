@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./acmg-rules-edit.module.scss";
-import Icon from "../../../atoms/icon/icon";
+import Icon from "../../../atoms/icons/icon";
 import { SampleService } from "../../../services/sample/sample.service";
 import { IAcmgRule } from "../../../models/acmg-rule.model";
 
@@ -99,9 +99,7 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
   );
 
   function addAcmgRule(rule_id: number) {
-    setSelectedAcmgRules(
-      selectedAcmgRules.concat(rule_id)
-    );
+    setSelectedAcmgRules(selectedAcmgRules.concat(rule_id));
 
     props.sampleService.addAcmgRule({
       sampleId: props.sampleId,

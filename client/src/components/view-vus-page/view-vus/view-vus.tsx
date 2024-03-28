@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./view-vus.module.scss";
 import { IVus } from "../../../models/view-vus.model";
-import Icon from "../../../atoms/icon/icon";
+import Icon from "../../../atoms/icons/icon";
 import { Link } from "react-router-dom";
 
 type ViewVusProps = {

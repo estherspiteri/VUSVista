@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./publication-preview.module.scss";
-import Icon from "../../../atoms/icon/icon";
+import Icon from "../../../atoms/icons/icon";
 import { IPublicationPreview } from "../../../models/publication-view.model";
 
 type PublicationPreviewProps = {

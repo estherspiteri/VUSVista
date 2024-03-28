@@ -9,7 +9,7 @@ import { IVus } from "../../models/view-vus.model";
 import VusTable from "../view-vus-page/vus-table/vus-table";
 import { IVusGene } from "../../models/vus-file-upload.model";
 import Button from "../../atoms/button/button";
-import Icon from "../../atoms/icon/icon";
+import Icon from "../../atoms/icons/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
 import { INoHPOTermPhenotype } from "../../services/vus/vus.dto";
 import { Link } from "react-router-dom";
