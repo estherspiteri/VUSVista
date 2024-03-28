@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./variant-summary.module.scss";
-import { IVUSSummary } from "../../../models/publication-view.model";
+import { IVUSSummary } from "../../../models/vus-summary.model";
 
 type VariantSummaryProps = {
   variant: IVUSSummary;

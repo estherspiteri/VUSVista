@@ -13,6 +13,7 @@ import { authService } from "./services/auth/auth.service";
 import RegisterPage from "./components/register-page/register-page";
 import ProfilePageWrapper from "./wrappers/profile-page-wrapper";
 import SamplePageWrapper from "./wrappers/sample-page-wrapper";
+import VusPageWrapper from "./wrappers/vus-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -55,6 +56,10 @@ const App: React.FunctionComponent<AppProps> = () => {
         <Route
           path="/view-vus"
           element={<ViewVusPage vusService={vusService} />}
+        />
+        <Route
+          path="/vus/*"
+          element={<VusPageWrapper />}
         />
         <Route
           path="/publication-view/*"

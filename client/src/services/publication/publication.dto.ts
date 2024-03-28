@@ -1,4 +1,5 @@
-import { IPublicationPreview, IVUSSummary } from "../../models/publication-view.model";
+import { IPublicationPreview } from "../../models/publication-view.model";
+import { IVUSSummary } from "../../models/vus-summary.model";
 
 export interface IGetPublicationsByVariantIdRequest {
   variantId: string;

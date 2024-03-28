@@ -1,5 +1,5 @@
 import { IHPOTerm } from "../services/sample/sample.dto";
-import { IVUSSummary } from "./publication-view.model";
+import { IVUSSummary } from "./vus-summary.model";
 
 export enum Genotype {
   Homozygous = "HOMOZYGOUS",

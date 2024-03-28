@@ -1,4 +1,6 @@
 import {
+  IGetVusRequest,
+  IGetVusResponse,
   ILoadAllVusResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
@@ -41,6 +43,24 @@ export class VusService {
         "Content-Type": "application/json;charset=UTF-8",
       },
     })
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async getVus(input: IGetVusRequest): Promise<IGetVusResponse> {
+    const result: IGetVusResponse = await fetch(
+      `/vus/view/${input.vusId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
       .then((response: Response) => {
         return response.json();
       })

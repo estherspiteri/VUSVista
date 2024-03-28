@@ -4,6 +4,7 @@ import {
   IVusGene,
   IVusGeneSelected,
 } from "../../models/vus-file-upload.model";
+import { IVUSSummary } from "../../models/vus-summary.model";
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;
@@ -27,5 +28,14 @@ export interface IStoreAndVerifyVusFileResponse {
 
 export interface ILoadAllVusResponse {
   isSuccess: boolean;
-  vusList?: IVus[] | null;
+  vusList?: IVUSSummary[] | null;
+}
+
+export interface IGetVusRequest {
+  vusId: number;
+}
+
+export interface IGetVusResponse {
+  isSuccess: boolean;
+  vus: IVus;
 }

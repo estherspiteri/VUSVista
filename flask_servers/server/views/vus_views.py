@@ -1,6 +1,7 @@
 from flask import Blueprint, Response, current_app, request
 import json
-from server.services.view_vus_service import retrieve_all_vus_from_db
+from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
+    retrieve_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file
 
 vus_views = Blueprint('vus_views', __name__)
@@ -28,6 +29,15 @@ def store_and_verify_vus_file():
 def view_all_vus():
     current_app.logger.info(f"User requested to view all VUS")
 
-    var_list = retrieve_all_vus_from_db()
+    var_list = retrieve_all_vus_summaries_from_db()
 
     return Response(json.dumps({'isSuccess': True, 'vusList': var_list}), 200, mimetype='application/json')
+
+
+@vus_views.route('/view/<string:vus_id>', methods=['GET'])
+def get_vus(vus_id: int):
+    current_app.logger.info(f"User requested to view vus with id {vus_id}")
+
+    var_list = retrieve_vus_from_db(vus_id)
+
+    return Response(json.dumps({'isSuccess': True, 'vus': var_list}), 200, mimetype='application/json')

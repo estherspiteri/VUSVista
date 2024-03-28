@@ -11,11 +11,3 @@ export interface IPublicationPreview {
   link?: string | null;
 }
 
-export interface IVUSSummary {
-  id: number;
-  chromosome: string;
-  chromosomePosition: string;
-  gene: string;
-  altAllele: string;
-  refAllele: string;
-}

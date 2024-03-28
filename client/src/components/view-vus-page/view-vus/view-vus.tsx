@@ -14,28 +14,9 @@ type ViewVusProps = {
 const ViewVus: React.FunctionComponent<ViewVusProps> = (
   props: ViewVusProps
 ) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isAdditionalInfoVisible, setIsAdditionalInfoVisible] = useState(false);
-
-  //close additional info on outside click
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (ref.current && !ref.current.contains(event.target)) {
-        setIsAdditionalInfoVisible(false);
-      }
-    }
-    // Bind the event listener
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      // Unbind the event listener on clean up
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [ref]);
-
   return (
-    <div
-      ref={ref}
+    <Link
+      to={`/vus/${props.vus.id}`}
       className={`${styles["view-vus-container"]} ${
         props.isColoured ? styles.coloured : ""
       }`}
@@ -44,8 +25,8 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         className={`${styles.header} ${
           props.showGenotype ? styles["genotype-included"] : ""
         }`}
-        onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
+        <div className={styles["header-content"]}>{props.vus.id}</div>
         <div className={styles["header-content"]}>{props.vus.chromosome}</div>
         <div className={styles["header-content"]}>
           {props.vus.chromosomePosition}
@@ -59,7 +40,7 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         <div className={styles["header-content"]}>
           {props.vus.rsidDbsnpVerified ? props.vus.rsid : "-"}
         </div>
-        <div className={styles.pills}>
+        {/* <div className={styles.pills}>
           <div
             className={`${styles.pill} ${styles.dbsnp} ${
               props.vus.rsidDbsnpVerified
@@ -106,15 +87,11 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
               <Icon name="publication" />
             </Link>
           )}
-        </div>
+        </div> */}
       </div>
-      <div
-        className={`${styles["additional-info"]} ${
-          isAdditionalInfoVisible ? styles["visible-additional-info"] : ""
-        }`}
-      >
+      <div className={styles["additional-info"]}>
         {/*TODO: Next to is RSID verified do info icon - on hover show what info was compared. Same for clinvar*/}
-        <div className={styles["additional-info-content"]}>
+        {/* <div className={styles["additional-info-content"]}>
           {props.showZygosityQty && (
             <>
               <p>Homozygotes: {props.vus.numHomozygous}</p>
@@ -221,9 +198,9 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
               )}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
-    </div>
+    </Link>
   );
 
   function openInNewWindow(url: string) {

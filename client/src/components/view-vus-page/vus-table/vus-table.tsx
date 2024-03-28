@@ -3,7 +3,11 @@ import styles from "./vus-table.module.scss";
 import { IVus } from "../../../models/view-vus.model";
 import ViewVus from "../../view-vus-page/view-vus/view-vus";
 
-type VusTableProps = { vusList: IVus[]; showGenotype?: boolean; showZygosity?:boolean };
+type VusTableProps = {
+  vusList: IVus[];
+  showGenotype?: boolean;
+  showZygosity?: boolean;
+};
 
 const VusTable: React.FunctionComponent<VusTableProps> = (
   props: VusTableProps
@@ -15,6 +19,7 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
           props.showGenotype ? styles["genotype-included"] : ""
         }`}
       >
+        <div>Variant Id</div>
         <div>Chromosome</div>
         <div>Position</div>
         <div>Gene</div>
@@ -22,7 +27,6 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
         <div>Alternate</div>
         {props.showGenotype && <div>Genotype</div>}
         <div>RSID</div>
-        <div></div>
       </div>
       {props.vusList.map((vus, index) => {
         return (

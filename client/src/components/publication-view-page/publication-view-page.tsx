@@ -1,11 +1,9 @@
 import React from "react";
 import styles from "./publication-view-page.module.scss";
 import PublicationPreview from "./publication-preview/publication-preview";
-import {
-  IPublicationPreview,
-  IVUSSummary,
-} from "../../models/publication-view.model";
+import { IPublicationPreview } from "../../models/publication-view.model";
 import VariantSummary from "../shared/variant-summary/variant-summary";
+import { IVUSSummary } from "../../models/vus-summary.model";
 
 type PublicationViewPageProps = {
   variantId: string;

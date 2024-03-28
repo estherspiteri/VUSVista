@@ -3,10 +3,8 @@ import PublicationViewPage from "../components/publication-view-page/publication
 import { publicationService } from "../services/publication/publication.service";
 import Loader from "../atoms/loader/loader";
 import React, { useEffect, useState } from "react";
-import {
-  IPublicationPreview,
-  IVUSSummary,
-} from "../models/publication-view.model";
+import { IPublicationPreview } from "../models/publication-view.model";
+import { IVUSSummary } from "../models/vus-summary.model";
 
 const PublicationViewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);

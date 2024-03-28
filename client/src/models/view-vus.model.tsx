@@ -1,5 +1,5 @@
 export interface IVus {
-  variantId: number;
+  id: number;
   chromosome: string;
   chromosomePosition: string;
   classification: string;
