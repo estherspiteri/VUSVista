@@ -74,24 +74,28 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     : ""
                 }:`}
               </p>
-              <Icon
-                name="external-link"
-                className={`${styles["external-link"]} ${styles.clinvar} ${
-                  props.vus.clinvarClassification?.length === 0
-                    ? styles.disabled
-                    : props.vus.rsid.length > 0 && !props.vus.rsidDbsnpVerified
-                    ? styles["unverified-rsid"]
-                    : styles.active
-                }`}
-                onClick={(e) => {
-                  if (props.vus.clinvarErrorMsg?.length === 0) {
-                    e.stopPropagation();
-                    openInNewWindow(
-                      `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarUid}`
-                    );
-                  }
-                }}
-              />
+              {(props.vus.clinvarClassification?.length > 0 ||
+                props.vus.clinvarErrorMsg?.length > 0) && (
+                <Icon
+                  name="external-link"
+                  className={`${styles["external-link"]} ${styles.clinvar} ${
+                    props.vus.clinvarClassification?.length === 0
+                      ? styles.disabled
+                      : props.vus.rsid.length > 0 &&
+                        !props.vus.rsidDbsnpVerified
+                      ? styles["unverified-rsid"]
+                      : styles.active
+                  }`}
+                  onClick={(e) => {
+                    if (props.vus.clinvarErrorMsg?.length === 0) {
+                      e.stopPropagation();
+                      openInNewWindow(
+                        `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarUid}`
+                      );
+                    }
+                  }}
+                />
+              )}
             </div>
             <div
               className={`${styles.info} ${
