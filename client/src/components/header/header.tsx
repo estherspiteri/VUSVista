@@ -18,7 +18,10 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
               <div className={styles["option-container"]}>
                 <div className={styles["option-btn"]}>VUS</div>
                 <div className={styles.options}>
-                  <Link to={"upload-vus"} className={styles.option}>
+                  <Link to={"/vus-upload"} className={styles.option}>
+                    VUS Upload
+                  </Link>
+                  <Link to={"/file-upload"} className={styles.option}>
                     File Upload
                   </Link>
                   <Link to={"/view-vus"} className={styles.option}>

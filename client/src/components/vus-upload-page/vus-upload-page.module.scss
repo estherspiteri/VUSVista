@@ -1,0 +1,80 @@
+.vus-upload-page-container {
+  width: 1248px;
+  margin: 40px auto;
+
+  .title {
+    width: "100%";
+    font-family: "Poppins-Bold", sans-serif;
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  .description {
+    margin-bottom: 32px;
+  }
+
+  .fields-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+
+    .field-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .chromosome,
+      .genotype {
+        border-radius: 24px;
+        border: 2px solid #008080;
+        background-color: #fff;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        cursor: pointer;
+
+        &:hover,
+        &.selected-chromosome,
+        &.selected-genotype {
+          background-color: #008080;
+          color: #fff;
+        }
+      }
+
+      .chromosomes {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+
+        .chromosome {
+          padding: 2px;
+          width: 15px;
+          padding: 4px 8px;
+          border-radius: 16px;
+        }
+      }
+
+      .chromosome-position {
+        width: 100px;
+      }
+
+      .allele-wrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+      }
+
+      .genotypes {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+
+        .genotype {
+          width: fit-content;
+          padding: 8px 16px;
+          min-width: 100px;
+        }
+      }
+    }
+  }
+}

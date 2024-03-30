@@ -15,6 +15,7 @@ import ProfilePageWrapper from "./wrappers/profile-page-wrapper";
 import SamplePageWrapper from "./wrappers/sample-page-wrapper";
 import VusPageWrapper from "./wrappers/vus-page-wrapper";
 import PublicationPhenotypeViewPageWrapper from "./wrappers/publication-phenotype-view-page-wrapper";
+import VusUploadPage from "./components/vus-upload-page/vus-upload-page";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -43,9 +44,10 @@ const App: React.FunctionComponent<AppProps> = () => {
       <Header isUserLoggedIn={isUserLoggedIn} authService={authService} />
       <Routes>
         <Route
-          path="/upload-vus"
+          path="/file-upload"
           element={<VusFileUploadPage vusService={vusService} />}
         />
+        <Route path="/vus-upload" element={<VusUploadPage />} />
         <Route
           path="/view-samples"
           element={<ViewAllSamples sampleService={samplesService} />}

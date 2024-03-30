@@ -7,7 +7,7 @@ type TextProps = {
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
 const Text: React.FunctionComponent<TextProps> = (props: TextProps) => {
-  const [isValid, setIsValid] = useState(props.errorMsg.length > 0);
+  const [isValid, setIsValid] = useState(props.errorMsg?.length > 0);
 
   const { validationCallback, ...remainingProps } = props;
 
