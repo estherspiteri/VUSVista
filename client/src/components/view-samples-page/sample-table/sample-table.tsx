@@ -5,7 +5,6 @@ import { ISample, ISampleSummary } from "../../../models/view-samples.model";
 
 type SampleTableProps = {
   sampleList: ISampleSummary[];
-  selectedSampleId?: string;
 };
 
 const SampleTable: React.FunctionComponent<SampleTableProps> = (
