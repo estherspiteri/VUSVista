@@ -18,6 +18,10 @@
     flex-direction: column;
     border-bottom: 4px solid #008080;
 
+    > :not(:first-child) {
+      border-top: 1px solid #fff;
+    }
+
     .chromosome,
     .genotype {
       border-radius: 24px;
