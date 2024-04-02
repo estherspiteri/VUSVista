@@ -1,0 +1,53 @@
+.vus-upload-field-container {
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+
+    padding: 16px;
+    background-color: #008080;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+
+    svg {
+      fill: #fff;
+    }
+
+    .chev-right {
+      transform: rotate(0deg);
+      transition: transform 0.5s linear;
+    }
+
+    &.open {
+      .chev-right {
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .content {
+    font-size: 14px;
+    background-color: #fff;
+    border-top: 0.5px dashed #008080;
+    border-left: 4px solid #008080;
+    border-right: 4px solid #008080;
+
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.5s ease-out;
+
+    &.content-visible {
+      max-height: 1000px;
+      transition: max-height 1.25s ease-in;
+      transition-delay: 0ms;
+    }
+
+    .children {
+      padding: 24px 16px;
+    }
+  }
+}

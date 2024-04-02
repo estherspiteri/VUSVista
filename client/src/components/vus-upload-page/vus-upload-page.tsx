@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import styles from "./vus-upload-page.module.scss";
 import Text from "./../../atoms/text/text";
+import VusUploadField from "./vus-upload-field/vus-upload-field";
+import Button from "../../atoms/button/button";
+import PhenotypeSelection from "../sample-page/phenotype-selection/phenotype-selection";
 
 type VusUploadPageProps = {};
 
+//TODO: In the end show variant summary - let user confirm on cancel submittion to continue editing
 const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   props: VusUploadPageProps
 ) => {
@@ -15,69 +19,78 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
 
   return (
     <div className={styles["vus-upload-page-container"]}>
-      <div className={styles.title}>Vus Upload</div>
+      <div className={styles.title}>VUS Upload</div>
       <div className={styles.description}>
         <p>Input variant details in the form below.</p>
       </div>
 
       <div className={styles["fields-wrapper"]}>
-        {/** Chromsome */}
-        <div className={styles["field-container"]}>
-          <span>Chromosome :</span>
-          <div className={styles.chromosomes}>
-            {[
-              "1",
-              "2",
-              "3",
-              "4",
-              "5",
-              "6",
-              "7",
-              "8",
-              "9",
-              "10",
-              "11",
-              "12",
-              "13",
-              "14",
-              "15",
-              "16",
-              "17",
-              "18",
-              "19",
-              "20",
-              "21",
-              "22",
-              "X",
-              "Y",
-            ].map((c) => (
-              <div
-                className={`${styles.chromosome} ${
-                  c === chromosome ? styles["selected-chromosome"] : ""
-                }`}
-                onClick={() => setChromosome(c)}
-              >
-                {c}
+        {/** Chromsome & Chromsome Position*/}
+        <VusUploadField
+          title="Chromosome"
+          isOpenByDefault={true}
+          showCheckMark={chromosome !== undefined && chromosomePosition !== undefined}
+        >
+          <div>
+            <div>
+              <span>Select chromosome: </span>
+              <div className={styles.chromosomes}>
+                {[
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "8",
+                  "9",
+                  "10",
+                  "11",
+                  "12",
+                  "13",
+                  "14",
+                  "15",
+                  "16",
+                  "17",
+                  "18",
+                  "19",
+                  "20",
+                  "21",
+                  "22",
+                  "X",
+                  "Y",
+                ].map((c) => (
+                  <div
+                    className={`${styles.chromosome} ${
+                      c === chromosome ? styles["selected-chromosome"] : ""
+                    }`}
+                    onClick={() => setChromosome(c)}
+                  >
+                    {c}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div>
+              <span>Chromosome Position: </span>
+              <Text
+                value={chromosomePosition}
+                type="number"
+                min={0}
+                className={styles["chromosome-position"]}
+                onChange={(e) =>
+                  setChromosomePosition(parseInt(e.currentTarget.value))
+                }
+              />
+            </div>
           </div>
-        </div>
-        {/** Chromsome Position */}
-        <div className={styles["field-container"]}>
-          <span>Chromosome position:</span>
-          <Text
-            value={chromosomePosition}
-            type="number"
-            min={0}
-            className={styles["chromosome-position"]}
-            onChange={(e) =>
-              setChromosomePosition(parseInt(e.currentTarget.value))
-            }
-          />
-        </div>
+        </VusUploadField>
+
         {/** Reference & Alt Alleles */}
         {/**TODO: check on attempt to submit if allele consists of just GACT*/}
-        <div className={styles["field-container"]}>
+        <VusUploadField title="Alleles">
           <div className={styles["allele-wrapper"]}>
             <div>
               <span>Reference allele:</span>
@@ -94,11 +107,10 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
               />
             </div>
           </div>
-        </div>
+        </VusUploadField>
 
         {/** Genotype */}
-        <div className={styles["field-container"]}>
-          <span>Genotype:</span>
+        <VusUploadField title="Genotype">
           <div className={styles.genotypes}>
             {["heterozygous", "homozygous"].map((g) => {
               return (
@@ -113,8 +125,19 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
               );
             })}
           </div>
-        </div>
+        </VusUploadField>
+
+        {/** Gene */}
+        <VusUploadField title="Gene"></VusUploadField>
+
+        {/** Samples */}
+        <VusUploadField title="Samples">
+          Input samples Input Samples' phenotypes
+          <PhenotypeSelection />
+        </VusUploadField>
       </div>
+
+      <Button text="Save variant" />
     </div>
   );
 };

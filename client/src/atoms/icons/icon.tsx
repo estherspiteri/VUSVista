@@ -6,6 +6,7 @@ export type IconName =
   | "add-outline"
   | "bin"
   | "checkmark"
+  | "chev-right"
   | "close"
   | "document"
   | "external-link"
@@ -88,6 +89,18 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
               clip-rule="evenodd"
               d="M19.707 6.293a1 1 0 0 1 0 1.414L10.414 17a2 2 0 0 1-2.828 0l-4.293-4.293a1 1 0 1 1 1.414-1.414L9 15.586l9.293-9.293a1 1 0 0 1 1.414 0Z"
             />
+          </svg>
+        );
+      }
+      case "chev-right": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+            <path d="M13.85 11.65a.49.49 0 0 1 0 .7l-3 3a.495.495 0 0 1-.7-.7L12.79 12l-2.64-2.65a.495.495 0 0 1 .7-.7Z" />
+            <path d="M12 2.067A9.933 9.933 0 1 1 2.067 12 9.944 9.944 0 0 1 12 2.067m0 18.866A8.933 8.933 0 1 0 3.067 12 8.943 8.943 0 0 0 12 20.933" />
           </svg>
         );
       }
