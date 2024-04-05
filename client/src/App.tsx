@@ -47,7 +47,15 @@ const App: React.FunctionComponent<AppProps> = () => {
           path="/file-upload"
           element={<VusFileUploadPage vusService={vusService} />}
         />
-        <Route path="/vus-upload" element={<VusUploadPage />} />
+        <Route
+          path="/vus-upload"
+          element={
+            <VusUploadPage
+              sampleService={samplesService}
+              vusService={vusService}
+            />
+          }
+        />
         <Route
           path="/view-samples"
           element={<ViewAllSamples sampleService={samplesService} />}

@@ -1,6 +1,8 @@
 .vus-upload-page-container {
   width: 1248px;
   margin: 40px auto;
+  display: flex;
+  flex-direction: column;
 
   .title {
     width: "100%";
@@ -17,13 +19,38 @@
     display: flex;
     flex-direction: column;
     border-bottom: 4px solid #008080;
+    border-radius: 4px;
+
+    //header of first field
+    > :first-child {
+      > :first-child {
+        border-top-right-radius: 4px;
+        border-top-left-radius: 4px;
+      }
+    }
 
     > :not(:first-child) {
       border-top: 1px solid #fff;
     }
 
+    .field-content-container {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .field-content {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .alt-allele-description {
+        text-wrap: nowrap;
+      }
+    }
+
     .chromosome,
-    .genotype {
+    .pill {
       border-radius: 24px;
       border: 2px solid #008080;
       background-color: #fff;
@@ -32,11 +59,13 @@
       justify-content: center;
       cursor: pointer;
 
-      &:hover,
-      &.selected-chromosome,
-      &.selected-genotype {
-        background-color: #008080;
-        color: #fff;
+      &:not(.selected-gene) {
+        &:hover,
+        &.selected-chromosome,
+        &.selected-pill {
+          background-color: #008080;
+          color: #fff;
+        }
       }
     }
 
@@ -61,17 +90,140 @@
       display: flex;
       flex-direction: row;
       gap: 40px;
+
+      div {
+        width: 200px;
+      }
     }
 
-    .genotypes {
+    .pills {
       display: flex;
       flex-direction: row;
       gap: 16px;
 
-      .genotype {
-        width: fit-content;
-        padding: 8px 16px;
+      .pill {
         min-width: 100px;
+      }
+    }
+
+    .pill,
+    .selected-gene {
+      width: fit-content;
+      padding: 4px 8px;
+    }
+
+    .selected-gene {
+      gap: 8px;
+      align-items: center;
+    }
+
+    .samples {
+      display: flex;
+      flex-direction: column;
+      border: 2px solid #008080;
+      border-radius: 4px;
+
+      .sample-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        background-color: #008080;
+        color: #fff;
+        padding: 16px;
+        font-size: 14px;
+        line-height: 21px;
+
+        &::placeholder {
+          color: #e2f9f9;
+          font-weight: bold;
+        }
+      }
+
+      .samples-selected {
+        height: 150px;
+        flex-shrink: 0;
+        font-size: 14px;
+
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+
+        .sample {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: flex-start;
+          padding: 8px;
+          box-sizing: border-box;
+          border-bottom: 0.5px solid #008080;
+
+          svg {
+            flex-shrink: 0;
+            cursor: pointer;
+          }
+
+          .phenotype-term {
+            cursor: pointer;
+
+            &:hover {
+              color: #008080;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .btn {
+    align-self: center;
+    margin-top: 32px;
+  }
+
+  .summary-modal {
+    min-width: 30%;
+
+    .summary-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+
+      .summary {
+        display: flex;
+        flex-direction: column;
+        background-color: #008080;
+        color: #fff;
+        border-radius: 4px;
+
+        > :not(:last-child) {
+          border-bottom: 1px solid #fff;
+        }
+
+        .summary-field {
+          display: flex;
+          flex-direction: row;
+          padding: 16px;
+
+          .selection-name {
+            width: 300px;
+          }
+
+          .selection {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+
+            .bullet {
+              color: #fff;
+            }
+          }
+        }
+      }
+
+      .buttons {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 16px;
       }
     }
   }

@@ -4,6 +4,8 @@ import {
   ILoadAllVusResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
+  IVerifyGeneRequest,
+  IVerifyGeneResponse,
 } from "./vus.dto";
 
 export class VusService {
@@ -52,8 +54,23 @@ export class VusService {
   }
 
   async getVus(input: IGetVusRequest): Promise<IGetVusResponse> {
-    const result: IGetVusResponse = await fetch(
-      `/vus/view/${input.vusId}`,
+    const result: IGetVusResponse = await fetch(`/vus/view/${input.vusId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+      },
+    })
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async verifyGene(input: IVerifyGeneRequest): Promise<IVerifyGeneResponse> {
+    const result: IVerifyGeneResponse = await fetch(
+      `/vus/gene/${input.geneName}`,
       {
         method: "GET",
         headers: {

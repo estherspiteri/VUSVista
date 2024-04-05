@@ -13,6 +13,7 @@ export interface ModalRef {
 
 type ModalProps = {
   title?: string;
+  modalContainerStyle?: string;
 };
 
 const ModalRef: ForwardRefRenderFunction<
@@ -27,7 +28,7 @@ const ModalRef: ForwardRefRenderFunction<
   return (
     <div style={{ display: isModalOpen ? "block" : "none" }}>
       <div className={styles["modal-overlay"]} />
-      <div className={styles["modal-container"]}>
+      <div className={`${styles["modal-container"]} ${props.modalContainerStyle}`}>
         {props.title && <p className={styles["modal-title"]}>{props.title}</p>}
         <div>{props.children}</div>
       </div>

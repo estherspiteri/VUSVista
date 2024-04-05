@@ -1,5 +1,10 @@
+from typing import List
+
 from flask import Blueprint, Response, current_app, request
 import json
+
+from server import db
+from server.models import GeneAttributes
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file
@@ -41,3 +46,17 @@ def get_vus(vus_id: int):
     var_list = retrieve_vus_from_db(vus_id)
 
     return Response(json.dumps({'isSuccess': True, 'vus': var_list}), 200, mimetype='application/json')
+
+
+@vus_views.route('/gene/<string:gene_name>', methods=['GET'])
+def verify_gene(gene_name: str):
+    current_app.logger.info(f"User requested to verify gene {gene_name}")
+
+    # Retrieving gene that matches gene_name from Gene Attributes table
+    gene_attribute: GeneAttributes = db.session.query(GeneAttributes).filter(GeneAttributes.attribute_name == 'gene_name', GeneAttributes.attribute_value == gene_name.upper()).one_or_none()
+
+    gene_id = None
+    if gene_attribute is not None:
+        gene_id = gene_attribute.gene_id
+
+    return Response(json.dumps({'isSuccess': gene_id is not None, 'geneId': gene_id}), 200, mimetype='application/json')

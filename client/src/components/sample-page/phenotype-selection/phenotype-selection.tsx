@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import styles from "./phenotype-selection.module.scss";
 import { IHPOTerm } from "../../../services/sample/sample.dto";
 import { SampleService } from "../../../services/sample/sample.service";
+import Dropdown from "../../../atoms/dropdown/dropdown";
 
 type PhenotypeSelectionProps = {
   sampleService?: SampleService;
@@ -12,62 +12,33 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
   props: PhenotypeSelectionProps
 ) => {
   const [HPOTerms, setHPOTerms] = useState<IHPOTerm[]>([]);
-  const [showHPOTerms, setShowHPOTerms] = useState<boolean>(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    //close hpo term options on click outside
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowHPOTerms(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
 
   return (
-    <div className={styles["phenotype-selection-input-container"]}>
-      <input
-        className={styles["phenotype-selection-input"]}
-        type="text"
-        placeholder="Type in a phenotype . . ."
-        onFocus={retrieveHPOTerms}
-        onChange={retrieveHPOTerms}
-      />
-      {showHPOTerms && (
-        <div className={styles["dropdown-container"]} ref={dropdownRef}>
-          {HPOTerms.length === 0 ? (
-            <p>No results found.</p>
-          ) : (
-            HPOTerms.map((term) => {
-              return (
-                <p
-                  onClick={() => {
-                    props.onTermClickCallback &&
-                      props.onTermClickCallback(term);
-                    setShowHPOTerms(false);
-                  }}
-                >
-                  {term.ontologyId}: {term.name}
-                </p>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
+    <Dropdown
+      inputPlaceholder="Type in a phenotype . . ."
+      list={HPOTerms.map((t) => {
+        return {
+          elt: t,
+          displayElt: (
+            <span>
+              {t.ontologyId}: {t.name}
+            </span>
+          ),
+        };
+      })}
+      onInputFocusCallback={retrieveHPOTerms}
+      onInputChangeCallback={retrieveHPOTerms}
+      onEltClickCallback={(elt) => {
+        props.onTermClickCallback && props.onTermClickCallback(elt as IHPOTerm);
+      }}
+    />
   );
 
-  function retrieveHPOTerms(e) {
-    if (e.currentTarget.value.length > 2) {
+  function retrieveHPOTerms(term: string) {
+    if (term.length > 2) {
       props.sampleService
         ?.getHPOTerms({
-          phenotype: e.currentTarget?.value,
+          phenotype: term,
         })
         .then((res) => {
           if (res.isSuccess && res.hpoTerms.length > 0) {
@@ -75,7 +46,6 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
           } else {
             setHPOTerms([]);
           }
-          setShowHPOTerms(true);
         });
     }
   }

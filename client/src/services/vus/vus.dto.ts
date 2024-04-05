@@ -1,3 +1,4 @@
+import { IGene } from "../../models/gene.model";
 import { IVus } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -38,4 +39,13 @@ export interface IGetVusRequest {
 export interface IGetVusResponse {
   isSuccess: boolean;
   vus: IVus;
+}
+
+export interface IVerifyGeneRequest {
+  geneName: string;
+}
+
+export interface IVerifyGeneResponse {
+  isSuccess: boolean;
+  geneId?: number | null;
 }

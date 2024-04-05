@@ -9,7 +9,7 @@ type TextProps = {
 const Text: React.FunctionComponent<TextProps> = (props: TextProps) => {
   const [isValid, setIsValid] = useState(props.errorMsg?.length > 0);
 
-  const { validationCallback, ...remainingProps } = props;
+  const { validationCallback, onChange, ...remainingProps } = props;
 
   return (
     <div className={`${styles.text} ${props.className}`}>
@@ -19,6 +19,14 @@ const Text: React.FunctionComponent<TextProps> = (props: TextProps) => {
             if (props.validationCallback) {
               setIsValid(props.validationCallback(e.currentTarget.value));
             }
+          }}
+          step={1}
+          onChange={(e) => {
+            if (props.type === "number" && props.validationCallback) {
+              setIsValid(props.validationCallback(e.currentTarget.value));
+            }
+
+            onChange(e);
           }}
           {...remainingProps}
         />
