@@ -9,13 +9,8 @@
 
     padding: 16px;
     background-color: #008080;
-    color: #fff;
     cursor: pointer;
     font-weight: bold;
-
-    svg {
-      fill: #fff;
-    }
 
     .header-left {
       display: flex;
@@ -31,6 +26,23 @@
     &.open {
       .chev-right {
         transform: rotate(90deg);
+      }
+    }
+
+    &.valid {
+      background-color: #008080;
+      color: #fff;
+
+      svg {
+        fill: #fff;
+      }
+    }
+
+    &:not(.valid) {
+      background-color: #e2f9f9;
+
+      svg {
+        fill: #008080;
       }
     }
   }

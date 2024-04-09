@@ -12,6 +12,7 @@ import Dropdown from "../../atoms/dropdown/dropdown";
 import { VusService } from "../../services/vus/vus.service";
 import Loader from "../../atoms/loader/loader";
 import Modal from "../../atoms/modal/modal";
+import { IVusUpload } from "../../models/vus-upload.model";
 
 type VusUploadPageProps = {
   sampleService?: SampleService;
@@ -37,6 +38,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [altAllele, setAltAllele] = useState<string | undefined>("");
   const [altAlleleErrorMsg, setAltAlleleErrorMsg] = useState("");
 
+  const [genotype, setGenotype] = useState<string | undefined>(undefined);
+  const [genotypeErrorMsg, setGenotypeErrorMsg] = useState("");
+
   const [geneInput, setGeneInput] = useState<string | undefined>(undefined);
   const [isValidatingGeneInput, setIsValidatingGeneInput] = useState(false);
   const [geneInputErrorMsg, setGeneInputErrorMsg] = useState("");
@@ -46,6 +50,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     undefined
   );
   const [classificationErrorMsg, setClassificationErrorMsg] = useState("");
+
+  const [type, setType] = useState<string | undefined>(undefined);
+  const [typeErrorMsg, setTypeErrorMsg] = useState("");
 
   const [samples, setSamples] = useState<string[]>([]);
   const [samplesErrorMsg, setSamplesErrorMsg] = useState("");
@@ -67,10 +74,15 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     altAllele.length > 0 &&
     altAlleleErrorMsg.length === 0;
 
+  const isGenotypeValid =
+    genotype !== undefined && genotypeErrorMsg.length === 0;
+
   const isGeneValid = geneId !== undefined;
 
   const isClassificationValid =
     classification !== undefined && classificationErrorMsg.length === 0;
+
+  const isTypeValid = type !== undefined && typeErrorMsg.length === 0;
 
   const areSamplesValid = samples.length > 0;
 
@@ -178,6 +190,27 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </div>
         </VusUploadField>
 
+        {/** Genotype */}
+        <VusUploadField title="Genotype" showCheckMark={isGenotypeValid}>
+          <div className={styles["field-content"]}>
+            <span>Select the genotype:</span>
+            <div className={styles.pills}>
+              {["Heterozygous", "Homozygous"].map((g) => {
+                return (
+                  <div
+                    className={`${styles.pill} ${
+                      genotype === g ? styles["selected-pill"] : ""
+                    }`}
+                    onClick={() => setGenotype(g)}
+                  >
+                    {g}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </VusUploadField>
+
         {/** Gene */}
         <VusUploadField title="Gene" showCheckMark={isGeneValid}>
           <div className={styles["field-content"]}>
@@ -196,7 +229,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
               <>
                 <span>The variant is found in the below gene:</span>
                 <div className={`${styles["selected-gene"]} ${styles.pill}`}>
-                  <span>{geneInput}</span>
+                  <span>{geneInput.toUpperCase()}</span>
                   <Icon
                     name="close"
                     onClick={() => removeGene()}
@@ -223,6 +256,27 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                       classification === c ? styles["selected-pill"] : ""
                     }`}
                     onClick={() => setClassification(c)}
+                  >
+                    {c}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </VusUploadField>
+
+        {/** Type */}
+        <VusUploadField title="Type" showCheckMark={isTypeValid}>
+          <div className={styles["field-content"]}>
+            <span>Select the type:</span>
+            <div className={styles.pills}>
+              {["SNV", "MNV", "INDEL"].map((c) => {
+                return (
+                  <div
+                    className={`${styles.pill} ${
+                      type === c ? styles["selected-pill"] : ""
+                    }`}
+                    onClick={() => setType(c)}
                   >
                     {c}
                   </div>
@@ -288,7 +342,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
         disabled={
           !isChrValid ||
           !areAllelesValid ||
+          !isGenotypeValid ||
           !isGeneValid ||
+          !isTypeValid ||
           !isClassificationValid ||
           !areSamplesValid
         }
@@ -305,75 +361,66 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles.summary}>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Locus</p>
-                <p className={styles.selection}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
+                <span>
                   <b>
                     chr{chromosome}:{chromosomePosition}
                   </b>
-                </p>
+                </span>
               </div>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Reference allele</p>
-                <p className={styles.selection}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
+                <span>
                   <b>{refAllele.toUpperCase()}</b>
-                </p>
+                </span>
               </div>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Alternate allele</p>
-                <p className={styles.selection}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
+                <span>
                   <b>{altAllele.toUpperCase()}</b>
-                </p>
+                </span>
               </div>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Gene</p>
-                <p className={styles.selection}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
+                <span>
                   <b>{geneInput}</b>
-                </p>
+                </span>
               </div>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Classification</p>
-                <p className={styles.selection}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
+                <span>
                   <b>{classification}</b>
-                </p>
+                </span>
               </div>
 
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Sample Ids</p>
-                <p className={styles.selection}>
-                  <b>
-                    {samples.map((s) => (
-                      <div>
-                        <div className={styles.bullet}>{"\u25CF"}</div>
-                        <p>{s}</p>
-                      </div>
-                    ))}
-                  </b>
-                </p>
+                <b>
+                  {samples.map((s) => (
+                    <p className={styles.selection}>
+                      <div className={styles.bullet}>{"\u25CF"}</div>
+                      <p>{s}</p>
+                    </p>
+                  ))}
+                </b>
               </div>
               <div className={styles["summary-field"]}>
                 <p className={styles["selection-name"]}>Phenotypes</p>
-                <div className={styles.selection}>
-                  <b>
-                    {phenotypes?.length > 0
-                      ? phenotypes.map((p) => (
-                          <div>
-                            <div className={styles.bullet}>{"\u25CF"}</div>
-                            <p>
-                              {p.ontologyId}: {p.name}
-                            </p>
-                          </div>
-                        ))
-                      : "No phenotypes selected"}
-                  </b>
-                </div>
+                <b>
+                  {phenotypes?.length > 0
+                    ? phenotypes.map((p) => (
+                        <p className={styles.selection}>
+                          <div className={styles.bullet}>{"\u25CF"}</div>
+                          <p>
+                            {p.ontologyId}: {p.name}
+                          </p>
+                        </p>
+                      ))
+                    : "No phenotypes selected"}
+                </b>
               </div>
             </div>
             <div className={styles.buttons}>
-              <Button text="Save VUS" />
+              <Button text="Save VUS" onClick={saveVus} />
               <Button
                 text="Modify VUS"
                 onClick={() => setIsSummaryModelOpen(false)}
@@ -460,7 +507,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   }
 
   function addSample(sample: string) {
-    if (!samples.some((s) => s === sample)) {
+    if (sample.trim().length > 0 && !samples.some((s) => s === sample)) {
       const updatedSelection = samples.concat(sample);
 
       setSamples(updatedSelection);
@@ -468,6 +515,33 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       //clear inputted sample
       (document.getElementById("sample-input") as HTMLInputElement).value = "";
     }
+  }
+
+  function saveVus() {
+    let vus: IVusUpload = {
+      chromosome: chromosome,
+      chromosomePosition: chromosomePosition.toString(),
+      refAllele: refAllele.toUpperCase(),
+      altAllele: altAllele.toUpperCase(),
+      genotype:
+        genotype === "heterozygous"
+          ? `${refAllele.toUpperCase()}/${altAllele.toUpperCase()}`
+          : `${altAllele.toUpperCase()}/${altAllele.toUpperCase()}`,
+      type: type,
+      gene: geneInput.toUpperCase(),
+      geneId: geneId,
+      classification: classification.replace(" ", "_").toUpperCase(),
+      samples: samples,
+      phenotypes: phenotypes ?? [],
+    };
+
+    props.vusService.uploadVus({ vus: vus }).then((res) => {
+      if (res.isSuccess) {
+        window.location.href = `/vus/${res.vusList[0].id}`;
+      } else {
+        //TODO: handle error
+      }
+    });
   }
 };
 

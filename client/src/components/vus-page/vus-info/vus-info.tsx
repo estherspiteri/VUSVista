@@ -77,7 +77,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   className={`${styles["external-link"]} ${styles.clinvar} ${
                     props.vus.clinvarClassification?.length === 0
                       ? styles.disabled
-                      : props.vus.rsid.length > 0 &&
+                      : props.vus.rsid?.length > 0 &&
                         !props.vus.rsidDbsnpVerified
                       ? styles["unverified-rsid"]
                       : styles.active
@@ -97,7 +97,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               className={`${styles.info} ${
                 props.vus.clinvarClassification?.length === 0
                   ? styles.disabled
-                  : props.vus.rsid.length > 0 && !props.vus.rsidDbsnpVerified
+                  : props.vus.rsid?.length > 0 && !props.vus.rsidDbsnpVerified
                   ? styles["unverified-rsid"]
                   : ""
               }`}
@@ -143,7 +143,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                 className={`${styles["external-link"]} ${styles.dbsnp} ${
                   props.vus.rsidDbsnpVerified
                     ? styles.active
-                    : props.vus.rsid.length > 0
+                    : props.vus.rsid?.length > 0
                     ? styles["unverified-rsid"]
                     : styles.disabled
                 }`}

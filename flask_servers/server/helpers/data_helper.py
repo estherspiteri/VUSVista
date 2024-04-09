@@ -39,6 +39,7 @@ def prep_unprocessed_vus_dict_for_react(vus: Dict) -> Dict:
 def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     # to match React camelCase syntax
     new_vus_df = pd.DataFrame()
+    new_vus_df['id'] = vus_df['Variant Id']
     new_vus_df['chromosome'] = vus_df['Chr']
     new_vus_df['chromosomePosition'] = vus_df['Position']
     new_vus_df['gene'] = vus_df['Gene']

@@ -1,3 +1,5 @@
+from typing import List
+
 from flask import current_app
 from pandas import Series
 from sqlalchemy.exc import MultipleResultsFound
@@ -20,5 +22,5 @@ def get_variant_from_db(vus_df_row: Series) -> Variants | None:
         return variant
     except MultipleResultsFound as e:
         current_app.logger.error(
-            f'The following variant :\n{vus_df_row}\n exists more than once in db!')
+            f'The following variant :\n{vus_df_row}\n exists more than once in db!', e)
         return None

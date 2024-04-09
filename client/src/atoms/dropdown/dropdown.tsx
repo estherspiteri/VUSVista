@@ -49,6 +49,8 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
         type="text"
         placeholder={props.inputPlaceholder}
         onFocus={(e) => {
+          setIsDropdownOpen(e.currentTarget.value.length > 2);
+          
           props.onInputFocusCallback &&
             props.onInputFocusCallback(e.currentTarget.value);
         }}

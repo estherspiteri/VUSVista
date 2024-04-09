@@ -1,3 +1,5 @@
+import re
+
 from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
@@ -8,17 +10,17 @@ from server.responses.internal_response import InternalResponse
 
 
 # convert variant list to VCF format
-def convert_variants_to_vcf(variant_df: pd.DataFrame):
-    with open('variants.vcf', 'w') as vcf_f:
+def convert_variants_to_vcf(variant_df: pd.DataFrame, variants_vcf_filename: str):
+    with open(variants_vcf_filename, 'w') as vcf_f:
         for var in variant_df.iterrows():
             vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {var[1]['Reference']} {var[1]['Alt']} . PASS\n"
             vcf_f.write(vcf_string)
 
 
-def get_rsids(genome_version: str) -> InternalResponse:
+def get_rsids(genome_version: str, variants_vcf_filename: str) -> InternalResponse:
     # retrieve RSIDs if they exist for a given variant
     url = f"https://api.ncbi.nlm.nih.gov/variation/v0/vcf/file/set_rsids?assembly={genome_version}"
-    myfiles = {'file': open('variants.vcf', 'rb')}
+    myfiles = {'file': open(variants_vcf_filename, 'rb')}
 
     try:
         rsid_vcf_res = requests.post(url, files=myfiles)
@@ -32,11 +34,16 @@ def get_rsids(genome_version: str) -> InternalResponse:
         return InternalResponse(None, rsid_vcf_res.status_code, rsid_vcf_res.reason)
     else:
         #TODO: save updated file with rsids (overwrite initially created file)?
+        rsids = []
 
-        # extract RSIDs
-        # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
-        rsids = [x.split()[2] for x in rsid_vcf_res.text.split('\n') if
-                 x.strip()]  # columns: 'chromosome', 'position', 'rsid', 'reference', 'alt'
+        for variant_rsid_res in rsid_vcf_res.text.split('PASS\n'):
+            if re.match("^# Error in the next line: The reference sequence for '[A-Z0-9\._]+' at position '\d' \('N'\), is not equal to variant's asserted reference \('[G|A|C|T]'\)", variant_rsid_res, re.IGNORECASE):
+                # TODO: try and get RSID with refAllele set to 'N'
+                rsids.append('NORSID')
+            # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
+            elif variant_rsid_res.strip():
+                # extract RSIDs
+                rsids.append(variant_rsid_res.split()[2])  # columns: 'chromosome', 'position', 'rsid', 'reference', 'alt'
 
         return InternalResponse(rsids, 200)
 
@@ -196,9 +203,9 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str) -
 
 def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
     # generate VCF string for VUS
-    convert_variants_to_vcf(vus_df)
+    convert_variants_to_vcf(vus_df, 'variants.vcf')
 
-    get_rsids_res: InternalResponse = get_rsids('GRCh37.p13')
+    get_rsids_res: InternalResponse = get_rsids('GRCh37.p13', 'variants.vcf')
 
     if get_rsids_res.status != 200:
         current_app.logger.error(

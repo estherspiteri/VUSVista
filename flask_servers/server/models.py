@@ -198,24 +198,6 @@ class Publications(Base):
     review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
-class SampleFiles(Base):
-    __tablename__ = 'sample_files'
-    __table_args__ = (
-        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
-        PrimaryKeyConstraint('id', name='sample_files_pkey'),
-    )
-
-    id = mapped_column(Integer,
-                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
-                                cache=1))
-    date_uploaded = mapped_column(DateTime, nullable=False)
-    filename = mapped_column(Text, nullable=False)
-    scientific_member_id = mapped_column(Integer, nullable=False)
-
-    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='sample_files')
-    sample: Mapped[List['Samples']] = relationship('Samples', secondary='samples_sample_files', back_populates='sample_file')
-
-
 class ScientificMembers(UserMixin, Base):
     __tablename__ = 'scientific_members'
     __table_args__ = (
@@ -230,8 +212,8 @@ class ScientificMembers(UserMixin, Base):
     email = mapped_column(Text, nullable=False)
     password = mapped_column(Text, nullable=False)
 
-    sample_files: Mapped[List['SampleFiles']] = relationship('SampleFiles', uselist=True,
-                                                             back_populates='scientific_member')
+    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', uselist=True,
+                                                                 back_populates='scientific_member')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='scientific_member')
 
 
@@ -260,7 +242,7 @@ class Samples(Base):
 
     ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes',
                                                              back_populates='sample')
-    sample_file: Mapped[List['SampleFiles']] = relationship('SampleFiles', secondary='samples_sample_files', back_populates='sample')
+    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', uselist=True, back_populates='sample')
     variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
                                                                                          uselist=True,
                                                                                          back_populates='sample')
@@ -268,14 +250,61 @@ class Samples(Base):
                                                                      back_populates='sample')
 
 
-t_samples_sample_files = Table(
-    'samples_sample_files', metadata,
-    Column('sample_id', Text, nullable=False),
+class SampleUploads(Base):
+    __tablename__ = 'sample_uploads'
+    __table_args__ = (
+        ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
+        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
+        PrimaryKeyConstraint('id', name='sample_uploads_pkey')
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    upload_type = mapped_column(Text, nullable=False)
+    sample_id = mapped_column(Text, nullable=False)
+    date_uploaded = mapped_column(DateTime, nullable=False)
+    scientific_member_id = mapped_column(Integer, nullable=False)
+
+    sample: Mapped['Samples'] = relationship('Samples', back_populates='sample_uploads')
+    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='sample_uploads')
+    sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', secondary='sample_files_sample_uploads', back_populates='sample_uploads')
+    sample_manual_uploads: Mapped['SampleManualUploads'] = relationship('SampleManualUploads', back_populates='sample_uploads_manual')
+
+
+class SampleFiles(Base):
+    __tablename__ = 'sample_files'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='sample_files_pkey'),
+    )
+
+    id = mapped_column(Integer,
+                       Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False,
+                                cache=1))
+    filename = mapped_column(Text, nullable=False)
+
+    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', secondary='sample_files_sample_uploads', back_populates='sample_file')
+
+
+t_sample_files_sample_uploads = Table(
+    'sample_files_sample_uploads', metadata,
     Column('sample_file_id', Integer, nullable=False),
+    Column('sample_uploads_id', Integer, nullable=False),
     ForeignKeyConstraint(['sample_file_id'], ['sample_files.id'], name='fk_sample_files'),
-    ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
-    PrimaryKeyConstraint('sample_id', 'sample_file_id', name='samples_sample_files_pkey')
+    ForeignKeyConstraint(['sample_uploads_id'], ['sample_uploads.id'], name='fk_sample_uploads'),
+    PrimaryKeyConstraint('sample_file_id', 'sample_uploads_id', name='sample_files_sample_uploads_pkey')
 )
+
+
+class SampleManualUploads(Base):
+    __tablename__ = 'sample_manual_uploads'
+    __table_args__ = (
+        ForeignKeyConstraint(['sample_uploads_manual_id'], ['sample_uploads.id'], name='fk_sample_uploads'),
+        PrimaryKeyConstraint('id', name='sample_manual_uploads_pkey')
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    sample_uploads_manual_id = mapped_column(Integer, nullable=False)
+
+    sample_uploads_manual: Mapped['SampleUploads'] = relationship('SampleUploads', back_populates='sample_manual_uploads')
 
 
 class Phenotypes(Base):

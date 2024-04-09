@@ -36,7 +36,9 @@ const VusUploadField: React.FunctionComponent<VusUploadFieldProps> = (
   return (
     <div ref={ref} className={styles["vus-upload-field-container"]}>
       <div
-        className={`${styles.header} ${isContentVisible ? styles.open : ""}`}
+        className={`${styles.header} ${isContentVisible ? styles.open : ""} ${
+          props.showCheckMark ? styles.valid : ""
+        }`}
         onClick={() => {
           setIsContentVisible(!isContentVisible);
         }}

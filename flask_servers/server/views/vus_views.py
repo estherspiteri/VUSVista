@@ -1,5 +1,6 @@
 from typing import List
 
+import pandas as pd
 from flask import Blueprint, Response, current_app, request
 import json
 
@@ -7,9 +8,30 @@ from server import db
 from server.models import GeneAttributes
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
-from server.services.vus_preprocess_service import handle_vus_file
+from server.services.vus_preprocess_service import handle_vus_file, preprocess_vus, handle_vus_from_form
 
 vus_views = Blueprint('vus_views', __name__)
+
+
+@vus_views.route('/upload', methods=['POST'])
+def store_vus():
+    current_app.logger.info(f"User storing new VUS")
+
+    vus = request.form['vus']
+
+    # Parse the JSON string into a Python object
+    if vus:
+        vus_object = json.loads(vus)
+        vus_object['samples'] = ','.join([str(elem) for elem in vus_object['samples']])
+    else:
+        vus_object = {}
+
+    # Convert dictionary values into arrays containing the string value
+    vus_dict = {key: [value] for key, value in vus_object.items()}
+
+    vus_df = pd.DataFrame.from_dict(vus_dict)
+    #TODO re add genotypeeeee!!!!!!
+    return handle_vus_from_form(vus_df)
 
 
 @vus_views.route('/file', methods=['POST'])

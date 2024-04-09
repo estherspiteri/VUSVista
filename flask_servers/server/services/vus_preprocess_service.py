@@ -14,7 +14,8 @@ from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes
+    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes, \
+    SampleUploads, SampleManualUploads
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -268,6 +269,7 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
         # if variant exists in db
         if variant is not None:
             # populate the remaining fields
+            vus_df.at[index, 'Variant Id'] = variant.id
             vus_df.at[index, 'Exists in DB'] = True
             vus_df.at[index, 'Classification'] = str(variant.classification)
             # vus_df.at[index, ''] = variant.consequences TODO: add consequence to variant info
@@ -296,13 +298,49 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     vus_df['RSID dbSNP verified'] = False
     vus_df['RSID dbSNP errorMsgs'] = ""
 
+    vus_df['Variant Id'] = ""
+
     # create new column to determine whether the variant has already been stored in the db or not
     vus_df.insert(0, 'Exists in DB', False)
 
     return vus_df
 
 
-def preprocess_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
+def preprocess_vus(vus_df: pd.DataFrame):
+    vus_df = add_missing_columns(vus_df)
+
+    # check for existing variants
+    existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
+
+    if len(vus_df) > 0:
+        if 'Gene Id' not in vus_df.keys():
+            vus_df = get_gene_ids(vus_df)
+
+        preprocess_and_get_rsids_res = get_rsids(vus_df)
+
+        if preprocess_and_get_rsids_res.status != 200:
+            current_app.logger.error(
+                f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+            return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
+                                     'multiple_genes': None}, 500)
+        else:
+            vus_df = preprocess_and_get_rsids_res.data
+
+            retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
+
+            if retrieve_clinvar_variant_classifications_res.status != 200:
+                current_app.logger.error(
+                    f'Retrieval of ClinVar variant classifications failed 500')
+                return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False,
+                                         'multiple_genes': None}, 500)
+            else:
+                vus_df = retrieve_clinvar_variant_classifications_res.data
+
+    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
+                             'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
+
+
+def preprocess_vus_from_file(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
     filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
 
     if filter_vus_res.data['multiple_genes'] is not None:
@@ -312,36 +350,7 @@ def preprocess_vus(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) ->
     else:
         vus_df = filter_vus_res.data['filtered_df']
 
-        vus_df = add_missing_columns(vus_df)
-
-        # check for existing variants
-        existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
-
-        if len(vus_df) > 0:
-            vus_df = get_gene_ids(vus_df)
-
-            preprocess_and_get_rsids_res = get_rsids(vus_df)
-
-            if preprocess_and_get_rsids_res.status != 200:
-                current_app.logger.error(
-                    f'Preprocessing of VUS and retrieval of RSIDs failed 500')
-                return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
-                                         'multiple_genes': None}, 500)
-            else:
-                vus_df = preprocess_and_get_rsids_res.data
-
-                retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
-
-                if retrieve_clinvar_variant_classifications_res.status != 200:
-                    current_app.logger.error(
-                        f'Retrieval of ClinVar variant classifications failed 500')
-                    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False,
-                                             'multiple_genes': None}, 500)
-                else:
-                    vus_df = retrieve_clinvar_variant_classifications_res.data
-
-        return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
-                                 'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
+        return preprocess_vus(vus_df)
 
 
 def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
@@ -403,13 +412,15 @@ def convert_no_hpo_term_phenotypes_to_array(no_hpo_term_phenotypes_dict: Dict) -
     return no_hpo_term_phenotypes_arr
 
 
-def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage):
-    # store the file in the db
-    new_sample_file = SampleFiles(filename=file.filename, date_uploaded=datetime.now(),
-                                  scientific_member_id=current_user.id)
-    db.session.add(new_sample_file)
+def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, isFileUpload: bool):
+    new_sample_file = None
 
-    db.session.flush()
+    if isFileUpload:
+        # create entry for file in the db
+        new_sample_file = SampleFiles(filename=file.filename)
+        db.session.add(new_sample_file)
+
+        db.session.flush()
 
     # retrieve all unique samples and their phenotypes
     unique_samples = {}
@@ -423,26 +434,31 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
 
         phenotypes = []
 
-        # extract phenotypes
-        row_phenotypes = str(row['Sample Phenotypes'])
-        if row_phenotypes != 'nan':
-            phenotypes = re.split(',', row_phenotypes)
-            phenotypes = [p.strip() for p in phenotypes]
-
-        # get phenotype terms (aka ontology ids & their names)
+        # ontology ids & their names
         phenotype_terms = []
 
-        # retrieve HPO term for each phenotype
-        for p in phenotypes:
-            hpo_res = get_hpo_term_from_phenotype_name(p)
+        # extract phenotypes with ids
+        if 'Sample Phenotypes With Ids' in vus_df.keys():
+            phenotype_terms = row['Sample Phenotypes With Ids']
+        # extract phenotypes without ids
+        else:
+            row_phenotypes = str(row['Sample Phenotypes'])
+            if row_phenotypes != 'nan' and len(row_phenotypes) > 0:
+                phenotypes = re.split(',', row_phenotypes)
+                phenotypes = [p.strip() for p in phenotypes]
 
-            if hpo_res.status != 200:
-                samples_no_hpo_terms = no_hpo_term_phenotypes_dict.get(p, [])
-                samples_no_hpo_terms.extend(sample_ids)
-                no_hpo_term_phenotypes_dict[p] = list(set(samples_no_hpo_terms))
-                current_app.logger.error(f'Failed to get HPO term for phenotype {p}')
-            else:
-                phenotype_terms.append(hpo_res.data)
+            # get phenotype terms (aka ontology ids & their names)
+            # retrieve HPO term for each phenotype
+            for p in phenotypes:
+                hpo_res = get_hpo_term_from_phenotype_name(p)
+
+                if hpo_res.status != 200:
+                    samples_no_hpo_terms = no_hpo_term_phenotypes_dict.get(p, [])
+                    samples_no_hpo_terms.extend(sample_ids)
+                    no_hpo_term_phenotypes_dict[p] = list(set(samples_no_hpo_terms))
+                    current_app.logger.error(f'Failed to get HPO term for phenotype {p}')
+                else:
+                    phenotype_terms.append(hpo_res.data)
 
         # take note of each phenotype for every sample
         for sample_id in sample_ids:
@@ -465,7 +481,27 @@ def create_file_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage
             sample = Samples(id=unique_sample_id, genome_version='GRCh37')
             db.session.add(sample)
 
-        sample.sample_file.append(new_sample_file)
+            db.session.flush()
+
+        # create sample upload entry
+        if not isFileUpload:
+            upload_type = 'manual'
+        else:
+            upload_type = 'file'
+
+        new_sample_upload = SampleUploads(date_uploaded=datetime.now(), scientific_member_id=current_user.id,
+                                          upload_type=upload_type, sample_id=unique_sample_id)
+
+        if isFileUpload:
+            new_sample_upload.sample_file = new_sample_file
+
+        db.session.add(new_sample_upload)
+        db.session.flush()
+
+        if not isFileUpload:
+            # create sample manual uploads entry
+            new_sample_manual_upload = SampleManualUploads(sample_uploads_manual_id=new_sample_upload.id)
+            db.session.add(new_sample_manual_upload)
 
         sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
 
@@ -508,6 +544,66 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
                 db.session.add(new_variants_samples)
 
 
+def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame, file: FileStorage | None, is_file_upload: bool) -> Response:
+    # join existing vus_df with the new vus
+    all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
+
+    # store file and samples entries
+    create_sample_upload_and_sample_entries_in_db_res = create_sample_upload_and_sample_entries_in_db(all_vus_df, file, is_file_upload)
+
+    # store phenotypes (and respective samples) which do not have an exact match to an HPO term
+    no_hpo_term_phenotypes = create_sample_upload_and_sample_entries_in_db_res.data['no_hpo_term_phenotypes']
+
+    # store those vus that do not already exist in the db
+    variant_ids = store_vus_df_in_db(new_vus_df)
+    new_vus_df['Variant Id'] = variant_ids
+
+    # retrieve and store the publications (user links & LitVar) of new variants
+    retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(new_vus_df, False)
+
+    if retrieve_and_store_variant_pub_res.status != 200:
+        current_app.logger.error(
+            f'Get publications for new variants failed 500')
+        return Response(json.dumps({'isSuccess': False}), 200)
+    else:
+        # retrieve and store the publications (user links & LitVar) of existing variants
+        retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
+
+        if retrieve_and_store_existing_variant_pub_res.status != 200:
+            current_app.logger.error(
+                f'Get publications for existing variants failed 500')
+            return Response(json.dumps({'isSuccess': False}), 200)
+        else:
+            # join existing vus_df's variant ids with the new vus variant ids
+            all_variant_ids = existing_variant_ids + variant_ids
+
+            # store variants-samples entries in db
+            store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
+
+            try:
+                # Commit the session to persist changes to the database
+                db.session.commit()
+            except SQLAlchemyError as e:
+                # Changes were rolled back due to an error
+                db.session.rollback()
+
+                current_app.logger.error(
+                    f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
+
+                response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
+                return Response(json.dumps(response), 200)
+
+            # update column names to camelCase format
+            new_vus_df = prep_vus_df_for_react(all_vus_df)
+
+            # convert df to list
+            vus_list = convert_df_to_list(new_vus_df)
+
+            return Response(
+                json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                            'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)
+
+
 def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:
     vus_df = pd.read_excel(file, header=0)  # TODO: check re header
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
@@ -521,7 +617,7 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
     # flag indicating that check is required for multiple genes for a single variant
     one_time_filter_flag = len(multiple_genes_selection) == 0
 
-    preprocess_vus_res = preprocess_vus(vus_df, one_time_filter_flag)
+    preprocess_vus_res = preprocess_vus_from_file(vus_df, one_time_filter_flag)
 
     if preprocess_vus_res.status != 200:
         response = preprocess_vus_res.data
@@ -536,59 +632,26 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
 
         vus_df = preprocess_vus_res.data['vus_df']
 
-        # join existing vus_df with the new vus
-        all_vus_df = pd.concat([existing_vus_df, vus_df], axis=0)
+        return store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, file, True)
 
-        # store file and samples entries
-        create_file_and_sample_entries_in_db_res = create_file_and_sample_entries_in_db(all_vus_df, file)
 
-        # store phenotypes (and respective samples) which do not have an exact match to an HPO term
-        no_hpo_term_phenotypes = create_file_and_sample_entries_in_db_res.data['no_hpo_term_phenotypes']
+def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
+    # adjust existing column names - rename the existing DataFrame
+    vus_df.rename(columns={'chromosome': 'Chr', 'chromosomePosition': 'Position', 'type': 'Type',
+                           'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': 'Classification',
+                           'gene': 'Gene', 'geneId': 'Gene Id', 'genotype': 'Genotype', 'samples': 'Sample Ids',
+                           'phenotypes': 'Sample Phenotypes With Ids'}, inplace=True)
 
-        # store those vus that do not already exist in the db
-        variant_ids = store_vus_df_in_db(vus_df)
+    preprocess_vus_res = preprocess_vus(vus_df)
 
-        # retrieve and store the publications (user links & LitVar) of new variants
-        retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(vus_df, False)
+    if preprocess_vus_res.status != 200:
+        response = preprocess_vus_res.data
+        response['isSuccess'] = False
+        return Response(json.dumps(response), 200)
+    else:
+        existing_vus_df = preprocess_vus_res.data['existing_vus_df']
+        existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
 
-        if retrieve_and_store_variant_pub_res.status != 200:
-            current_app.logger.error(
-                f'Get publications for new variants failed 500')
-            return Response(json.dumps({'isSuccess': False}), 200)
-        else:
-            # retrieve and store the publications (user links & LitVar) of existing variants
-            retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
+        vus_df = preprocess_vus_res.data['vus_df']
 
-            if retrieve_and_store_existing_variant_pub_res.status != 200:
-                current_app.logger.error(
-                    f'Get publications for existing variants failed 500')
-                return Response(json.dumps({'isSuccess': False}), 200)
-            else:
-                # join existing vus_df's variant ids with the new vus variant ids
-                all_variant_ids = existing_variant_ids + variant_ids
-
-                # store variants-samples entries in db
-                store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
-
-                try:
-                    # Commit the session to persist changes to the database
-                    db.session.commit()
-                except SQLAlchemyError as e:
-                    # Changes were rolled back due to an error
-                    db.session.rollback()
-
-                    current_app.logger.error(
-                        f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
-
-                    response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
-                    return Response(json.dumps(response), 200)
-
-                # update column names to camelCase format
-                new_vus_df = prep_vus_df_for_react(all_vus_df)
-
-                # convert df to list
-                vus_list = convert_df_to_list(new_vus_df)
-
-                return Response(
-                    json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                                'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)
+        return store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, None, False)

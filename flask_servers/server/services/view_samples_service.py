@@ -5,13 +5,13 @@ import pandas as pd
 from server import db
 from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, SampleFiles, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    VariantsSamplesAcmgRules, Variants
+    VariantsSamplesAcmgRules, Variants, SampleUploads
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
-    sample_files: List[SampleFiles] = sample.sample_file
+    sample_uploads: List[SampleUploads] = sample.sample_uploads
 
-    files = [{'filename': f.filename, 'dateOfFileUpload': str(f.date_uploaded.date())} for f in sample_files]
+    files: List[SampleFiles] = [{'filename': u.sample_file.filename, 'dateOfFileUpload': str(u.date_uploaded.date())} for u in sample_uploads if u.upload_type == 'file']
 
     # Query with filter condition on sample_id
     phenotype_ontology_term_ids_res: List[str] = (db.session.query(t_samples_phenotypes.c.ontology_term_id)

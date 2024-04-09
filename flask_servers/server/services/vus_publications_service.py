@@ -113,23 +113,24 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
         publication_links: List[Publications] = []
         litvar_publications: List[Publications] = []
 
-        # check if user provided any literature links
-        links = str(row['Literature Links']).replace(' ', '')
+        if 'Literature Links' in vus_df.keys():
+            # check if user provided any literature links
+            links = str(row['Literature Links']).replace(' ', '')
 
-        if len(links) > 0:
-            links_arr = links.split('|')
-        else:
-            links_arr = []
-
-        for link in links_arr:
-            link_publication_res = get_publication_info(link)
-
-            if link_publication_res.status != 200:
-                current_app.logger.error(
-                    f'Retrieval of information for the user provided literature link failed 500')
-                return InternalResponse(None, 500)
+            if len(links) > 0:
+                links_arr = links.split('|')
             else:
-                publication_links.append(link_publication_res.data)
+                links_arr = []
+
+            for link in links_arr:
+                link_publication_res = get_publication_info(link)
+
+                if link_publication_res.status != 200:
+                    current_app.logger.error(
+                        f'Retrieval of information for the user provided literature link failed 500')
+                    return InternalResponse(None, 500)
+                else:
+                    publication_links.append(link_publication_res.data)
 
         if not variants_already_stored_in_db and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
             # retrieve LitVar publications

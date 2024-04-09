@@ -1,4 +1,3 @@
-import { IGene } from "../../models/gene.model";
 import { IVus } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -6,6 +5,16 @@ import {
   IVusGeneSelected,
 } from "../../models/vus-file-upload.model";
 import { IVUSSummary } from "../../models/vus-summary.model";
+import { IVusUpload } from "../../models/vus-upload.model";
+
+export interface IUploadVusRequest {
+  vus: IVusUpload;
+}
+
+export interface IUploadVusResponse {
+  isSuccess: boolean;
+  vusList: IVus[];
+}
 
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;

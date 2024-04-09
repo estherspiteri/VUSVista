@@ -123,35 +123,55 @@ CREATE TABLE scientific_members(
 );
 
 -- SAMPLES
-CREATE TABLE sample_files (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    date_uploaded TIMESTAMP NOT NULL,
-    filename TEXT NOT NULL,
-	scientific_member_id INT NOT NULL,
-    -- are_rsids_retrieved BOOLEAN NOT NULL,
-    -- is_clinvar_accessed BOOLEAN NOT NULL
-	CONSTRAINT fk_scientific_members
-            FOREIGN KEY (scientific_member_id) 
-                REFERENCES scientific_members(id)
-);
-
 CREATE TABLE samples (
     id TEXT PRIMARY KEY,
     -- date_collected TIMESTAMP,
     genome_version VARCHAR(20)
 );
 
--- SAMPLES/SAMPLE FILES
-CREATE TABLE samples_sample_files(
+-- Table that references either file or manual upload based on upload_type
+CREATE TABLE sample_uploads (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    upload_type TEXT NOT NULL,
     sample_id TEXT NOT NULL,
-    sample_file_id INT NOT NULL,
+    date_uploaded TIMESTAMP NOT NULL,
+    scientific_member_id INT NOT NULL,
     CONSTRAINT fk_samples
-        FOREIGN KEY (sample_id) 
-            REFERENCES samples(id),
+            FOREIGN KEY (sample_id) 
+                REFERENCES samples(id),
+    CONSTRAINT fk_scientific_members
+        FOREIGN KEY (scientific_member_id) 
+            REFERENCES scientific_members(id)
+);
+
+CREATE TABLE sample_files (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    filename TEXT NOT NULL
+    -- are_rsids_retrieved BOOLEAN NOT NULL,
+    -- is_clinvar_accessed BOOLEAN NOT NULL
+);
+
+
+-- SAMPLE FILES/SAMPLE UPLOADS
+CREATE TABLE sample_files_sample_uploads(
+    sample_file_id INT NOT NULL,
+    sample_uploads_id INT NOT NULL,
     CONSTRAINT fk_sample_files
         FOREIGN KEY (sample_file_id) 
             REFERENCES sample_files(id),
-    PRIMARY KEY (sample_id, sample_file_id)
+    CONSTRAINT fk_sample_uploads
+        FOREIGN KEY (sample_uploads_id) 
+            REFERENCES sample_uploads(id),
+    PRIMARY KEY (sample_file_id, sample_uploads_id)
+);
+
+
+CREATE TABLE sample_manual_uploads (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    sample_uploads_manual_id INT NOT NULL,
+    CONSTRAINT fk_sample_uploads
+            FOREIGN KEY (sample_uploads_manual_id) 
+                REFERENCES sample_uploads(id)
 );
 
 CREATE TABLE phenotypes (

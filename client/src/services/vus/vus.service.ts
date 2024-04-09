@@ -4,11 +4,41 @@ import {
   ILoadAllVusResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
+  IUploadVusRequest,
+  IUploadVusResponse,
   IVerifyGeneRequest,
   IVerifyGeneResponse,
 } from "./vus.dto";
 
 export class VusService {
+  async uploadVus(
+    input: IUploadVusRequest
+  ): Promise<IUploadVusResponse> {
+    let data = new FormData();
+
+    const vusJsonData = input.vus
+      ? JSON.stringify(input.vus)
+      : "";
+
+    // Append the JSON string as a blob to the FormData
+    data.append("vus", vusJsonData);
+
+    const result: IUploadVusResponse = await fetch(`/vus/upload`, {
+      method: "POST",
+      body: data,
+      // headers: {
+      // "Content-Type": "multipart/form-data",
+      // },
+      cache: "no-store", //TODO: is it needed?
+    })
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
   async storeAndVerifyVusFile(
     input: IStoreAndVerifyVusFileRequest
   ): Promise<IStoreAndVerifyVusFileResponse> {
