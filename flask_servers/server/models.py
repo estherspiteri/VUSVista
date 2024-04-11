@@ -57,6 +57,24 @@ class ACMGRule(Enum):
     PS3 = 'PS3'
     PP5 = 'PP5'
     BP6 = 'BP6'
+    PVS1 = 'PVS1'
+    PS1 = 'PS1'
+    BS3 = 'BS3'
+    PM1 = 'PM1'
+    BP3 = 'BP3'
+    PM2 = 'PM2'
+    PM4 = 'PM4'
+    PM5 = 'PM5'
+    PP2 = 'PP2'
+    BP1 = 'BP1'
+    PP3 = 'PP3'
+    BP4 = 'BP4'
+    BA1 = 'BA1'
+    BS1 = 'BS1'
+    BS2 = 'BS2'
+    BP7 = 'BP7'
+    PS4 = 'PS4'
+    BP5 = 'BP5'
 
 
 class ACMGStrength(Enum):
@@ -64,6 +82,7 @@ class ACMGStrength(Enum):
     MODERATE = 'MODERATE'
     STRONG = 'STRONG'
     VERY_STRONG = 'VERY_STRONG'
+    STAND_ALONE = 'STAND_ALONE'
 
 
 class Classification(Enum):
