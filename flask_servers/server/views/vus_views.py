@@ -6,6 +6,7 @@ import json
 
 from server import db
 from server.models import GeneAttributes
+from server.services.acmg_service import get_acmg_rules
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file, preprocess_vus, handle_vus_from_form
@@ -30,7 +31,7 @@ def store_vus():
     vus_dict = {key: [value] for key, value in vus_object.items()}
 
     vus_df = pd.DataFrame.from_dict(vus_dict)
-    #TODO re add genotypeeeee!!!!!!
+
     return handle_vus_from_form(vus_df)
 
 
@@ -82,3 +83,12 @@ def verify_gene(gene_name: str):
         gene_id = gene_attribute.gene_id
 
     return Response(json.dumps({'isSuccess': gene_id is not None, 'geneId': gene_id}), 200, mimetype='application/json')
+
+
+@vus_views.route('/all-acmg-rules', methods=['GET'])
+def get_all_acmg_rules():
+    current_app.logger.info(f"User requested all acmg rules ")
+
+    acmg_rules = get_acmg_rules()
+
+    return Response(json.dumps({'isSuccess': True, 'acmgRules': acmg_rules}), 200, mimetype='application/json')

@@ -7,22 +7,26 @@ import SamplePhenotypeSelection from "../sample-page/sample-phenotype-selection/
 import { IHPOTerm } from "../../services/sample/sample.dto";
 import { SampleService } from "../../services/sample/sample.service";
 import Icon from "../../atoms/icons/icon";
-import { IGene } from "../../models/gene.model";
-import Dropdown from "../../atoms/dropdown/dropdown";
 import { VusService } from "../../services/vus/vus.service";
-import Loader from "../../atoms/loader/loader";
 import Modal from "../../atoms/modal/modal";
-import { IVusUpload } from "../../models/vus-upload.model";
+import { IAcmgRuleUpload, IVusUpload } from "../../models/vus-upload.model";
+import AcmgRuleInfo from "../sample-page/acmg-rule-info/acmg-rule-info";
+import AcmgRulesEdit from "../sample-page/acmg-rules-edit/acmg-rules-edit";
+import { IAcmgRule } from "../../models/acmg-rule.model";
 
 type VusUploadPageProps = {
+  acmgRules: IAcmgRule[];
   sampleService?: SampleService;
   vusService?: VusService;
 };
 
-//TODO: In the end show variant summary - let user confirm on cancel submittion to continue editing
 const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   props: VusUploadPageProps
 ) => {
+  const [acmgRuleHover, setAcmgRuleHover] = useState<number | undefined>(
+    undefined
+  );
+
   const [chromosome, setChromosome] = useState<string | undefined>(undefined);
   const [chromosomeErrorMsg, setChromosomeErrorMsg] = useState("");
 
@@ -58,6 +62,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [samplesErrorMsg, setSamplesErrorMsg] = useState("");
 
   const [phenotypes, setPhenotypes] = useState<IHPOTerm[]>(undefined);
+
+  const [acmgRules, setAcmgRules] = useState<IAcmgRuleUpload[]>(undefined);
 
   const [isSummaryModalOpen, setIsSummaryModelOpen] = useState(false);
 
@@ -289,6 +295,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
         {/** Samples */}
         <VusUploadField title="Samples" showCheckMark={areSamplesValid}>
           <div className={styles["field-content-container"]}>
+            {/** Sample Ids */}
             <div className={styles["field-content"]}>
               <span>
                 List the samples that have this variant below. Press 'Enter' to
@@ -322,6 +329,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 </div>
               </div>
             </div>
+
+            {/** Phenotypes */}
             <div className={styles["field-content"]}>
               <span>Input the samples' phenotypes</span>
               <SamplePhenotypeSelection
@@ -331,6 +340,38 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   setPhenotypes(phenotypes)
                 }
               />
+            </div>
+
+            {/** ACMG Rules */}
+            <div className={styles["field-content"]}>
+              <span>
+                Choose the ACMG rules that the samples with this variant have
+              </span>
+              <div className={styles["acmg-rules-edit"]}>
+                <AcmgRulesEdit
+                  allAcmgRules={props.acmgRules}
+                  isAcmgMenuClosable={false}
+                  onMenuAcmgRuleHover={(acmgRuleId?: number) =>
+                    setAcmgRuleHover(acmgRuleId)
+                  }
+                  onAcmgRulesSelectionUpdate={(rules) => {
+                    setAcmgRules(
+                      props.acmgRules
+                        .filter((r) => rules.includes(r.id))
+                        .map((r) => {
+                          return { id: r.id, name: r.name };
+                        })
+                    );
+                  }}
+                />
+              </div>
+              <div className={styles["acmg-rules-info"]}>
+                <AcmgRuleInfo
+                  acmgRule={props.acmgRules?.find(
+                    (r) => r.id === acmgRuleHover
+                  )}
+                />
+              </div>
             </div>
           </div>
         </VusUploadField>
@@ -416,6 +457,19 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                         </p>
                       ))
                     : "No phenotypes selected"}
+                </b>
+              </div>
+              <div className={styles["summary-field"]}>
+                <p className={styles["selection-name"]}>ACMG Rules</p>
+                <b>
+                  {acmgRules?.length > 0
+                    ? acmgRules.map((a) => (
+                        <p className={styles.selection}>
+                          <div className={styles.bullet}>{"\u25CF"}</div>
+                          <p>{a.name}</p>
+                        </p>
+                      ))
+                    : "No rules selected"}
                 </b>
               </div>
             </div>
@@ -533,6 +587,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       classification: classification.replace(" ", "_").toUpperCase(),
       samples: samples,
       phenotypes: phenotypes ?? [],
+      acmgRules: acmgRules,
     };
 
     props.vusService.uploadVus({ vus: vus }).then((res) => {

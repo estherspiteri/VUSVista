@@ -18,7 +18,7 @@
   .fields-wrapper {
     display: flex;
     flex-direction: column;
-    border : 1px solid #008080;
+    border: 1px solid #008080;
     border-radius: 4px;
 
     //header of first field
@@ -46,6 +46,23 @@
 
       .alt-allele-description {
         text-wrap: nowrap;
+      }
+
+      .acmg-rules-edit {
+        width: 100%;
+        box-sizing: border-box;
+        background-color: #008080;
+        color: #fff;
+        padding: 8px 24px;
+        border-radius: 4px;
+        align-self: center;
+      }
+
+      .acmg-rules-info {
+        width: 50%;
+        align-self: center;
+        min-height: 150px;
+        margin-top: 8px;
       }
     }
 

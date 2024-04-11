@@ -5,18 +5,22 @@ import { SampleService } from "../../../services/sample/sample.service";
 import { IAcmgRule } from "../../../models/acmg-rule.model";
 
 type AcmgRulesEditProps = {
-  sampleId: string;
-  variantId: number;
-  variantAcmgRuleIds: number[];
+  sampleId?: string;
+  variantId?: number;
+  variantAcmgRuleIds?: number[];
   allAcmgRules: IAcmgRule[];
-  sampleService: SampleService;
+  isAcmgMenuClosable?: boolean;
+  sampleService?: SampleService;
   onMenuAcmgRuleHover?: (amcgRuleId?: number) => void;
+  onAcmgRulesSelectionUpdate?: (acmgRuleIds?: number[]) => void;
 };
 
 const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
   props: AcmgRulesEditProps
 ) => {
-  const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
+  const [isAddMenuVisible, setIsAddMenuVisible] = useState(
+    !props.isAcmgMenuClosable
+  );
   const [selectedAcmgRules, setSelectedAcmgRules] = useState(
     props.variantAcmgRuleIds ?? []
   );
@@ -54,19 +58,21 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
             );
           })}
       </div>
-      {/** Add Menu */}
 
+      {/** Add Menu */}
       {getAvailableAcmgRules().length > 0 &&
         (isAddMenuVisible ? (
           <div className={styles["add-menu"]}>
-            <Icon
-              name="remove"
-              fill="white"
-              width={20}
-              height={20}
-              className={styles["add-menu-icon"]}
-              onClick={() => setIsAddMenuVisible(false)}
-            />
+            {props.isAcmgMenuClosable && (
+              <Icon
+                name="remove"
+                fill="white"
+                width={20}
+                height={20}
+                className={styles["add-menu-icon"]}
+                onClick={() => setIsAddMenuVisible(false)}
+              />
+            )}
             {getAvailableAcmgRules().map((r) => {
               return (
                 <div
@@ -99,23 +105,35 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
   );
 
   function addAcmgRule(rule_id: number) {
-    setSelectedAcmgRules(selectedAcmgRules.concat(rule_id));
+    const updatedAcmgRules = selectedAcmgRules.concat(rule_id);
+    setSelectedAcmgRules(updatedAcmgRules);
 
-    props.sampleService.addAcmgRule({
-      sampleId: props.sampleId,
-      variantId: props.variantId,
-      ruleId: rule_id,
-    });
+    if (props.sampleId && props.variantId) {
+      props.sampleService?.addAcmgRule({
+        sampleId: props.sampleId,
+        variantId: props.variantId,
+        ruleId: rule_id,
+      });
+    }
+
+    props.onAcmgRulesSelectionUpdate &&
+      props.onAcmgRulesSelectionUpdate(updatedAcmgRules);
   }
 
   function removeAcmgRule(rule_id: number) {
-    setSelectedAcmgRules(selectedAcmgRules.filter((id) => id !== rule_id));
+    const updatedAcmgRules = selectedAcmgRules.filter((id) => id !== rule_id);
+    setSelectedAcmgRules(updatedAcmgRules);
 
-    props.sampleService.removeAcmgRule({
-      sampleId: props.sampleId,
-      variantId: props.variantId,
-      ruleId: rule_id,
-    });
+    if (props.sampleId && props.variantId) {
+      props.sampleService?.removeAcmgRule({
+        sampleId: props.sampleId,
+        variantId: props.variantId,
+        ruleId: rule_id,
+      });
+    }
+
+    props.onAcmgRulesSelectionUpdate &&
+      props.onAcmgRulesSelectionUpdate(updatedAcmgRules);
   }
 
   function getAvailableAcmgRules() {
@@ -125,6 +143,10 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
 
     return availableAcmgRules;
   }
+};
+
+AcmgRulesEdit.defaultProps = {
+  isAcmgMenuClosable: true,
 };
 
 export default AcmgRulesEdit;

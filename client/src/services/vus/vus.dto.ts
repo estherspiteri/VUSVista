@@ -1,3 +1,4 @@
+import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IVus } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -57,4 +58,9 @@ export interface IVerifyGeneRequest {
 export interface IVerifyGeneResponse {
   isSuccess: boolean;
   geneId?: number | null;
+}
+
+export interface IGetAllAcmgRulesResponse {
+  isSuccess: boolean;
+  acmgRules: IAcmgRule[];
 }

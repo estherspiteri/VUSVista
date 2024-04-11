@@ -539,24 +539,26 @@ def store_acmg_rules_for_variant_sample(are_rules_with_ids: bool, df_row: pd.Ser
         acmg_rules = df_row['ACMG Rules With Ids']
     # extract acmg rules without ids
     else:
-        acmg_rules = convert_dataframe_row_into_array(df_row['ACMG Rules'])
+        acmg_rules = []
+        acmg_rules_input = list(set(convert_dataframe_row_into_array(df_row['ACMG Rules'])))
+        for rule in acmg_rules_input:
+            acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.rule_name == rule).first()
+            acmg_rules.append({'id': acmg_rule.id, 'name': acmg_rule.rule_name})
         # TODO include mapping of acmg rules
 
     # store acmg rules to the respective sample, if the sample does not already have that acmg rule
     for rule in acmg_rules:
-        acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.rule_name == rule).first()
-
         # check if sample & variant already have this acmg rule
         variants_samples_acmg_rule: VariantsSamplesAcmgRules | None = db.session.query(
-            VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.acmg_rule_id == acmg_rule.id,
+            VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.acmg_rule_id == rule['id'],
                                              VariantsSamplesAcmgRules.sample_id == sample_id,
                                              VariantsSamplesAcmgRules.variant_id == variant_id).one_or_none()
 
         if variants_samples_acmg_rule is None:
             # store acmg rules for the given sample
             new_variants_samples_acmg_rule = VariantsSamplesAcmgRules(sample_id=sample_id, variant_id=variant_id,
-                                                                      acmg_rule_id=acmg_rule.id,
-                                                                      rule_name=acmg_rule.rule_name)
+                                                                      acmg_rule_id=rule['id'],
+                                                                      rule_name=rule['name'])
             db.session.add(new_variants_samples_acmg_rule)
 
 
@@ -603,6 +605,9 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     # store those vus that do not already exist in the db
     variant_ids = store_vus_df_in_db(new_vus_df)
     new_vus_df['Variant Id'] = variant_ids
+
+    # override so as to include newly added variant ids
+    all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
     # retrieve and store the publications (user links & LitVar) of new variants
     retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(new_vus_df, False)
@@ -686,7 +691,8 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
     vus_df.rename(columns={'chromosome': 'Chr', 'chromosomePosition': 'Position', 'type': 'Type',
                            'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': 'Classification',
                            'gene': 'Gene', 'geneId': 'Gene Id', 'genotype': 'Genotype', 'samples': 'Sample Ids',
-                           'phenotypes': 'Sample Phenotypes With Ids'}, inplace=True)
+                           'phenotypes': 'Sample Phenotypes With Ids', 'acmgRules': 'ACMG Rules With Ids'},
+                  inplace=True)
 
     preprocess_vus_res = preprocess_vus(vus_df)
 

@@ -1,5 +1,10 @@
 import { IPhenotype } from "./phenotype.model";
 
+export interface IAcmgRuleUpload {
+  id: number;
+  name: string;
+}
+
 export interface IVusUpload {
   chromosome: string;
   chromosomePosition: string;
@@ -12,4 +17,5 @@ export interface IVusUpload {
   type: string; //TODO: change to enum?
   samples: string[];
   phenotypes: IPhenotype[];
+  acmgRules: IAcmgRuleUpload[];
 }

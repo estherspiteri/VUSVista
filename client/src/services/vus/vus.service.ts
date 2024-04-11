@@ -1,4 +1,5 @@
 import {
+  IGetAllAcmgRulesResponse,
   IGetVusRequest,
   IGetVusResponse,
   ILoadAllVusResponse,
@@ -101,6 +102,24 @@ export class VusService {
   async verifyGene(input: IVerifyGeneRequest): Promise<IVerifyGeneResponse> {
     const result: IVerifyGeneResponse = await fetch(
       `/vus/gene/${input.geneName}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async getAllAcmgRules(): Promise<IGetAllAcmgRulesResponse> {
+    const result: IGetAllAcmgRulesResponse = await fetch(
+      `/vus/all-acmg-rules`,
       {
         method: "GET",
         headers: {
