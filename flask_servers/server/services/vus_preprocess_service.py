@@ -15,7 +15,7 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes, \
-    SampleUploads, SampleManualUploads
+    SampleUploads, SampleManualUploads, VariantsSamplesAcmgRules, AcmgRules
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -412,10 +412,34 @@ def convert_no_hpo_term_phenotypes_to_array(no_hpo_term_phenotypes_dict: Dict) -
     return no_hpo_term_phenotypes_arr
 
 
-def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, isFileUpload: bool):
+def update_sample_dict_with_unique_values(sample_id: str, unique_samples_values_dict: Dict, values: List[str]) -> Dict:
+    sample_values = unique_samples_values_dict.get(sample_id, [])
+    sample_values.extend(values)
+
+    # ensure there are no repeated phenotypes for a given sample
+    unique_samples_values_dict[sample_id] = []
+    for p in sample_values:
+        if p not in unique_samples_values_dict[sample_id]:
+            unique_samples_values_dict[sample_id].append(p)
+
+    return unique_samples_values_dict
+
+
+def convert_dataframe_row_into_array(df_row: pd.Series) -> List :
+    array_row = []
+
+    string_row = str(df_row)
+    if string_row != 'nan' and len(string_row) > 0:
+        array_row = re.split(',', string_row)
+        array_row = [p.strip() for p in array_row]
+
+    return array_row
+
+
+def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, is_file_upload: bool):
     new_sample_file = None
 
-    if isFileUpload:
+    if is_file_upload:
         # create entry for file in the db
         new_sample_file = SampleFiles(filename=file.filename)
         db.session.add(new_sample_file)
@@ -423,7 +447,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
         db.session.flush()
 
     # retrieve all unique samples and their phenotypes
-    unique_samples = {}
+    unique_samples_phenotypes_dict = {}
 
     no_hpo_term_phenotypes_dict = {}
 
@@ -442,10 +466,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
             phenotype_terms = row['Sample Phenotypes With Ids']
         # extract phenotypes without ids
         else:
-            row_phenotypes = str(row['Sample Phenotypes'])
-            if row_phenotypes != 'nan' and len(row_phenotypes) > 0:
-                phenotypes = re.split(',', row_phenotypes)
-                phenotypes = [p.strip() for p in phenotypes]
+            phenotypes = convert_dataframe_row_into_array(row['Sample Phenotypes'])
 
             # get phenotype terms (aka ontology ids & their names)
             # retrieve HPO term for each phenotype
@@ -460,19 +481,14 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
                 else:
                     phenotype_terms.append(hpo_res.data)
 
-        # take note of each phenotype for every sample
         for sample_id in sample_ids:
-            sample_phenotypes = unique_samples.get(sample_id, [])
-            sample_phenotypes.extend(phenotype_terms)
-
-            # ensure there are no repeated phenotypes for a given sample
-            unique_samples[sample_id] = []
-            for p in sample_phenotypes:
-                if p not in unique_samples[sample_id]:
-                    unique_samples[sample_id].append(p)
+            # take note of each phenotype for every sample
+            unique_samples_phenotypes_dict = update_sample_dict_with_unique_values(sample_id,
+                                                                                   unique_samples_phenotypes_dict,
+                                                                                   phenotype_terms)
 
     # store each unique sample in the db & its phenotypes
-    for unique_sample_id in unique_samples:
+    for unique_sample_id in unique_samples_phenotypes_dict.keys():
         # check if sample already exists
         sample: Samples = db.session.query(Samples).filter(Samples.id == unique_sample_id).one_or_none()
 
@@ -484,7 +500,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
             db.session.flush()
 
         # create sample upload entry
-        if not isFileUpload:
+        if not is_file_upload:
             upload_type = 'manual'
         else:
             upload_type = 'file'
@@ -492,13 +508,13 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
         new_sample_upload = SampleUploads(date_uploaded=datetime.now(), scientific_member_id=current_user.id,
                                           upload_type=upload_type, sample_id=unique_sample_id)
 
-        if isFileUpload:
+        if is_file_upload:
             new_sample_upload.sample_file = new_sample_file
 
         db.session.add(new_sample_upload)
         db.session.flush()
 
-        if not isFileUpload:
+        if not is_file_upload:
             # create sample manual uploads entry
             new_sample_manual_upload = SampleManualUploads(sample_uploads_manual_id=new_sample_upload.id)
             db.session.add(new_sample_manual_upload)
@@ -506,7 +522,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
         sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
 
         # append phenotypes to the respective sample, if the sample does not already have that phenotype
-        for phenotype_term in unique_samples[sample.id]:
+        for phenotype_term in unique_samples_phenotypes_dict[sample.id]:
             if phenotype_term['ontologyId'] not in sample_ontology_term_ids:
                 append_phenotype_to_sample(sample, phenotype_term)
 
@@ -515,6 +531,33 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
     no_hpo_term_phenotypes = convert_no_hpo_term_phenotypes_to_array(no_hpo_term_phenotypes_dict)
 
     return InternalResponse({'no_hpo_term_phenotypes': no_hpo_term_phenotypes}, 200)
+
+
+def store_acmg_rules_for_variant_sample(are_rules_with_ids: bool, df_row: pd.Series, sample_id: str, variant_id: int):
+    # extract acmg rules with ids
+    if are_rules_with_ids:
+        acmg_rules = df_row['ACMG Rules With Ids']
+    # extract acmg rules without ids
+    else:
+        acmg_rules = convert_dataframe_row_into_array(df_row['ACMG Rules'])
+        # TODO include mapping of acmg rules
+
+    # store acmg rules to the respective sample, if the sample does not already have that acmg rule
+    for rule in acmg_rules:
+        acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.rule_name == rule).first()
+
+        # check if sample & variant already have this acmg rule
+        variants_samples_acmg_rule: VariantsSamplesAcmgRules | None = db.session.query(
+            VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.acmg_rule_id == acmg_rule.id,
+                                             VariantsSamplesAcmgRules.sample_id == sample_id,
+                                             VariantsSamplesAcmgRules.variant_id == variant_id).one_or_none()
+
+        if variants_samples_acmg_rule is None:
+            # store acmg rules for the given sample
+            new_variants_samples_acmg_rule = VariantsSamplesAcmgRules(sample_id=sample_id, variant_id=variant_id,
+                                                                      acmg_rule_id=acmg_rule.id,
+                                                                      rule_name=acmg_rule.rule_name)
+            db.session.add(new_variants_samples_acmg_rule)
 
 
 def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int]):
@@ -542,6 +585,9 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
             if existing_variants_samples is None:
                 new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)
                 db.session.add(new_variants_samples)
+
+            # store the acmg rules related to this variant & sample
+            store_acmg_rules_for_variant_sample('ACMG Rules With Ids' in vus_df.keys(), row, sample, variant_id)
 
 
 def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame, file: FileStorage | None, is_file_upload: bool) -> Response:
