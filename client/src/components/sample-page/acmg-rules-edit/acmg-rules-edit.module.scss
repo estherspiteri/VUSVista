@@ -49,6 +49,10 @@
       }
 
       &.ps {
+        background-color: rgb(251, 67, 67);
+      }
+
+      &.pvs {
         background-color: red;
       }
 
@@ -58,6 +62,10 @@
 
       &.bs {
         background-color: green;
+      }
+
+      &.ba{
+        background-color: rgb(0, 132, 255);
       }
 
       .bin {

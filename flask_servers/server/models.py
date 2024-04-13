@@ -231,8 +231,9 @@ class ScientificMembers(UserMixin, Base):
     email = mapped_column(Text, nullable=False)
     password = mapped_column(Text, nullable=False)
 
-    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', uselist=True,
-                                                                 back_populates='scientific_member')
+    variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
+                                                                                    uselist=True,
+                                                                                    back_populates='scientific_member')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='scientific_member')
 
 
@@ -261,38 +262,36 @@ class Samples(Base):
 
     ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes',
                                                              back_populates='sample')
-    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', uselist=True, back_populates='sample')
-    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
-                                                                                         uselist=True,
-                                                                                         back_populates='sample')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='sample')
 
 
-class SampleUploads(Base):
-    __tablename__ = 'sample_uploads'
+class VariantsSamplesUploads(Base):
+    __tablename__ = 'variants_samples_uploads'
     __table_args__ = (
-        ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
+        ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id', 'variants_samples.sample_id'],
+                             name='fk_variants_samples'),
         ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
-        PrimaryKeyConstraint('id', name='sample_uploads_pkey')
+        PrimaryKeyConstraint('id', name='variants_samples_uploads_pkey')
     )
 
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
-    upload_type = mapped_column(Text, nullable=False)
+    variant_id = mapped_column(Integer, nullable=False)
     sample_id = mapped_column(Text, nullable=False)
+    upload_type = mapped_column(Text, nullable=False)
     date_uploaded = mapped_column(DateTime, nullable=False)
     scientific_member_id = mapped_column(Integer, nullable=False)
 
-    sample: Mapped['Samples'] = relationship('Samples', back_populates='sample_uploads')
-    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='sample_uploads')
-    sample_file: Mapped['SampleFiles'] = relationship('SampleFiles', secondary='sample_files_sample_uploads', back_populates='sample_uploads')
-    sample_manual_uploads: Mapped['SampleManualUploads'] = relationship('SampleManualUploads', back_populates='sample_uploads_manual')
+    variants_samples: Mapped['VariantsSamples'] = relationship('VariantsSamples', back_populates='variants_samples_uploads')
+    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='variants_samples_uploads')
+    file_upload: Mapped['FileUploads'] = relationship('FileUploads', secondary='file_uploads_variants_samples_uploads', back_populates='variants_samples_uploads')
+    manual_uploads: Mapped['ManualUploads'] = relationship('ManualUploads', back_populates='variants_samples_uploads_manual')
 
 
-class SampleFiles(Base):
-    __tablename__ = 'sample_files'
+class FileUploads(Base):
+    __tablename__ = 'file_uploads'
     __table_args__ = (
-        PrimaryKeyConstraint('id', name='sample_files_pkey'),
+        PrimaryKeyConstraint('id', name='file_uploads_pkey'),
     )
 
     id = mapped_column(Integer,
@@ -300,30 +299,30 @@ class SampleFiles(Base):
                                 cache=1))
     filename = mapped_column(Text, nullable=False)
 
-    sample_uploads: Mapped[List['SampleUploads']] = relationship('SampleUploads', secondary='sample_files_sample_uploads', back_populates='sample_file')
+    variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads', secondary='file_uploads_variants_samples_uploads', back_populates='file_upload')
 
 
-t_sample_files_sample_uploads = Table(
-    'sample_files_sample_uploads', metadata,
-    Column('sample_file_id', Integer, nullable=False),
-    Column('sample_uploads_id', Integer, nullable=False),
-    ForeignKeyConstraint(['sample_file_id'], ['sample_files.id'], name='fk_sample_files'),
-    ForeignKeyConstraint(['sample_uploads_id'], ['sample_uploads.id'], name='fk_sample_uploads'),
-    PrimaryKeyConstraint('sample_file_id', 'sample_uploads_id', name='sample_files_sample_uploads_pkey')
+t_file_uploads_variants_samples_uploads = Table(
+    'file_uploads_variants_samples_uploads', metadata,
+    Column('file_upload_id', Integer, nullable=False),
+    Column('variants_samples_uploads_id', Integer, nullable=False),
+    ForeignKeyConstraint(['file_upload_id'], ['file_uploads.id'], name='fk_file_uploads'),
+    ForeignKeyConstraint(['variants_samples_uploads_id'], ['variants_samples_uploads.id'], name='fk_variants_samples_uploads'),
+    PrimaryKeyConstraint('file_upload_id', 'variants_samples_uploads_id', name='file_uploads_variants_samples_uploads_pkey')
 )
 
 
-class SampleManualUploads(Base):
-    __tablename__ = 'sample_manual_uploads'
+class ManualUploads(Base):
+    __tablename__ = 'manual_uploads'
     __table_args__ = (
-        ForeignKeyConstraint(['sample_uploads_manual_id'], ['sample_uploads.id'], name='fk_sample_uploads'),
-        PrimaryKeyConstraint('id', name='sample_manual_uploads_pkey')
+        ForeignKeyConstraint(['variants_samples_uploads_manual_id'], ['variants_samples_uploads.id'], name='fk_variants_samples_uploads'),
+        PrimaryKeyConstraint('id', name='manual_uploads_pkey')
     )
 
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
-    sample_uploads_manual_id = mapped_column(Integer, nullable=False)
+    variants_samples_uploads_manual_id = mapped_column(Integer, nullable=False)
 
-    sample_uploads_manual: Mapped['SampleUploads'] = relationship('SampleUploads', back_populates='sample_manual_uploads')
+    variants_samples_uploads_manual: Mapped['VariantsSamplesUploads'] = relationship('VariantsSamplesUploads', back_populates='manual_uploads')
 
 
 class Phenotypes(Base):
@@ -347,6 +346,7 @@ t_samples_phenotypes = Table(
     ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
     PrimaryKeyConstraint('sample_id', 'ontology_term_id', name='samples_phenotypes_pkey')
 )
+
 
 class Variants(Base):
     __tablename__ = 'variants'
@@ -374,9 +374,6 @@ class Variants(Base):
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
                                                                            back_populates='variant')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant')
-    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
-                                                                                         uselist=True,
-                                                                                         back_populates='variant')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='variant')
 
@@ -410,8 +407,8 @@ class VariantsSamplesAcmgRules(Base):
     __tablename__ = 'variants_samples_acmg_rules'
     __table_args__ = (
         ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
-        ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id', 'variants_samples.sample_id'],
+                             name='fk_variants_samples'),
         PrimaryKeyConstraint('variant_id', 'sample_id', 'acmg_rule_id', name='samples_variants_acmg_rules_pkey')
     )
 
@@ -421,8 +418,7 @@ class VariantsSamplesAcmgRules(Base):
     rule_name = mapped_column(EnumSQL(ACMGRule, name='acmg_rule'), nullable=False)
 
     acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', back_populates='variants_samples_acmg_rules')
-    sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples_acmg_rules')
-    variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples_acmg_rules')
+    variants_samples: Mapped['VariantsSamples'] = relationship('VariantsSamples', back_populates='variants_samples_acmg_rules')
 
 
 t_variants_publications = Table(
@@ -449,6 +445,12 @@ class VariantsSamples(Base):
 
     sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples')
+    variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
+                                                                                    uselist=True,
+                                                                                    back_populates='variants_samples')
+    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
+                                                                                         uselist=True,
+                                                                                         back_populates='variants_samples')
 
 
 t_reviews_acmg_rules = Table(

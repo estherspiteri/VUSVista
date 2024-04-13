@@ -129,51 +129,6 @@ CREATE TABLE samples (
     genome_version VARCHAR(20)
 );
 
--- Table that references either file or manual upload based on upload_type
-CREATE TABLE sample_uploads (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    upload_type TEXT NOT NULL,
-    sample_id TEXT NOT NULL,
-    date_uploaded TIMESTAMP NOT NULL,
-    scientific_member_id INT NOT NULL,
-    CONSTRAINT fk_samples
-            FOREIGN KEY (sample_id) 
-                REFERENCES samples(id),
-    CONSTRAINT fk_scientific_members
-        FOREIGN KEY (scientific_member_id) 
-            REFERENCES scientific_members(id)
-);
-
-CREATE TABLE sample_files (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    filename TEXT NOT NULL
-    -- are_rsids_retrieved BOOLEAN NOT NULL,
-    -- is_clinvar_accessed BOOLEAN NOT NULL
-);
-
-
--- SAMPLE FILES/SAMPLE UPLOADS
-CREATE TABLE sample_files_sample_uploads(
-    sample_file_id INT NOT NULL,
-    sample_uploads_id INT NOT NULL,
-    CONSTRAINT fk_sample_files
-        FOREIGN KEY (sample_file_id) 
-            REFERENCES sample_files(id),
-    CONSTRAINT fk_sample_uploads
-        FOREIGN KEY (sample_uploads_id) 
-            REFERENCES sample_uploads(id),
-    PRIMARY KEY (sample_file_id, sample_uploads_id)
-);
-
-
-CREATE TABLE sample_manual_uploads (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    sample_uploads_manual_id INT NOT NULL,
-    CONSTRAINT fk_sample_uploads
-            FOREIGN KEY (sample_uploads_manual_id) 
-                REFERENCES sample_uploads(id)
-);
-
 CREATE TABLE phenotypes (
   ontology_term_id TEXT PRIMARY KEY,
   term_name TEXT  
@@ -206,6 +161,53 @@ CREATE TABLE variants_samples (
     PRIMARY KEY (variant_id, sample_id)
 ); 
 
+
+-- Table that references either file or manual upload based on upload_type
+CREATE TABLE variants_samples_uploads (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	variant_id INT NOT NULL,
+    sample_id TEXT NOT NULL,
+    upload_type TEXT NOT NULL,
+	date_uploaded TIMESTAMP NOT NULL,
+    scientific_member_id INT NOT NULL,
+     CONSTRAINT fk_variants_samples
+        FOREIGN KEY (variant_id, sample_id) 
+            REFERENCES variants_samples(variant_id, sample_id),
+    CONSTRAINT fk_scientific_members
+        FOREIGN KEY (scientific_member_id) 
+            REFERENCES scientific_members(id)
+);
+
+CREATE TABLE file_uploads (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    filename TEXT NOT NULL
+    -- are_rsids_retrieved BOOLEAN NOT NULL,
+    -- is_clinvar_accessed BOOLEAN NOT NULL
+);
+
+
+-- FILE UPLOADS/VARIANTS SAMPLES UPLOADS
+CREATE TABLE file_uploads_variants_samples_uploads(
+    file_upload_id INT NOT NULL,
+    variants_samples_uploads_id INT NOT NULL,
+    CONSTRAINT fk_file_uploads
+        FOREIGN KEY (file_upload_id) 
+            REFERENCES file_uploads(id),
+    CONSTRAINT fk_variants_samples_uploads
+        FOREIGN KEY (variants_samples_uploads_id) 
+            REFERENCES variants_samples_uploads(id),
+    PRIMARY KEY (file_upload_id, variants_samples_uploads_id)
+);
+
+
+CREATE TABLE manual_uploads (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    variants_samples_uploads_manual_id INT NOT NULL,
+    CONSTRAINT fk_variants_samples_uploads
+            FOREIGN KEY (variants_samples_uploads_manual_id) 
+                REFERENCES variants_samples_uploads(id)
+);
+
 -- ACMG_RULES
 CREATE TABLE acmg_rules(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -221,12 +223,9 @@ CREATE TABLE variants_samples_acmg_rules(
     sample_id TEXT NOT NULL,
     acmg_rule_id INT NOT NULL,
     rule_name ACMG_RULE NOT NULL,
-    CONSTRAINT fk_variants
-        FOREIGN KEY (variant_id) 
-            REFERENCES variants(id),
-    CONSTRAINT fk_samples
-        FOREIGN KEY (sample_id) 
-            REFERENCES samples(id),
+    CONSTRAINT fk_variants_samples
+        FOREIGN KEY (variant_id, sample_id) 
+            REFERENCES variants_samples(variant_id, sample_id),
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (acmg_rule_id) 
             REFERENCES acmg_rules(id),

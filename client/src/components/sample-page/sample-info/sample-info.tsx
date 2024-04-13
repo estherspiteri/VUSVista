@@ -38,22 +38,6 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               <div className={styles["info-title"]}>Genome Version:</div>
               {props.sample.genomeVersion}
             </div>
-
-            <div className={styles.info}>
-              <div className={styles["info-title"]}>File uploads:</div>
-              <div>
-                {props.sample.files.map((f) => {
-                  return (
-                    <p>
-                      {f.filename}&nbsp;
-                      {`(${f.dateOfFileUpload.getDate()}/${
-                        f.dateOfFileUpload.getMonth() + 1
-                      }/${f.dateOfFileUpload.getFullYear()})`}
-                    </p>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -86,23 +70,45 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                         className={styles["external-link"]}
                         onClick={() => openInNewWindow(`/vus/${v.variantId}`)}
                       />
-                      <div className={styles["variant-summary"]}>
-                        {/*TODO: on click take to VUS page*/}
-                        <VariantSummary variant={v.variant} />
+                      <div className={styles["variant-info-container"]}>
+                        <div className={styles["variant-info"]}>
+                          <div className={styles["variant-summary"]}>
+                            {/*TODO: on click take to VUS page*/}
+                            <VariantSummary variant={v.variant} />
+                          </div>
+                          <div className={styles.genotype}>
+                            {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
+                          </div>
+                          <AcmgRulesEdit
+                            variantId={v.variantId}
+                            sampleId={props.sample.sampleId}
+                            variantAcmgRuleIds={v.acmgRuleIds}
+                            allAcmgRules={props.acmgRules}
+                            sampleService={props.sampleService}
+                            onMenuAcmgRuleHover={(acmgRuleId?: number) =>
+                              setAcmgRuleHover(acmgRuleId)
+                            }
+                          />
+                        </div>
+                        {v.files?.length > 0 && (
+                          <span>
+                            {`Uploaded in the following file${
+                              v.files?.length > 1 ? "s" : ""
+                            }`}
+                            :&nbsp;
+                            {v.files.map((f) => {
+                              return (
+                                <span>
+                                  {f.filename}&nbsp;
+                                  {`(${f.dateOfFileUpload.getDate()}/${
+                                    f.dateOfFileUpload.getMonth() + 1
+                                  }/${f.dateOfFileUpload.getFullYear()})`}
+                                </span>
+                              );
+                            })}
+                          </span>
+                        )}
                       </div>
-                      <div className={styles.genotype}>
-                        {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
-                      </div>
-                      <AcmgRulesEdit
-                        variantId={v.variantId}
-                        sampleId={props.sample.sampleId}
-                        variantAcmgRuleIds={v.acmgRuleIds}
-                        allAcmgRules={props.acmgRules}
-                        sampleService={props.sampleService}
-                        onMenuAcmgRuleHover={(acmgRuleId?: number) =>
-                          setAcmgRuleHover(acmgRuleId)
-                        }
-                      />
                     </div>
                   );
                 })}

@@ -4,15 +4,11 @@ import pandas as pd
 
 from server import db
 from server.helpers.data_helper import get_variant_summary
-from server.models import Samples, SampleFiles, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    VariantsSamplesAcmgRules, Variants, SampleUploads
+from server.models import Samples, FileUploads, VariantsSamples, t_samples_phenotypes, Phenotypes, \
+    VariantsSamplesAcmgRules, Variants, VariantsSamplesUploads
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
-    sample_uploads: List[SampleUploads] = sample.sample_uploads
-
-    files: List[SampleFiles] = [{'filename': u.sample_file.filename, 'dateOfFileUpload': str(u.date_uploaded.date())} for u in sample_uploads if u.upload_type == 'file']
-
     # Query with filter condition on sample_id
     phenotype_ontology_term_ids_res: List[str] = (db.session.query(t_samples_phenotypes.c.ontology_term_id)
                                                   .filter(t_samples_phenotypes.c.sample_id == sample.id).all())
@@ -33,20 +29,25 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
 
     variants = []
 
-    for v in variants_samples:
-        samples_variants_acmg_rules: List[VariantsSamplesAcmgRules] = db.session.query(VariantsSamplesAcmgRules).filter(VariantsSamplesAcmgRules.sample_id == sample.id,
-                                                                                                                        VariantsSamplesAcmgRules.variant_id == v.variant_id).all()
+    for v_s in variants_samples:
+        # get acmg rule ids
+        acmg_rule_ids = [r.acmg_rule_id for r in v_s.variants_samples_acmg_rules]
 
-        acmg_rule_ids = [r.acmg_rule_id for r in samples_variants_acmg_rules]
-
-        variant_details: Variants = db.session.query(Variants).filter(Variants.id == v.variant_id).first()
+        variant_details: Variants = db.session.query(Variants).filter(Variants.id == v_s.variant_id).first()
 
         variant_summary = get_variant_summary(variant_details)
 
-        variant_sample = {'variantId': v.variant_id, 'variant': variant_summary, 'genotype': v.genotype.value, 'acmgRuleIds': acmg_rule_ids}
+        # get upload files
+        files: List[VariantsSamplesUploads] = [u for u in v_s.variants_samples_uploads if u.upload_type == 'file']
+
+        file_dicts = [{'filename': u.file_upload.filename, 'dateOfFileUpload': str(u.date_uploaded.date())} for u in
+                      files]
+
+        variant_sample = {'variantId': v_s.variant_id, 'variant': variant_summary, 'genotype': v_s.genotype.value,
+                          'acmgRuleIds': acmg_rule_ids, 'files': file_dicts}
         variants.append(variant_sample)
 
-    return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version, 'files': files,
+    return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version,
             'variants': variants}
 
 

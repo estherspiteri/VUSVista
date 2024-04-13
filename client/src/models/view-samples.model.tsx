@@ -11,6 +11,7 @@ export interface ISampleVariant {
   variant: IVUSSummary;
   genotype: Genotype;
   acmgRuleIds?: number[];
+  files?: IFile[];
 }
 
 export interface IFile {
@@ -21,7 +22,6 @@ export interface IFile {
 export interface ISample {
   sampleId: string;
   genomeVersion: string;
-  files: IFile[];
   variants: ISampleVariant[];
   phenotype?: IHPOTerm[] | null;
 }

@@ -1,4 +1,4 @@
-import { IFile, ISample } from "../../models/view-samples.model";
+import { IFile, ISample, ISampleVariant } from "../../models/view-samples.model";
 import {
   IAddAcmgRuleRequest,
   IAddAcmgRuleResponse,
@@ -46,17 +46,24 @@ export class SampleService {
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
-    let files: IFile[] = [];
-    result.sample.files.forEach((f) => {
-      files = files.concat({
-        ...f,
-        dateOfFileUpload: new Date(f.dateOfFileUpload),
+    let variants: ISampleVariant[] = []
+
+    result.sample.variants.forEach((v) => {
+      let files: IFile[] = [];
+
+      v.files.forEach((f) => {
+        files = files.concat({
+          ...f,
+          dateOfFileUpload: new Date(f.dateOfFileUpload),
+        });
       });
+
+      variants = variants.concat({...v, files: files})
     });
 
     let updatedSample: ISample = {
       ...result.sample,
-      files: files,
+      variants: variants,
     };
 
     return {

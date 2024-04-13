@@ -14,8 +14,8 @@ from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences, SampleFiles, Samples, VariantsSamples, Genotype, Phenotypes, t_samples_phenotypes, \
-    SampleUploads, SampleManualUploads, VariantsSamplesAcmgRules, AcmgRules
+    Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
+    VariantsSamplesUploads, ManualUploads, VariantsSamplesAcmgRules, AcmgRules
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -137,7 +137,7 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     return multiple_genes
 
 
-def extract_sample_ids(sample_ids: str) -> List :
+def extract_sample_ids(sample_ids: str) -> List:
     return re.split(',|;', sample_ids.replace(' ', ''))
 
 
@@ -168,7 +168,8 @@ def get_rsids(vus_df: pd.DataFrame):
         vus_df = get_rsids_from_dbsnp_res.data
 
         # vus_df = handle_vus_with_multiple_genes(
-        #     vus_df)  # TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
+        #     vus_df)
+        # TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
 
         # write dataframe to excel file
         # TODO: write to database
@@ -425,7 +426,7 @@ def update_sample_dict_with_unique_values(sample_id: str, unique_samples_values_
     return unique_samples_values_dict
 
 
-def convert_dataframe_row_into_array(df_row: pd.Series) -> List :
+def convert_dataframe_row_into_array(df_row: pd.Series) -> List:
     array_row = []
 
     string_row = str(df_row)
@@ -436,16 +437,7 @@ def convert_dataframe_row_into_array(df_row: pd.Series) -> List :
     return array_row
 
 
-def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: FileStorage, is_file_upload: bool):
-    new_sample_file = None
-
-    if is_file_upload:
-        # create entry for file in the db
-        new_sample_file = SampleFiles(filename=file.filename)
-        db.session.add(new_sample_file)
-
-        db.session.flush()
-
+def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
     # retrieve all unique samples and their phenotypes
     unique_samples_phenotypes_dict = {}
 
@@ -455,8 +447,6 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
     for index, row in vus_df.iterrows():
         # extract sample ids
         sample_ids = extract_sample_ids(str(row['Sample Ids']))\
-
-        phenotypes = []
 
         # ontology ids & their names
         phenotype_terms = []
@@ -498,26 +488,6 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame, file: Fi
             db.session.add(sample)
 
             db.session.flush()
-
-        # create sample upload entry
-        if not is_file_upload:
-            upload_type = 'manual'
-        else:
-            upload_type = 'file'
-
-        new_sample_upload = SampleUploads(date_uploaded=datetime.now(), scientific_member_id=current_user.id,
-                                          upload_type=upload_type, sample_id=unique_sample_id)
-
-        if is_file_upload:
-            new_sample_upload.sample_file = new_sample_file
-
-        db.session.add(new_sample_upload)
-        db.session.flush()
-
-        if not is_file_upload:
-            # create sample manual uploads entry
-            new_sample_manual_upload = SampleManualUploads(sample_uploads_manual_id=new_sample_upload.id)
-            db.session.add(new_sample_manual_upload)
 
         sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
 
@@ -562,7 +532,42 @@ def store_acmg_rules_for_variant_sample(are_rules_with_ids: bool, df_row: pd.Ser
             db.session.add(new_variants_samples_acmg_rule)
 
 
-def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int]):
+def store_upload_details_for_variant_sample(file_upload: FileUploads, is_file_upload: bool, sample_id: str,
+                                            variant_id: int):
+    # create sample upload entry
+    if is_file_upload:
+        upload_type = 'file'
+    else:
+        upload_type = 'manual'
+
+    new_variants_sample_upload = VariantsSamplesUploads(date_uploaded=datetime.now(),
+                                                        scientific_member_id=current_user.id,
+                                                        upload_type=upload_type, sample_id=sample_id,
+                                                        variant_id=variant_id)
+
+    if is_file_upload and file_upload is not None:
+        new_variants_sample_upload.file_upload = file_upload
+
+    db.session.add(new_variants_sample_upload)
+    db.session.flush()
+
+    if not is_file_upload:
+        # create manual uploads entry
+        new_manual_upload = ManualUploads(variants_samples_uploads_manual_id=new_variants_sample_upload.id)
+        db.session.add(new_manual_upload)
+
+
+def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], file: FileStorage | None,
+                                         is_file_upload: bool):
+    if is_file_upload:
+        # create entry for file in the db
+        new_file_upload = FileUploads(filename=file.filename)
+        db.session.add(new_file_upload)
+
+        db.session.flush()
+    else:
+        new_file_upload = None
+
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         variant_id = variant_ids[int(index)]
@@ -579,25 +584,30 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
         samples = extract_sample_ids(str(row['Sample Ids']))
 
-        for sample in samples:
+        for sample_id in samples:
             # check if variants_samples entry already exists
-            existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample).one_or_none()
+            existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(
+                VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample_id).one_or_none()
 
             # if variants_samples entry does not exist, add new entry
             if existing_variants_samples is None:
-                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample, genotype=genotype)
+                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id, genotype=genotype)
                 db.session.add(new_variants_samples)
 
             # store the acmg rules related to this variant & sample
-            store_acmg_rules_for_variant_sample('ACMG Rules With Ids' in vus_df.keys(), row, sample, variant_id)
+            store_acmg_rules_for_variant_sample('ACMG Rules With Ids' in vus_df.keys(), row, sample_id, variant_id)
+
+            # store the upload details related to this variant & sample
+            store_upload_details_for_variant_sample(new_file_upload, is_file_upload, sample_id, variant_id)
 
 
-def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame, file: FileStorage | None, is_file_upload: bool) -> Response:
+def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame,
+                         file: FileStorage | None, is_file_upload: bool) -> Response:
     # join existing vus_df with the new vus
     all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
     # store file and samples entries
-    create_sample_upload_and_sample_entries_in_db_res = create_sample_upload_and_sample_entries_in_db(all_vus_df, file, is_file_upload)
+    create_sample_upload_and_sample_entries_in_db_res = create_sample_upload_and_sample_entries_in_db(all_vus_df)
 
     # store phenotypes (and respective samples) which do not have an exact match to an HPO term
     no_hpo_term_phenotypes = create_sample_upload_and_sample_entries_in_db_res.data['no_hpo_term_phenotypes']
@@ -606,7 +616,7 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     variant_ids = store_vus_df_in_db(new_vus_df)
     new_vus_df['Variant Id'] = variant_ids
 
-    # override so as to include newly added variant ids
+    # override to include newly added variant ids
     all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
     # retrieve and store the publications (user links & LitVar) of new variants
@@ -629,7 +639,7 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
             all_variant_ids = existing_variant_ids + variant_ids
 
             # store variants-samples entries in db
-            store_variant_sample_relations_in_db(all_vus_df, all_variant_ids)
+            store_variant_sample_relations_in_db(all_vus_df, all_variant_ids, file, is_file_upload)
 
             try:
                 # Commit the session to persist changes to the database

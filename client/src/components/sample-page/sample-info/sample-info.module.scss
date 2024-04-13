@@ -68,7 +68,8 @@
           }
 
           .variant-titles,
-          .variant {
+          .variant,
+          .variant-info {
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -100,6 +101,7 @@
             .external-link {
               cursor: pointer;
               border-radius: 4px;
+              flex-shrink: 0;
 
               svg {
                 fill: #fff;
@@ -112,6 +114,13 @@
                   fill: #008080;
                 }
               }
+            }
+
+            .variant-info-container {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              overflow: scroll;
             }
           }
         }
