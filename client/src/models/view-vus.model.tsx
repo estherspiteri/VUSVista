@@ -22,4 +22,5 @@ export interface IVus {
   numHomozygous?: number;
   samples: string[];
   phenotypes: IPhenotype[];
+  acmgRuleIds: number[];
 }

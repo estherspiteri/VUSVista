@@ -9,7 +9,6 @@ import { IAcmgRule } from "../models/acmg-rule.model";
 const SamplePageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sample, setSample] = useState<ISample>(undefined);
-  const [acmgRules, setAcmgRules] = useState<IAcmgRule[]>([]);
 
   const loc = useLocation();
   const sampleId = loc.pathname.split("/sample/")[1];
@@ -19,7 +18,6 @@ const SamplePageWrapper: React.FunctionComponent = () => {
       samplesService?.getSample({ sampleId: sampleId }).then((res) => {
         if (res.isSuccess) {
           setSample(res.sample);
-          setAcmgRules(res.acmgRules);
           setIsLoading(false);
         } else {
           //TODO: handle error
@@ -34,7 +32,6 @@ const SamplePageWrapper: React.FunctionComponent = () => {
     return (
       <SamplePage
         sample={sample}
-        acmgRules={acmgRules}
         sampleService={samplesService}
       />
     );

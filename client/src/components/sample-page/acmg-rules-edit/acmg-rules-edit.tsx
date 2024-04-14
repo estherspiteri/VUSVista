@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import styles from "./acmg-rules-edit.module.scss";
 import Icon from "../../../atoms/icons/icon";
-import { SampleService } from "../../../services/sample/sample.service";
 import { IAcmgRule } from "../../../models/acmg-rule.model";
+import { VusService } from "../../../services/vus/vus.service";
 
 type AcmgRulesEditProps = {
-  sampleId?: string;
   variantId?: number;
   variantAcmgRuleIds?: number[];
   allAcmgRules: IAcmgRule[];
   isAcmgMenuClosable?: boolean;
-  sampleService?: SampleService;
+  vusService?: VusService;
+  onEditIconClick?: (isOpen: boolean) => void;
   onMenuAcmgRuleHover?: (amcgRuleId?: number) => void;
   onAcmgRulesSelectionUpdate?: (acmgRuleIds?: number[]) => void;
 };
@@ -70,7 +70,10 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
                 width={20}
                 height={20}
                 className={styles["add-menu-icon"]}
-                onClick={() => setIsAddMenuVisible(false)}
+                onClick={() => {
+                  setIsAddMenuVisible(false);
+                  props.onEditIconClick && props.onEditIconClick(false);
+                }}
               />
             )}
             {getAvailableAcmgRules().map((r) => {
@@ -98,7 +101,10 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
             fill="white"
             width={35}
             height={35}
-            onClick={() => setIsAddMenuVisible(true)}
+            onClick={() => {
+              setIsAddMenuVisible(true);
+              props.onEditIconClick && props.onEditIconClick(true);
+            }}
           />
         ))}
     </div>
@@ -108,9 +114,8 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
     const updatedAcmgRules = selectedAcmgRules.concat(rule_id);
     setSelectedAcmgRules(updatedAcmgRules);
 
-    if (props.sampleId && props.variantId) {
-      props.sampleService?.addAcmgRule({
-        sampleId: props.sampleId,
+    if (props.variantId) {
+      props.vusService?.addAcmgRule({
         variantId: props.variantId,
         ruleId: rule_id,
       });
@@ -124,9 +129,8 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
     const updatedAcmgRules = selectedAcmgRules.filter((id) => id !== rule_id);
     setSelectedAcmgRules(updatedAcmgRules);
 
-    if (props.sampleId && props.variantId) {
-      props.sampleService?.removeAcmgRule({
-        sampleId: props.sampleId,
+    if (props.variantId) {
+      props.vusService?.removeAcmgRule({
         variantId: props.variantId,
         ruleId: rule_id,
       });

@@ -7,7 +7,6 @@ import { IAcmgRule } from "../../models/acmg-rule.model";
 
 type SamplePageProps = {
   sample: ISample;
-  acmgRules: IAcmgRule[];
   sampleService: SampleService;
 };
 
@@ -23,7 +22,6 @@ const SamplePage: React.FunctionComponent<SamplePageProps> = (
 
       <SampleInfo
         sample={props.sample}
-        acmgRules={props.acmgRules}
         sampleService={props.sampleService}
       />
     </div>

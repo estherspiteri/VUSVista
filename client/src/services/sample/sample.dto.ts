@@ -1,4 +1,3 @@
-import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IPhenotype } from "../../models/phenotype.model";
 import { ISample, ISampleSummary } from "../../models/view-samples.model";
 
@@ -14,27 +13,6 @@ export interface IGetSampleRequest {
 export interface IGetSampleResponse {
   isSuccess: boolean;
   sample: ISample;
-  acmgRules: IAcmgRule[];
-}
-
-export interface IAddAcmgRuleRequest {
-  sampleId: string;
-  variantId: number;
-  ruleId: number;
-}
-
-export interface IAddAcmgRuleResponse {
-  isSuccess: boolean;
-}
-
-export interface IRemoveAcmgRuleRequest {
-  sampleId: string;
-  variantId: number;
-  ruleId: number;
-}
-
-export interface IRemoveAcmgRuleResponse {
-  isSuccess: boolean;
 }
 
 export interface IGetHPOTermsRequest {

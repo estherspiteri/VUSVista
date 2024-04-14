@@ -1,7 +1,9 @@
-import { IFile, ISample, ISampleVariant } from "../../models/view-samples.model";
 import {
-  IAddAcmgRuleRequest,
-  IAddAcmgRuleResponse,
+  IFile,
+  ISample,
+  ISampleVariant,
+} from "../../models/view-samples.model";
+import {
   IAddPhenotypeRequest,
   IAddPhenotypeResponse,
   IGetHPOTermsRequest,
@@ -9,8 +11,6 @@ import {
   IGetSampleRequest,
   IGetSampleResponse,
   ILoadAllSamplesResponse,
-  IRemoveAcmgRuleRequest,
-  IRemoveAcmgRuleResponse,
   IRemovePhenotypeRequest,
   IRemovePhenotypeResponse,
 } from "./sample.dto";
@@ -46,7 +46,7 @@ export class SampleService {
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
-    let variants: ISampleVariant[] = []
+    let variants: ISampleVariant[] = [];
 
     result.sample.variants.forEach((v) => {
       let files: IFile[] = [];
@@ -58,7 +58,7 @@ export class SampleService {
         });
       });
 
-      variants = variants.concat({...v, files: files})
+      variants = variants.concat({ ...v, files: files });
     });
 
     let updatedSample: ISample = {
@@ -69,53 +69,7 @@ export class SampleService {
     return {
       isSuccess: result.isSuccess,
       sample: updatedSample,
-      acmgRules: result.acmgRules,
     };
-  }
-
-  async addAcmgRule(input: IAddAcmgRuleRequest): Promise<IAddAcmgRuleResponse> {
-    let data = new FormData();
-
-    // Append the JSON string as a blob to the FormData
-    data.append("sampleId", input.sampleId);
-    data.append("variantId", input.variantId.toString());
-    data.append("ruleId", input.ruleId.toString());
-
-    const result: IAddAcmgRuleResponse = await fetch(`/sample/add-acmg-rule`, {
-      method: "POST",
-      body: data,
-    })
-      .then((response: Response) => {
-        return response.json();
-      })
-      .catch((error) => console.error("error============:", error)); //TODO: handle error
-
-    return result;
-  }
-
-  async removeAcmgRule(
-    input: IRemoveAcmgRuleRequest
-  ): Promise<IRemoveAcmgRuleResponse> {
-    let data = new FormData();
-
-    // Append the JSON string as a blob to the FormData
-    data.append("sampleId", input.sampleId);
-    data.append("variantId", input.variantId.toString());
-    data.append("ruleId", input.ruleId.toString());
-
-    const result: IRemoveAcmgRuleResponse = await fetch(
-      `/sample/remove-acmg-rule`,
-      {
-        method: "POST",
-        body: data,
-      }
-    )
-      .then((response: Response) => {
-        return response.json();
-      })
-      .catch((error) => console.error("error============:", error)); //TODO: handle error
-
-    return result;
   }
 
   async getHPOTerms(input: IGetHPOTermsRequest): Promise<IGetHPOTermsResponse> {

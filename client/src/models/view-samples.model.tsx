@@ -10,7 +10,6 @@ export interface ISampleVariant {
   variantId: number;
   variant: IVUSSummary;
   genotype: Genotype;
-  acmgRuleIds?: number[];
   files?: IFile[];
 }
 

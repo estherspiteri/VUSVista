@@ -1,8 +1,12 @@
 import {
+  IAddAcmgRuleRequest,
+  IAddAcmgRuleResponse,
   IGetAllAcmgRulesResponse,
   IGetVusRequest,
   IGetVusResponse,
   ILoadAllVusResponse,
+  IRemoveAcmgRuleRequest,
+  IRemoveAcmgRuleResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
   IUploadVusRequest,
@@ -125,6 +129,49 @@ export class VusService {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addAcmgRule(input: IAddAcmgRuleRequest): Promise<IAddAcmgRuleResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("variantId", input.variantId.toString());
+    data.append("ruleId", input.ruleId.toString());
+
+    const result: IAddAcmgRuleResponse = await fetch(`/vus/add-acmg-rule`, {
+      method: "POST",
+      body: data,
+    })
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async removeAcmgRule(
+    input: IRemoveAcmgRuleRequest
+  ): Promise<IRemoveAcmgRuleResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("variantId", input.variantId.toString());
+    data.append("ruleId", input.ruleId.toString());
+
+    const result: IRemoveAcmgRuleResponse = await fetch(
+      `/vus/remove-acmg-rule`,
+      {
+        method: "POST",
+        body: data,
       }
     )
       .then((response: Response) => {

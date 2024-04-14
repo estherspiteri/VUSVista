@@ -1,12 +1,4 @@
-.acmg {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-  overflow-x: auto;
-  box-sizing: border-box;
-  padding-bottom: 4px;
-
+@mixin scrollbar {
   //scrollbar
   &::-webkit-scrollbar {
     width: 10px;
@@ -23,6 +15,19 @@
     border: solid 3px transparent;
     border-radius: 40px;
   }
+}
+
+.acmg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-bottom: 4px;
+  overflow-x: auto;
+
+  @include scrollbar();
+
 
   .selected-rules {
     display: flex;
@@ -64,7 +69,7 @@
         background-color: green;
       }
 
-      &.ba{
+      &.ba {
         background-color: rgb(0, 132, 255);
       }
 

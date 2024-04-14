@@ -217,19 +217,18 @@ CREATE TABLE acmg_rules(
     requires_lab_verification BOOLEAN NOT NULL
 );
 
--- SAMPLES/VARIANTS/ACMG_RULES
-CREATE TABLE variants_samples_acmg_rules(
+-- VARIANTS/ACMG_RULES
+CREATE TABLE variants_acmg_rules(
     variant_id INT NOT NULL,
-    sample_id TEXT NOT NULL,
     acmg_rule_id INT NOT NULL,
     rule_name ACMG_RULE NOT NULL,
-    CONSTRAINT fk_variants_samples
-        FOREIGN KEY (variant_id, sample_id) 
-            REFERENCES variants_samples(variant_id, sample_id),
+    CONSTRAINT fk_variants
+        FOREIGN KEY (variant_id) 
+            REFERENCES variants(id),
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (acmg_rule_id) 
             REFERENCES acmg_rules(id),
-    PRIMARY KEY (variant_id, sample_id, acmg_rule_id)
+    PRIMARY KEY (variant_id, acmg_rule_id)
 );
 
 -- REVIEWS (VARIANTS/SCIENTIFIC_MEMBERS)

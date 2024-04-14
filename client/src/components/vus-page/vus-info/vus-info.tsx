@@ -1,18 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./vus-info.module.scss";
 import { IVus } from "../../../models/view-vus.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import Icon from "../../../atoms/icons/icon";
 import { openInNewWindow } from "../../../helpers/open-links";
 import Button from "../../../atoms/button/button";
+import { IAcmgRule } from "../../../models/acmg-rule.model";
+import AcmgRulesEdit from "../../sample-page/acmg-rules-edit/acmg-rules-edit";
+import { VusService } from "../../../services/vus/vus.service";
+import AcmgRuleInfo from "../../sample-page/acmg-rule-info/acmg-rule-info";
 
 type VusInfoProps = {
   vus: IVus;
+  acmgRules: IAcmgRule[];
+  vusService?: VusService;
 };
 
 const VusInfo: React.FunctionComponent<VusInfoProps> = (
   props: VusInfoProps
 ) => {
+  const [acmgRuleHover, setAcmgRuleHover] = useState<number | undefined>(
+    undefined
+  );
+  const [isAcmgEditMenuOpen, setIsAcmgEditMenuOpen] = useState(false);
+
   return (
     <div className={styles["vus-info-container"]}>
       <div className={styles["vus-info"]}>
@@ -58,6 +69,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         </div>
 
         {/*TODO: Next to is RSID verified do info icon - on hover show what info was compared. Same for clinvar*/}
+        {/** External References */}
         <div className={styles["external-ref"]}>
           {/** Clinvar */}
           <div className={styles["info-container"]}>
@@ -215,6 +227,37 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           </div>
         </div>
 
+        {/** ACMG rules */}
+        <div className={styles["acmg-rules"]}>
+          <p className={styles["info-title"]}>ACMG rules:</p>
+          <div
+            className={`${styles["acmg-rules-info"]} ${
+              isAcmgEditMenuOpen ? styles["acmg-edit-open"] : ""
+            }`}
+          >
+            <div className={styles["acmg-rules-edit"]}>
+              <AcmgRulesEdit
+                variantId={props.vus.id}
+                variantAcmgRuleIds={props.vus.acmgRuleIds}
+                allAcmgRules={props.acmgRules}
+                vusService={props.vusService}
+                onMenuAcmgRuleHover={(acmgRuleId?: number) =>
+                  setAcmgRuleHover(acmgRuleId)
+                }
+                onEditIconClick={(isOpen) => setIsAcmgEditMenuOpen(isOpen)}
+              />
+            </div>
+            {isAcmgEditMenuOpen && (
+              <div className={styles["acmg-info"]}>
+                <AcmgRuleInfo
+                  acmgRule={props.acmgRules.find((r) => r.id === acmgRuleHover)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/** Samples */}
         <div className={styles["samples-container"]}>
           <p className={styles["info-title"]}>Samples with this variant:</p>
           <div className={styles.samples}>
@@ -229,6 +272,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           </div>
         </div>
 
+        {/** Phenotypes */}
         <div className={styles["phenotypes-container"]}>
           <p className={styles["info-title"]}>
             Phenotypes of the above samples:

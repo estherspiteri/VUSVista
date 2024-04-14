@@ -1,4 +1,5 @@
 ## https://pypi.org/project/sqlacodegen-v2/
+# cmd: sqlacodegen_v2 postgresql://postgres:21641@localhost:5432/vus-app-db
 from typing import List
 
 from enum import Enum
@@ -114,9 +115,8 @@ class AcmgRules(Base):
     requires_lab_verification = mapped_column(Boolean, nullable=False)
 
     review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_acmg_rules', back_populates='acmg_rules')
-    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
-                                                                                         uselist=True,
-                                                                                         back_populates='acmg_rules')
+    variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
+                                                                          back_populates='acmg_rule')
 
 
 class ExternalReferences(Base):
@@ -374,6 +374,8 @@ class Variants(Base):
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
                                                                            back_populates='variant')
     reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant')
+    variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
+                                                                          back_populates='variant')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='variant')
 
@@ -403,22 +405,20 @@ class Reviews(Base):
     acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
 
 
-class VariantsSamplesAcmgRules(Base):
-    __tablename__ = 'variants_samples_acmg_rules'
+class VariantsAcmgRules(Base):
+    __tablename__ = 'variants_acmg_rules'
     __table_args__ = (
         ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
-        ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id', 'variants_samples.sample_id'],
-                             name='fk_variants_samples'),
-        PrimaryKeyConstraint('variant_id', 'sample_id', 'acmg_rule_id', name='samples_variants_acmg_rules_pkey')
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        PrimaryKeyConstraint('variant_id', 'acmg_rule_id', name='variants_acmg_rules_pkey')
     )
 
     variant_id = mapped_column(Integer, nullable=False)
-    sample_id = mapped_column(Integer, nullable=False)
     acmg_rule_id = mapped_column(Integer, nullable=False)
     rule_name = mapped_column(EnumSQL(ACMGRule, name='acmg_rule'), nullable=False)
 
-    acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', back_populates='variants_samples_acmg_rules')
-    variants_samples: Mapped['VariantsSamples'] = relationship('VariantsSamples', back_populates='variants_samples_acmg_rules')
+    acmg_rule: Mapped['AcmgRules'] = relationship('AcmgRules', back_populates='variants_acmg_rules')
+    variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_acmg_rules')
 
 
 t_variants_publications = Table(
@@ -448,9 +448,6 @@ class VariantsSamples(Base):
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
                                                                                     back_populates='variants_samples')
-    variants_samples_acmg_rules: Mapped[List['VariantsSamplesAcmgRules']] = relationship('VariantsSamplesAcmgRules',
-                                                                                         uselist=True,
-                                                                                         back_populates='variants_samples')
 
 
 t_reviews_acmg_rules = Table(

@@ -49,6 +49,7 @@ export interface IGetVusRequest {
 export interface IGetVusResponse {
   isSuccess: boolean;
   vus: IVus;
+  acmgRules: IAcmgRule[];
 }
 
 export interface IVerifyGeneRequest {
@@ -63,4 +64,22 @@ export interface IVerifyGeneResponse {
 export interface IGetAllAcmgRulesResponse {
   isSuccess: boolean;
   acmgRules: IAcmgRule[];
+}
+
+export interface IAddAcmgRuleRequest {
+  variantId: number;
+  ruleId: number;
+}
+
+export interface IAddAcmgRuleResponse {
+  isSuccess: boolean;
+}
+
+export interface IRemoveAcmgRuleRequest {
+  variantId: number;
+  ruleId: number;
+}
+
+export interface IRemoveAcmgRuleResponse {
+  isSuccess: boolean;
 }

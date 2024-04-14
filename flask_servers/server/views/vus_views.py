@@ -6,7 +6,7 @@ import json
 
 from server import db
 from server.models import GeneAttributes
-from server.services.acmg_service import get_acmg_rules
+from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_variant, remove_acmg_rule_from_variant
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
 from server.services.vus_preprocess_service import handle_vus_file, preprocess_vus, handle_vus_from_form
@@ -68,7 +68,10 @@ def get_vus(vus_id: int):
 
     var_list = retrieve_vus_from_db(vus_id)
 
-    return Response(json.dumps({'isSuccess': True, 'vus': var_list}), 200, mimetype='application/json')
+    acmg_rules = get_acmg_rules()
+
+    return Response(json.dumps({'isSuccess': True, 'vus': var_list, 'acmgRules': acmg_rules}), 200,
+                    mimetype='application/json')
 
 
 @vus_views.route('/gene/<string:gene_name>', methods=['GET'])
@@ -92,3 +95,27 @@ def get_all_acmg_rules():
     acmg_rules = get_acmg_rules()
 
     return Response(json.dumps({'isSuccess': True, 'acmgRules': acmg_rules}), 200, mimetype='application/json')
+
+
+@vus_views.route('/add-acmg-rule', methods=['POST'])
+def add_acmg_rule():
+    current_app.logger.info(f"Adding ACMG rule")
+
+    variant_id = request.form['variantId']
+    rule_id = request.form['ruleId']
+
+    res = add_acmg_rule_to_variant(int(variant_id), rule_id)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@vus_views.route('/remove-acmg-rule', methods=['POST'])
+def remove_acmg_rule():
+    current_app.logger.info(f"Removing ACMG rule")
+
+    variant_id = request.form['variantId']
+    rule_id = request.form['ruleId']
+
+    res = remove_acmg_rule_from_variant(int(variant_id), rule_id)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)

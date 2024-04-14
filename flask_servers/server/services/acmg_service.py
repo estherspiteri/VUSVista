@@ -4,7 +4,7 @@ from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
-from server.models import AcmgRules, VariantsSamplesAcmgRules
+from server.models import AcmgRules, VariantsAcmgRules
 from server.responses.internal_response import InternalResponse
 
 
@@ -14,11 +14,11 @@ def get_acmg_rules() -> List[Dict[str, str]]:
     return [{'id': r.id, 'name': r.rule_name.value, 'description': r.description, 'defaultStrength': r.default_strength.value} for r in acmg_rules]
 
 
-def add_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_id: str):
+def add_acmg_rule_to_variant(variant_id: int, acmg_rule_id: str):
     acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.id == acmg_rule_id).first()
-    variants_samples_acmg_rules = VariantsSamplesAcmgRules(sample_id=sample_id, variant_id=variant_id, acmg_rule_id=acmg_rule_id, rule_name=acmg_rule.rule_name)
+    variants_acmg_rules = VariantsAcmgRules(variant_id=variant_id, acmg_rule_id=acmg_rule_id, rule_name=acmg_rule.rule_name)
 
-    db.session.add(variants_samples_acmg_rules)
+    db.session.add(variants_acmg_rules)
 
     try:
         # Commit the session to persist changes to the database
@@ -29,14 +29,15 @@ def add_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_i
         db.session.rollback()
 
         current_app.logger.error(
-            f'Rollback carried out since insertion of SamplesVariantsAcmgRules entry in DB failed due to error: {e}')
+            f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
 
 
-def remove_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rule_id: str) -> InternalResponse:
-    samples_variants_acmg_rules = db.session.query(VariantsSamplesAcmgRules).filter_by(sample_id=sample_id, variant_id=variant_id, acmg_rule_id=acmg_rule_id).first()
+def remove_acmg_rule_from_variant(variant_id: int, acmg_rule_id: str) -> InternalResponse:
+    variants_acmg_rules = db.session.query(VariantsAcmgRules).filter_by(variant_id=variant_id,
+                                                                        acmg_rule_id=acmg_rule_id).first()
 
-    db.session.delete(samples_variants_acmg_rules)
+    db.session.delete(variants_acmg_rules)
 
     try:
         # Commit the session to persist changes to the database
@@ -47,5 +48,5 @@ def remove_acmg_rule_to_sample_variant(sample_id: str, variant_id: int, acmg_rul
         db.session.rollback()
 
         current_app.logger.error(
-            f'Rollback carried out since deletion of SamplesVariantsAcmgRules entry in DB failed due to error: {e}')
+            f'Rollback carried out since deletion of VariantsAcmgRules entry in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)

@@ -4,8 +4,8 @@ import pandas as pd
 
 from server import db
 from server.helpers.data_helper import get_variant_summary
-from server.models import Samples, FileUploads, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    VariantsSamplesAcmgRules, Variants, VariantsSamplesUploads
+from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
+    Variants, VariantsSamplesUploads
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
@@ -30,9 +30,6 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
     variants = []
 
     for v_s in variants_samples:
-        # get acmg rule ids
-        acmg_rule_ids = [r.acmg_rule_id for r in v_s.variants_samples_acmg_rules]
-
         variant_details: Variants = db.session.query(Variants).filter(Variants.id == v_s.variant_id).first()
 
         variant_summary = get_variant_summary(variant_details)
@@ -44,7 +41,7 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
                       files]
 
         variant_sample = {'variantId': v_s.variant_id, 'variant': variant_summary, 'genotype': v_s.genotype.value,
-                          'acmgRuleIds': acmg_rule_ids, 'files': file_dicts}
+                          'files': file_dicts}
         variants.append(variant_sample)
 
     return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version,
