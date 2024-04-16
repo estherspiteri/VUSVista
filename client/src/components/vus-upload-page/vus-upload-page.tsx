@@ -341,37 +341,38 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 }
               />
             </div>
+          </div>
+        </VusUploadField>
 
-            {/** ACMG Rules */}
-            <div className={styles["field-content"]}>
-              <span>
-                Choose the ACMG rules that the samples with this variant have
-              </span>
-              <div className={styles["acmg-rules-edit"]}>
-                <AcmgRulesEdit
-                  allAcmgRules={props.acmgRules}
-                  isAcmgMenuClosable={false}
-                  onMenuAcmgRuleHover={(acmgRuleId?: number) =>
-                    setAcmgRuleHover(acmgRuleId)
-                  }
-                  onAcmgRulesSelectionUpdate={(rules) => {
-                    setAcmgRules(
-                      props.acmgRules
-                        .filter((r) => rules.includes(r.id))
-                        .map((r) => {
-                          return { id: r.id, name: r.name };
-                        })
-                    );
-                  }}
-                />
-              </div>
-              <div className={styles["acmg-rules-info"]}>
-                <AcmgRuleInfo
-                  acmgRule={props.acmgRules?.find(
-                    (r) => r.id === acmgRuleHover
-                  )}
-                />
-              </div>
+        {/** ACMG Rules */}
+        <VusUploadField title="ACMG Rules">
+          {/** ACMG Rules */}
+          <div className={styles["field-content"]}>
+            <span>
+              Choose the ACMG rules that this variant has
+            </span>
+            <div className={styles["acmg-rules-edit"]}>
+              <AcmgRulesEdit
+                allAcmgRules={props.acmgRules}
+                isAcmgMenuClosable={false}
+                onMenuAcmgRuleHover={(acmgRuleId?: number) =>
+                  setAcmgRuleHover(acmgRuleId)
+                }
+                onAcmgRulesSelectionUpdate={(rules) => {
+                  setAcmgRules(
+                    props.acmgRules
+                      .filter((r) => rules.includes(r.id))
+                      .map((r) => {
+                        return { id: r.id, name: r.name };
+                      })
+                  );
+                }}
+              />
+            </div>
+            <div className={styles["acmg-rules-info"]}>
+              <AcmgRuleInfo
+                acmgRule={props.acmgRules?.find((r) => r.id === acmgRuleHover)}
+              />
             </div>
           </div>
         </VusUploadField>

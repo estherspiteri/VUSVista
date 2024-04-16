@@ -107,7 +107,10 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             </div>
             <div
               className={`${styles.info} ${
-                props.vus.clinvarClassification?.length === 0
+                (!props.vus.clinvarClassification ||
+                  props.vus.clinvarClassification?.length === 0) &&
+                (!props.vus.clinvarErrorMsg ||
+                  props.vus.clinvarErrorMsg?.length === 0)
                   ? styles.disabled
                   : props.vus.rsid?.length > 0 && !props.vus.rsidDbsnpVerified
                   ? styles["unverified-rsid"]

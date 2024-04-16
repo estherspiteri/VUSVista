@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-04-13T18:12:09.445Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="hBQDEL2G6HmQCdq5Qyv8" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-04-16T18:48:55.789Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="GgnyStLEh4_2OV8aWD3q" version="22.1.2" type="device" pages="2">
   <diagram name="Page-1" id="n0ZOhfGp7_fPpTbf6uh3">
     <mxGraphModel dx="2636" dy="2230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -1713,6 +1713,9 @@
             <mxPoint x="137" y="958" as="sourcePoint" />
             <mxPoint x="85" y="968" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-197" value="On addition of acmg rule from variant page OR on addition of publication" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="915.6" y="15" width="410" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
