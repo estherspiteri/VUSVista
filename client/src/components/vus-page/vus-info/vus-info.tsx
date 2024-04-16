@@ -153,24 +153,26 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <div className={styles["info-container"]}>
             <div className={styles["external-ref-title-container"]}>
               <p className={styles["info-title"]}>dbSNP:</p>
-              <Icon
-                name="external-link"
-                className={`${styles["external-link"]} ${styles.dbsnp} ${
-                  props.vus.rsidDbsnpVerified
-                    ? styles.active
-                    : props.vus.rsid?.length > 0
-                    ? styles["unverified-rsid"]
-                    : styles.disabled
-                }`}
-                onClick={(e) => {
-                  if (props.vus.rsidDbsnpVerified) {
-                    e.stopPropagation();
-                    openInNewWindow(
-                      `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
-                    );
-                  }
-                }}
-              />
+              {props.vus.rsid?.length > 0 && (
+                <Icon
+                  name="external-link"
+                  className={`${styles["external-link"]} ${styles.dbsnp} ${
+                    props.vus.rsidDbsnpVerified
+                      ? styles.active
+                      : props.vus.rsid?.length > 0
+                      ? styles["unverified-rsid"]
+                      : styles.disabled
+                  }`}
+                  onClick={(e) => {
+                    if (props.vus.rsidDbsnpVerified) {
+                      e.stopPropagation();
+                      openInNewWindow(
+                        `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
+                      );
+                    }
+                  }}
+                />
+              )}
             </div>
 
             <div
@@ -280,36 +282,45 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <p className={styles["info-title"]}>
             Phenotypes of the above samples:
           </p>
-          <p className={styles["info-description"]}>
-            Checkout if there are any publications for this variant in relation
-            the a phenotype by clicking on the book icon next to the phenotype.
-          </p>
-          <div className={styles.phenotypes}>
-            {props.vus.phenotypes.map((p) => (
-              <div className={styles["phenotype-container"]}>
-                <div className={styles.bullet}>{"\u25CF"}</div>
-                <div
-                  className={styles.phenotype}
-                  onClick={() =>
-                    openInNewWindow(
-                      `https://hpo.jax.org/app/browse/term/${p.ontologyId}`
-                    )
-                  }
-                >
-                  <b>{p.ontologyId}</b>: {p.name}
-                </div>
-                <Icon
-                  name="publication"
-                  className={styles["pub-icon"]}
-                  onClick={() =>
-                    openInNewWindow(
-                      `/publication-phenotype-view/${props.vus.id}?rsid=${props.vus.rsid}&phenotype=${p.name}`
-                    )
-                  }
-                />
+          {props.vus.phenotypes.length > 0 ? (
+            <>
+              <p className={styles["info-description"]}>
+                Checkout if there are any publications for this variant in
+                relation the a phenotype by clicking on the book icon next to
+                the phenotype.
+              </p>
+              <div className={styles.phenotypes}>
+                {props.vus.phenotypes.map((p) => (
+                  <div className={styles["phenotype-container"]}>
+                    <div className={styles.bullet}>{"\u25CF"}</div>
+                    <div
+                      className={styles.phenotype}
+                      onClick={() =>
+                        openInNewWindow(
+                          `https://hpo.jax.org/app/browse/term/${p.ontologyId}`
+                        )
+                      }
+                    >
+                      <b>{p.ontologyId}</b>: {p.name}
+                    </div>
+                    <Icon
+                      name="publication"
+                      className={styles["pub-icon"]}
+                      onClick={() =>
+                        openInNewWindow(
+                          `/publication-phenotype-view/${props.vus.id}?rsid=${props.vus.rsid}&phenotype=${p.name}`
+                        )
+                      }
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <p className={styles["info-description"]}>
+              The samples have no saved phenotypes.
+            </p>
+          )}
         </div>
       </div>
     </div>
