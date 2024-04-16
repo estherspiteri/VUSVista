@@ -98,6 +98,10 @@
           &.unverified-rsid {
             opacity: 0.8;
             background-color: #a51534 !important;
+
+            svg {
+              fill: #fff;
+            }
           }
         }
       }

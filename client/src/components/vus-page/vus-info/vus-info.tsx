@@ -164,7 +164,10 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       : styles.disabled
                   }`}
                   onClick={(e) => {
-                    if (props.vus.rsidDbsnpVerified) {
+                    if (
+                      props.vus.rsidDbsnpVerified ||
+                      props.vus.rsid?.length > 0
+                    ) {
                       e.stopPropagation();
                       openInNewWindow(
                         `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
@@ -204,12 +207,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                           <div className={styles["info-title"]}>
                             Suggested RSID:
                           </div>
-                          <a
-                            href={`https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`}
-                            target="_blank"
-                          >
-                            {props.vus.rsid}
-                          </a>
+                          {props.vus.rsid}
                         </div>
                       )}
                       <div className={styles.information}>
