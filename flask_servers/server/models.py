@@ -146,7 +146,8 @@ class Clinvar(Base):
         UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
 
-    id = mapped_column(Text)
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    uid = mapped_column(Text)
     external_clinvar_id = mapped_column(Integer, nullable=False)
     canonical_spdi = mapped_column(Text, nullable=False)
     classification = mapped_column(Text)
@@ -164,7 +165,8 @@ class DbSnp(Base):
         UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
 
-    id = mapped_column(String(15))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    rsid = mapped_column(String(15))
     external_db_snp_id = mapped_column(Integer, nullable=False)
 
     external_db_snp: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='db_snp')

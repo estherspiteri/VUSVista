@@ -38,7 +38,7 @@ def retrieve_all_vus_summaries_from_db():
                     DbSnp.external_db_snp_id == ref.id
                 ).one_or_none()
 
-                vus_df.at[index, 'rsid'] = dbsnp.id
+                vus_df.at[index, 'rsid'] = dbsnp.rsid
                 vus_df.at[index, 'rsidDbsnpVerified'] = len(ref.error_msg) == 0
 
     var_list = convert_df_to_list(vus_df)
@@ -67,7 +67,7 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
                 DbSnp.external_db_snp_id == ref.id
             ).one_or_none()
 
-            variant_data['rsid'] = dbsnp.id
+            variant_data['rsid'] = dbsnp.rsid
             variant_data['rsidDbsnpVerified'] = len(ref.error_msg) == 0
             variant_data['rsidDbsnpErrorMsgs'] = ref.error_msg
 
@@ -83,7 +83,7 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
                 clinvar_last_evaluated = None
 
             # populate the clinvar fields
-            variant_data['clinvarUid'] = clinvar.id
+            variant_data['clinvarUid'] = clinvar.uid
             variant_data['clinvarCanonicalSpdi'] = clinvar.canonical_spdi
             variant_data['clinvarClassification'] = clinvar.classification
             variant_data['clinvarClassificationReviewStatus'] = clinvar.review_status

@@ -16,7 +16,8 @@ def get_variant_from_db(vus_df_row: Series) -> Variants | None:
             Variants.chromosome_position == vus_df_row['Position'],
             Variants.variant_type == vus_df_row['Type'],
             Variants.ref == vus_df_row['Reference'],
-            Variants.alt == vus_df_row['Alt']
+            Variants.alt == vus_df_row['Alt'],
+            Variants.gene_id == vus_df_row['Gene Id']
         ).one_or_none()
 
         return variant

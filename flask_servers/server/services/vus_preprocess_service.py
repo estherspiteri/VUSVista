@@ -310,13 +310,13 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
 def preprocess_vus(vus_df: pd.DataFrame):
     vus_df = add_missing_columns(vus_df)
 
+    if 'Gene Id' not in vus_df.keys():
+        vus_df = get_gene_ids(vus_df)
+
     # check for existing variants
     existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
 
     if len(vus_df) > 0:
-        if 'Gene Id' not in vus_df.keys():
-            vus_df = get_gene_ids(vus_df)
-
         preprocess_and_get_rsids_res = get_rsids(vus_df)
 
         if preprocess_and_get_rsids_res.status != 200:
@@ -377,7 +377,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
 
             db.session.flush()
 
-            new_dbsnp = DbSnp(id=row['RSID'],
+            new_dbsnp = DbSnp(rsid=row['RSID'],
                               external_db_snp_id=new_dbnsp_external_ref.id)
             db.session.add(new_dbsnp)
 
@@ -393,7 +393,7 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
             if len(row['Clinvar classification last eval']):
                 clinvar_last_evaluated = datetime.strptime(row['Clinvar classification last eval'], '%Y/%m/%d %H:%M')
 
-            new_clinvar = Clinvar(id=row['Clinvar uid'],
+            new_clinvar = Clinvar(uid=row['Clinvar uid'],
                                   external_clinvar_id=new_clinvar_external_ref.id,
                                   canonical_spdi=row['Clinvar canonical spdi'],
                                   classification=row['Clinvar classification'],

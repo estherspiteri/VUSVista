@@ -588,7 +588,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       refAllele: refAllele.toUpperCase(),
       altAllele: altAllele.toUpperCase(),
       genotype:
-        genotype === "heterozygous"
+        genotype === "Heterozygous"
           ? `${refAllele.toUpperCase()}/${altAllele.toUpperCase()}`
           : `${altAllele.toUpperCase()}/${altAllele.toUpperCase()}`,
       type: type,

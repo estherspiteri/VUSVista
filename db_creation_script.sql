@@ -94,7 +94,8 @@ CREATE TABLE external_references (
 );
 
 CREATE TABLE db_snp (
-    id VARCHAR(15) PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    rsid VARCHAR(15) PRIMARY KEY,
     external_db_snp_id INT NOT NULL UNIQUE,
     CONSTRAINT fk_external_references
             FOREIGN KEY (external_db_snp_id) 
@@ -102,7 +103,8 @@ CREATE TABLE db_snp (
 );
 
 CREATE TABLE clinvar (
-    id TEXT PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    uid TEXT PRIMARY KEY,
     external_clinvar_id INT NOT NULL UNIQUE,
     canonical_spdi TEXT NOT NULL,
     classification TEXT,

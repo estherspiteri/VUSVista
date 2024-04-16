@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-04-16T18:48:55.789Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="GgnyStLEh4_2OV8aWD3q" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-04-16T19:43:28.028Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="viu-w1BENH-4G9IwMSqt" version="22.1.2" type="device" pages="2">
   <diagram name="Page-1" id="n0ZOhfGp7_fPpTbf6uh3">
     <mxGraphModel dx="2636" dy="2230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -619,7 +619,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="-2XMd0_jFtocuSsgo2nn" name="Page-2">
-    <mxGraphModel dx="2093" dy="1941" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1671" dy="1684" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1089,12 +1089,6 @@
             <mxPoint x="705.57" y="994.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="6C0SObV1-QNve3I2pQrh-7" value="uid" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
-          <mxGeometry x="1417.1299999999997" y="311.5" width="40" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="6C0SObV1-QNve3I2pQrh-8" value="rsid" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
-          <mxGeometry x="1410.08" y="177" width="40" height="30" as="geometry" />
-        </mxCell>
         <mxCell id="6C0SObV1-QNve3I2pQrh-9" value="file_uploads" style="whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="-162.21000000000004" y="1087" width="100" height="40" as="geometry" />
         </mxCell>
@@ -1200,11 +1194,11 @@
             <mxPoint x="1047.1299999999997" y="373" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="6C0SObV1-QNve3I2pQrh-63" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
+        <mxCell id="6C0SObV1-QNve3I2pQrh-63" value="rsid" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="1454.27" y="192.5" width="57.86" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="6C0SObV1-QNve3I2pQrh-64" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
-          <mxGeometry x="1409.8799999999997" y="341.5" width="56.53" height="30" as="geometry" />
+        <mxCell id="6C0SObV1-QNve3I2pQrh-64" value="&lt;b&gt;&amp;nbsp;&lt;/b&gt;uid" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1419.9999999999995" y="336" width="56.53" height="30" as="geometry" />
         </mxCell>
         <mxCell id="6C0SObV1-QNve3I2pQrh-66" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="558.57" y="988.5" width="53" height="30" as="geometry" />
@@ -1714,8 +1708,29 @@
             <mxPoint x="85" y="968" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Se3oO94y5y9juY0bp-Zk-197" value="On addition of acmg rule from variant page OR on addition of publication" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="915.6" y="15" width="410" height="30" as="geometry" />
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-198" value="User can manually add publications to a variant. (via pmid / link)&lt;br&gt;&lt;br&gt;Users can create a review and link it to an existing acmg rule/publication for a given variant&lt;br&gt;&lt;br&gt;When user manually adds&amp;nbsp; an acmg rule:&lt;br&gt;check if it impacts the variants classification,&lt;br&gt;if it does&lt;br&gt;then user needs to create a review (pre-filled acmg rule)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="856.13" y="35" width="510" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-199" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1308.2700000000002" y="192.5" width="57.86" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-200" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Se3oO94y5y9juY0bp-Zk-199" target="Dt5rozKJsrJHjBAGdHYT-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1473" y="228" as="sourcePoint" />
+            <mxPoint x="1443" y="253" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-202" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Se3oO94y5y9juY0bp-Zk-203" target="O4a-i7bcokG0-uaq7Jov-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1448.4599999999996" y="412.5" as="sourcePoint" />
+            <mxPoint x="1443" y="429" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-203" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1324.0699999999997" y="342" width="56.53" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-204" value="RSID or uid cannot be unique since sometimes&amp;nbsp;&lt;br&gt;an rsid is suggested (with an error msg)&amp;nbsp; &lt;br&gt;=&amp;gt; a valid variant &amp;amp; an invalid variant with suggestion&lt;br&gt;may have the same rsid/uid&amp;nbsp;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1366.13" y="115.75" width="310" height="70" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
