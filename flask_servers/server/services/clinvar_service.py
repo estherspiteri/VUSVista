@@ -1,9 +1,13 @@
+import requests
+import xmltodict
 from flask import current_app
 import pandas as pd
 import time
 import json
 from Bio import Entrez
+from requests import RequestException
 
+from typing import Dict
 from server.responses.internal_response import InternalResponse
 
 
@@ -29,85 +33,83 @@ def retrieve_clinvar_ids(rsid: str) -> InternalResponse:
 
 # Function to retrieve the variant's Clinvar document summary
 # The esummary() function is used to return document summaries from ClinVar for a given ClinVar unique variant id.
-def retrieve_clinvar_document_summary(clinvar_id: str):
+def retrieve_clinvar_dict(clinvar_id: str):
+    # retrieve RSIDs if they exist for a given variant
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={clinvar_id}&from_esearch=true"
+
     try:
-        # retrieve document summary - can take multiple ids
-        handle = Entrez.esummary(db="clinvar", id=clinvar_id, retmode='json')
+        clinvar_res = requests.post(url)
+    except RequestException as e:
+        current_app.logger.error(f'Failed to connect to Entrez Clinvar Service: {e}')
+        # send service unavailable status code
+        return InternalResponse(None, 503, e)
 
-        # Read the JSON data
-        json_data = handle.read()
-
-        # Parse the JSON data
-        document_summary_dict = json.loads(json_data)
-        handle.close()
-    except IOError as e:
-        current_app.logger.error(f'Network error when calling Entrez.esummary(): {str(e)}')
-        return InternalResponse(None, e.errno, str(e))
-
-    return InternalResponse(document_summary_dict['result'][clinvar_id], 200)
+    if clinvar_res.status_code != 200:
+        current_app.logger.error(f'Entrez Clinvar Service failed: {clinvar_res.reason}')
+        return InternalResponse(None, clinvar_res.status_code, clinvar_res.reason)
+    else:
+        clinvar_res_dict = xmltodict.parse(clinvar_res.text)
+        return InternalResponse(clinvar_res_dict, 200)
 
 
 # Compare variant's properties with the properties of the ClinVar variant.
 # Note:
 # - When a ClinVar variant has multiple genes, then each gene is compared with the expeceted gene until a match is found.
 # - The genotype is compared when the Variant Validator request is made (not in the below fn).
-def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved_var_clinvar_doc_summary, gene: str,
+def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved_var_clinvar_dict, gene: str,
                                                   chr: str, chr_pos: str) -> tuple[bool, str]:
+
+    clinvar_allele = (retrieved_var_clinvar_dict.get('ClinVarResult-Set').get('VariationArchive')
+                      .get('ClassifiedRecord').get('SimpleAllele'))
+
     # compare expected and retrieved variant's gene
-    doc_genes = retrieved_var_clinvar_doc_summary.get('genes')
+    clinvar_genes = clinvar_allele.get('GeneList')
 
     # if none of the genes match the expected gene
-    if gene not in [x['symbol'] for x in doc_genes]:
-        return False, (f"None of the gene names {[gene_name['symbol'] for gene_name in doc_genes]} "
+    if gene not in [clinvar_genes[key]['@Symbol'] for key in clinvar_genes.keys()]:
+        return False, (f"None of the gene names {[clinvar_genes[key]['@Symbol'] for key in clinvar_genes.keys()]} "
                        f"match the expected gene name {gene}!")
 
-    variation_set_arr = retrieved_var_clinvar_doc_summary.get('variation_set')
-    if len(variation_set_arr) > 0:
-        variation_set = variation_set_arr[0]
-        variation_locations = variation_set.get('variation_loc')
-
-        for loc in variation_locations:
-            if loc['assembly_name'] == genome_version:
-                # compare expected and retrieved variant's chromosome
-                if loc['chr'] != chr:
-                    return False, f"Chromosome {loc['chr']} does not match the expected chromosome {chr}!"
-                # compare expected and retrieved variant's chromosome position
-                elif loc['start'] != str(chr_pos):
-                    return False, (f"Chromosome start position {loc['start']} does not match the expected chromosome "
-                                   f"position {chr_pos}!")
-                break
+    clinvar_locations = clinvar_allele.get('Location').get('SequenceLocation')
+    for loc in clinvar_locations:
+        if loc.get('@Assembly') == genome_version:
+            # compare expected and retrieved variant's chromosome
+            if loc.get('@Chr') != chr:
+                return False, f"Chromosome {loc.get('@Chr')} does not match the expected chromosome {chr}!"
+            # compare expected and retrieved variant's chromosome position
+            elif loc.get('@start') != str(chr_pos):
+                return False, (f"Chromosome start position {loc.get('@start')} does not match the expected chromosome "
+                               f"position {chr_pos}!")
+            break
+        #TODO compare ref & alt alleles
 
     return True, ''
 
 
 # Retrieve the ClinVar variant's clinical significance.
-def extract_clinvar_clinical_significance(clinvar_doc_summary):
-    clinical_significance_obj = clinvar_doc_summary.get('germline_classification')
+def extract_clinvar_germline_classification(clinvar_dict: Dict):
+    germline_classification = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
+                      .get('Classifications').get('GermlineClassification'))
 
     last_eval = ""
-    if (clinical_significance_obj['last_evaluated'] != "1/01/01 00:00" and
-            len(clinical_significance_obj['description']) == 0):
-        last_eval = clinical_significance_obj['last_evaluated']
+    if germline_classification.get('@DateLastEvaluated') != "1/01/01 00:00":
+        last_eval = germline_classification.get('@DateLastEvaluated').replace('-', '/') + ' 00:00'
 
-    return {'description': clinical_significance_obj['description'], 'last_evaluated': last_eval,
-            'review_status': clinical_significance_obj['review_status']}
+    return {'description': germline_classification.get('Description'), 'last_evaluated': last_eval,
+            'review_status': germline_classification.get('ReviewStatus')}
 
 
 # Retrieve the ClinVar variant's canonical SPDI.
-def extract_clinvar_canonical_spdi(clinvar_doc_summary):
-    canonical_spdi = ''
-
-    variation_set_arr = clinvar_doc_summary.get('variation_set')
-
-    if len(variation_set_arr) > 0:
-        canonical_spdi = variation_set_arr[0]['canonical_spdi']
+def extract_clinvar_canonical_spdi(clinvar_dict: Dict):
+    canonical_spdi = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
+                         .get('SimpleAllele').get('CanonicalSPDI'))
 
     return canonical_spdi
 
 
 # Retrieve the ClinVar variant's uid.
-def extract_clinvar_uid(clinvar_doc_summary):
-    return clinvar_doc_summary['uid']
+def extract_clinvar_uid(clinvar_dict: Dict):
+    return clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('@VariationID')
 
 
 def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str,
@@ -139,23 +141,23 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
 
             time.sleep(0.5)
 
-            retrieve_clinvar_document_summary_res = retrieve_clinvar_document_summary(var_id)
+            retrieve_clinvar_dict_res = retrieve_clinvar_dict(var_id)
 
-            if retrieve_clinvar_document_summary_res.status != 200:
+            if retrieve_clinvar_dict_res.status != 200:
                 current_app.logger.error(
                     f"Retrieval of ClinVar document summary for ClinVar Id {var_id} and RSID {rsid} failed 500!")
                 return InternalResponse(None, 500)
             else:
-                document_summary = retrieve_clinvar_document_summary_res.data
+                clinvar_dict = retrieve_clinvar_dict_res.data
 
                 if is_success:
                     are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(genome_version,
-                                                                                              document_summary,
+                                                                                              clinvar_dict,
                                                                                               gene, chr, chr_pos)
                     if are_equivalent:
-                        clinical_significance = extract_clinvar_clinical_significance(document_summary)
-                        canonical_spdi = extract_clinvar_canonical_spdi(document_summary)
-                        uid = extract_clinvar_uid(document_summary)
+                        clinical_significance = extract_clinvar_germline_classification(clinvar_dict)
+                        canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict)
+                        uid = extract_clinvar_uid(clinvar_dict)
                     else:
                         is_success = False
 

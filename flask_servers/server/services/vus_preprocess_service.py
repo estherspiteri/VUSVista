@@ -146,7 +146,8 @@ def filter_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResp
         multiple_genes = check_for_multiple_genes(vus_df)
         # TODO: remove other function for multiple genes
 
-        return InternalResponse({'multiple_genes': multiple_genes}, 200)
+        if len(multiple_genes) > 0:
+            return InternalResponse({'multiple_genes': multiple_genes}, 200)
 
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
@@ -344,7 +345,7 @@ def preprocess_vus(vus_df: pd.DataFrame):
 def preprocess_vus_from_file(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
     filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
 
-    if filter_vus_res.data['multiple_genes'] is not None:
+    if filter_vus_res.data['multiple_genes'] is not None and len(filter_vus_res.data['multiple_genes']) > 0:
         current_app.logger.info(f'Some VUS contain multiple genes!')
         return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
                                  'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
@@ -687,7 +688,8 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
         response = preprocess_vus_res.data
         response['isSuccess'] = False
         return Response(json.dumps(response), 200)
-    elif one_time_filter_flag:
+    elif (one_time_filter_flag and preprocess_vus_res.data['multiple_genes'] is not None
+          and len(preprocess_vus_res.data['multiple_genes']) > 0):
         return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes']}),
                         200, mimetype='application/json')
     else:
