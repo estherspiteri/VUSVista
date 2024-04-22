@@ -104,8 +104,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
         <div className={styles.description}>
           <p>
             Click on each section to fill in the variant details. A correctly
-            filled-in section is marked with a tick on the right-hand side.{" "}
+            filled-in section is marked with a tick on the right-hand side. The ACMG Rules section is optional.
           </p>
+          <p>It is assumed that the variant information inputted is based on the <b>GRCh37 (hg19)</b> build. </p>
         </div>
 
         <div className={styles["fields-wrapper"]}>
