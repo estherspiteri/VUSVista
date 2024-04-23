@@ -15,7 +15,7 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
   props: VusPageProps
 ) => {
   return (
-    <div className={styles["sample-page-container"]}>
+    <div className={styles["vus-page-container"]}>
       <div className={styles.title}>Vus Information</div>
       <div className={styles.description}>
         <p>Below you can find information about the selected variant.</p>
