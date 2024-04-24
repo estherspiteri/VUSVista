@@ -7,7 +7,7 @@ import json
 from Bio import Entrez
 from requests import RequestException
 
-from typing import Dict
+from typing import Dict, List
 from server.responses.internal_response import InternalResponse
 
 
@@ -33,9 +33,28 @@ def retrieve_clinvar_ids(rsid: str) -> InternalResponse:
 
 # Function to retrieve the variant's Clinvar document summary
 # The esummary() function is used to return document summaries from ClinVar for a given ClinVar unique variant id.
-def retrieve_clinvar_dict(clinvar_id: str):
-    # retrieve RSIDs if they exist for a given variant
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={clinvar_id}&from_esearch=true"
+def retrieve_clinvar_dict(clinvar_uid: str):
+    # retrieve clinvar info for a single variant
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={clinvar_uid}&from_esearch=true"
+
+    try:
+        clinvar_res = requests.post(url)
+    except RequestException as e:
+        current_app.logger.error(f'Failed to connect to Entrez Clinvar Service: {e}')
+        # send service unavailable status code
+        return InternalResponse(None, 503, e)
+
+    if clinvar_res.status_code != 200:
+        current_app.logger.error(f'Entrez Clinvar Service failed: {clinvar_res.reason}')
+        return InternalResponse(None, clinvar_res.status_code, clinvar_res.reason)
+    else:
+        clinvar_res_dict = xmltodict.parse(clinvar_res.text)
+        return InternalResponse(clinvar_res_dict, 200)
+
+
+def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]): # TODO: can this replace retrieve_clinvar_dict?
+    # retrieve clinvar info for multiple variants
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={','.join(clinvar_ids)}&from_esearch=true"
 
     try:
         clinvar_res = requests.post(url)
@@ -126,26 +145,26 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
         current_app.logger.error(f"Retrieval of ClinVar id for {rsid} failed 500!")
         return InternalResponse(None, 500)
     else:
-        var_ids = retrieve_clinvar_ids_res.data
+        var_clinvar_ids = retrieve_clinvar_ids_res.data
 
         # check the number of ClinVar IDs returned for a variant search
-        if len(var_ids) == 0:
+        if len(var_clinvar_ids) == 0:
             error_msg = 'ClinVar ID has not been found!'
             is_success = False
-        elif len(var_ids) > 1:
-            error_msg = f'The following ClinVar IDs returned: {var_ids}'
+        elif len(var_clinvar_ids) > 1:
+            error_msg = f'The following ClinVar IDs returned: {var_clinvar_ids}'
             is_success = False
         # if only a single ClinVar ID has been returned
         else:
-            var_id = var_ids[0]
+            var_clinvar_id = var_clinvar_ids[0]
 
             time.sleep(0.5)
 
-            retrieve_clinvar_dict_res = retrieve_clinvar_dict(var_id)
+            retrieve_clinvar_dict_res = retrieve_clinvar_dict(var_clinvar_id)
 
             if retrieve_clinvar_dict_res.status != 200:
                 current_app.logger.error(
-                    f"Retrieval of ClinVar document summary for ClinVar Id {var_id} and RSID {rsid} failed 500!")
+                    f"Retrieval of ClinVar document summary for ClinVar Id {var_clinvar_id} and RSID {rsid} failed 500!")
                 return InternalResponse(None, 500)
             else:
                 clinvar_dict = retrieve_clinvar_dict_res.data

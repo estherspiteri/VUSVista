@@ -9,6 +9,7 @@ export interface IVus {
   clinvarClassificationLastEval?: string;
   clinvarClassificationReviewStatus?: string;
   clinvarCanonicalSpdi?: string;
+  clinvarId?: number;
   clinvarUid?: string;
   clinvarErrorMsg?: string;
   gene: string;

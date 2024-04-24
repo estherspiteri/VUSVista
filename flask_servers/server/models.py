@@ -7,7 +7,7 @@ from enum import Enum
 from sqlalchemy import Boolean, CHAR, Column, Date, DateTime, Double, Enum as EnumSQL, ForeignKeyConstraint, Identity, \
     Integer, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, mapped_column, relationship
-from sqlalchemy.orm.base import Mapped
+from sqlalchemy.orm.base import Mapped, Optional
 from flask_login import UserMixin
 
 from server import db
@@ -138,6 +138,37 @@ class ExternalReferences(Base):
     db_snp: Mapped['DbSnp'] = relationship('DbSnp', uselist=False, back_populates='external_db_snp')
 
 
+class ClinvarUpdates(Base):
+    __tablename__ = 'clinvar_updates'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='clinvar_updates_pkey'),
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    classification = mapped_column(Text)
+    review_status = mapped_column(Text)
+    last_evaluated = mapped_column(DateTime)
+
+    clinvar_eval_dates: Mapped['ClinvarEvalDates'] = relationship('ClinvarEvalDates', back_populates='clinvar_update')
+
+
+class ClinvarEvalDates(Base):
+    __tablename__ = 'clinvar_eval_dates'
+    __table_args__ = (
+        ForeignKeyConstraint(['clinvar_id'], ['clinvar.id'], name='fk_clinvar'),
+        ForeignKeyConstraint(['clinvar_update_id'], ['clinvar_updates.id'], name='fk_clinvar_updates'),
+        PrimaryKeyConstraint('id', name='clinvar_eval_dates_pkey')
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    clinvar_id = mapped_column(Integer, nullable=False)
+    clinvar_update_id = mapped_column(Integer)
+    eval_date = mapped_column(DateTime)
+
+    clinvar: Mapped['Clinvar'] = relationship('Clinvar', back_populates='clinvar_eval_dates')
+    clinvar_update: Mapped[Optional['ClinvarUpdates']] = relationship('ClinvarUpdates', back_populates='clinvar_eval_dates')
+
+
 class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
@@ -147,14 +178,12 @@ class Clinvar(Base):
     )
 
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
-    uid = mapped_column(Text)
+    uid = mapped_column(Text, nullable=False)
     external_clinvar_id = mapped_column(Integer, nullable=False)
     canonical_spdi = mapped_column(Text, nullable=False)
-    classification = mapped_column(Text)
-    last_evaluated = mapped_column(DateTime)
-    review_status = mapped_column(Text)
 
     external_clinvar: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='clinvar')
+    clinvar_eval_dates: Mapped[List['ClinvarEvalDates']] = relationship('ClinvarEvalDates', uselist=True, back_populates='clinvar')
 
 
 class DbSnp(Base):
@@ -166,7 +195,7 @@ class DbSnp(Base):
     )
 
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
-    rsid = mapped_column(String(15))
+    rsid = mapped_column(String(15), nullable=False)
     external_db_snp_id = mapped_column(Integer, nullable=False)
 
     external_db_snp: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='db_snp')

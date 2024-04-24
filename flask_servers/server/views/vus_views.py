@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 import pandas as pd
@@ -5,7 +6,7 @@ from flask import Blueprint, Response, current_app, request
 import json
 
 from server import db
-from server.models import GeneAttributes
+from server.models import GeneAttributes, Clinvar, ClinvarEvalDates, ClinvarUpdates
 from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_variant, remove_acmg_rule_from_variant
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
@@ -119,3 +120,27 @@ def remove_acmg_rule():
     res = remove_acmg_rule_from_variant(int(variant_id), rule_id)
 
     return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@vus_views.route('/get_clinvar_updates/<string:clinvar_id>', methods=['GET'])
+def get_clinvar_updates(clinvar_id: str):
+    current_app.logger.info(f"User requested all clinvar updates for Clinvar id {clinvar_id} ")
+
+    clinvar_updates_list = []
+
+    clinvar: Clinvar = db.session.get(Clinvar, int(clinvar_id))
+
+    eval_dates: List[ClinvarEvalDates] = clinvar.clinvar_eval_dates
+
+    # reversed to get dates in desc order
+    eval_dates.reverse()
+
+    for eval_date in eval_dates:
+        update = None
+        if eval_date.clinvar_update_id is not None:
+            clinvar_update: ClinvarUpdates = eval_date.clinvar_update
+            update = {'classification': clinvar_update.classification, 'reviewStatus': clinvar_update.review_status, 'lastEval': datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
+
+        clinvar_updates_list.append({'dateChecked': datetime.strftime(eval_date.eval_date, '%Y/%m/%d %H:%M'), 'update': update})
+
+    return Response(json.dumps({'isSuccess': True, 'clinvarUpdates': clinvar_updates_list}), 200, mimetype='application/json')

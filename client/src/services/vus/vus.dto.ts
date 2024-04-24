@@ -1,4 +1,5 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
+import { IClinvarUpdate } from "../../models/clinvar-updates.model";
 import { IVus } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -82,4 +83,13 @@ export interface IRemoveAcmgRuleRequest {
 
 export interface IRemoveAcmgRuleResponse {
   isSuccess: boolean;
+}
+
+export interface IGetClinvarUpdatesRequest {
+  clinvarId: number;
+}
+
+export interface IGetClinvarUpdatesResponse {
+  isSuccess: boolean;
+  clinvarUpdates: IClinvarUpdate[];
 }

@@ -9,6 +9,9 @@ import { IAcmgRule } from "../../../models/acmg-rule.model";
 import AcmgRulesEdit from "../../sample-page/acmg-rules-edit/acmg-rules-edit";
 import { VusService } from "../../../services/vus/vus.service";
 import AcmgRuleInfo from "../../sample-page/acmg-rule-info/acmg-rule-info";
+import { IClinvarUpdate } from "../../../models/clinvar-updates.model";
+import Modal from "../../../atoms/modal/modal";
+import Loader from "../../../atoms/loader/loader";
 
 type VusInfoProps = {
   vus: IVus;
@@ -23,6 +26,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
     undefined
   );
   const [isAcmgEditMenuOpen, setIsAcmgEditMenuOpen] = useState(false);
+
+  const [showClinvarArchiveModal, setShowClinvarArchiveModal] = useState(false);
+  const [clinvarUpdates, setClinvarUpdates] = useState<IClinvarUpdate[]>([]);
 
   return (
     <div className={styles["vus-info-container"]}>
@@ -146,6 +152,12 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   No Clinvar entry found based on dbSNP's RSID
                 </div>
               )}
+            </div>
+            <div
+              className={styles["clinvar-archive-link"]}
+              onClick={getClinvarUpdates}
+            >
+              Click here to view Clinvar updates
             </div>
           </div>
 
@@ -321,8 +333,66 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           )}
         </div>
       </div>
+
+      {showClinvarArchiveModal && (
+        <Modal
+          title="Clinvar updates archive"
+          isClosable={true}
+          onCloseIconClickCallback={() => setShowClinvarArchiveModal(false)}
+        >
+          {clinvarUpdates.length > 0 ? (
+            <div className={styles["clinvar-updates"]}>
+              <p>
+                Below is a list of dates when Clinvar was checked for updates.
+              </p>
+              <p>
+                Dates marked in bold indicate a change in Clinvar's germline
+                classifcation. Such dates are followed by details related to the
+                classifcation change.
+              </p>
+              {clinvarUpdates.map((u) => (
+                <div
+                  className={`${styles["clinvar-update-info"]} ${
+                    u.update ? styles["clinvar-update-info-with-update"] : ""
+                  }`}
+                >
+                  <p className={styles["clinvar-date-checked-container"]}>
+                    <div className={styles.bullet}>{"\u25CF"}</div>
+                    <span className={styles["clinvar-date-checked"]}>
+                      {u.dateChecked}
+                    </span>
+                  </p>
+                  {u.update && (
+                    <div className={styles["clinvar-update"]}>
+                      <p>Last evaluated: {u.update.lastEval}</p>
+                      <p>Classification: {u.update.classification}</p>
+                      <p>Review status: {u.update.reviewStatus}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Loader />
+          )}
+        </Modal>
+      )}
     </div>
   );
+
+  function getClinvarUpdates() {
+    setShowClinvarArchiveModal(true);
+
+    if (clinvarUpdates.length === 0) {
+      props.vusService
+        .getClinvarUpdates({ clinvarId: props.vus.clinvarId })
+        .then((res) => {
+          if (res.isSuccess) {
+            setClinvarUpdates(res.clinvarUpdates);
+          }
+        });
+    }
+  }
 };
 
 export default VusInfo;

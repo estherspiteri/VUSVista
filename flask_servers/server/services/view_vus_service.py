@@ -2,10 +2,12 @@ from datetime import datetime
 from typing import List, Dict
 
 import pandas as pd
+from sqlalchemy import desc
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
-from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples
+from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, \
+    ClinvarEvalDates, ClinvarUpdates
 
 
 def retrieve_all_vus_summaries_from_db():
@@ -46,6 +48,21 @@ def retrieve_all_vus_summaries_from_db():
     return var_list
 
 
+def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
+    clinvar_eval_date: ClinvarEvalDates = db.session.query(ClinvarEvalDates).filter(
+        ClinvarEvalDates.clinvar_id == clinvar_id, ClinvarEvalDates.clinvar_update_id.is_not(None)).order_by(
+        desc(ClinvarEvalDates.eval_date)).first()
+
+    clinvar_update = clinvar_eval_date.clinvar_update
+
+    if clinvar_update.last_evaluated is not None:
+        clinvar_last_evaluated = datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
+    else:
+        clinvar_last_evaluated = None
+
+    return clinvar_update.id, clinvar_update.review_status, clinvar_update.classification, clinvar_last_evaluated
+
+
 def retrieve_vus_from_db(vus_id: int) -> Dict:
     variant: Variants = db.session.query(Variants).filter(Variants.id == vus_id).first()
 
@@ -77,18 +94,17 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
                 Clinvar.external_clinvar_id == ref.id
             ).one_or_none()
 
-            if clinvar.last_evaluated is not None:
-                clinvar_last_evaluated = datetime.strftime(clinvar.last_evaluated, '%Y/%m/%d %H:%M')
-            else:
-                clinvar_last_evaluated = None
+            if clinvar is not None:
+                clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
 
-            # populate the clinvar fields
-            variant_data['clinvarUid'] = clinvar.uid
-            variant_data['clinvarCanonicalSpdi'] = clinvar.canonical_spdi
-            variant_data['clinvarClassification'] = clinvar.classification
-            variant_data['clinvarClassificationReviewStatus'] = clinvar.review_status
-            variant_data['clinvarClassificationLastEval'] = clinvar_last_evaluated
-            variant_data['clinvarErrorMsg'] = ref.error_msg
+                # populate the clinvar fields
+                variant_data['clinvarId'] = clinvar.id
+                variant_data['clinvarUid'] = clinvar.uid
+                variant_data['clinvarCanonicalSpdi'] = clinvar.canonical_spdi
+                variant_data['clinvarClassification'] = classification
+                variant_data['clinvarClassificationReviewStatus'] = review_status
+                variant_data['clinvarClassificationLastEval'] = last_evaluated
+                variant_data['clinvarErrorMsg'] = ref.error_msg
 
     # retrieve all samples related to that variant
     variant_samples: List[VariantsSamples] = (db.session.query(VariantsSamples)

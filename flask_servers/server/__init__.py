@@ -6,11 +6,16 @@ from flask_login import LoginManager
 
 from server.config import SQLALCHEMY_DATABASE_URI, db
 from server.models import Base, ScientificMembers
+from server.services.vus_preprocess_service import scheduled_clinvar_updates
 from server.views.auth_views import auth_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views
 from server.views.sample_views import sample_views
 from server.views.vus_views import vus_views
+
+import atexit
+
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def create_app():
@@ -55,5 +60,17 @@ def create_app():
     def load_scientific_member(scientific_member_id):
         # the user_id is just the primary key of our scientific members table
         return ScientificMembers.query.get(int(scientific_member_id))
+
+    # schedule clinvar updates
+    def scheduled_clinvar_updates_():
+        with app.app_context():
+            scheduled_clinvar_updates()
+
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=60)
+    scheduler.start()
+
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
 
     return app

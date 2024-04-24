@@ -95,7 +95,7 @@ CREATE TABLE external_references (
 
 CREATE TABLE db_snp (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    rsid VARCHAR(15) PRIMARY KEY,
+    rsid VARCHAR(15) NOT NULL,
     external_db_snp_id INT NOT NULL UNIQUE,
     CONSTRAINT fk_external_references
             FOREIGN KEY (external_db_snp_id) 
@@ -104,15 +104,32 @@ CREATE TABLE db_snp (
 
 CREATE TABLE clinvar (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    uid TEXT PRIMARY KEY,
+    uid TEXT NOT NULL,
     external_clinvar_id INT NOT NULL UNIQUE,
     canonical_spdi TEXT NOT NULL,
-    classification TEXT,
-    last_evaluated TIMESTAMP,
-    review_status TEXT,
     CONSTRAINT fk_external_references
         FOREIGN KEY (external_clinvar_id) 
             REFERENCES external_references(id)
+);
+
+CREATE TABLE clinvar_updates (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    classification TEXT,
+    review_status TEXT,
+	last_evaluated TIMESTAMP
+);
+
+CREATE TABLE clinvar_eval_dates (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    clinvar_id INT NOT NULL,
+	clinvar_update_id INT,
+    eval_date TIMESTAMP,
+    CONSTRAINT fk_clinvar
+        FOREIGN KEY (clinvar_id) 
+            REFERENCES clinvar(id),
+	CONSTRAINT fk_clinvar_updates
+        FOREIGN KEY (clinvar_update_id) 
+            REFERENCES clinvar_updates(id)
 );
 
 -- SCIENTIFIC_MEMBERS

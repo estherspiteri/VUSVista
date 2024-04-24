@@ -1,5 +1,5 @@
 .modal-container {
-  position: absolute;
+  position: fixed;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -14,16 +14,34 @@
   .modal-title {
     font-size: 18px;
     padding-bottom: 24px;
+
+    &.closable {
+      display: flex;
+      justify-content: space-between;
+
+      .close-icon {
+        cursor: pointer;
+        padding: 4px;
+        
+        svg {
+          stroke: #008080;
+        }
+      }
+    }
   }
 }
 
 .modal-overlay {
-  position: absolute;
-  top: 68px; // header height
+  position: fixed;
+  top: 0; // header height
   left: 0;
-  width: 100%;
-  height: calc(100% - 68px);
+  width: 100vw;
+  height: 100vh; //calc(100% - 68px);
   background-color: #324b4b;
   opacity: 0.4;
   z-index: 90;
+}
+
+body:has(.modal-container) {
+  overflow: hidden;
 }

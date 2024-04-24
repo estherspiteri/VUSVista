@@ -5,6 +5,7 @@ from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
 from flask_login import current_user
+from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 import json
@@ -15,12 +16,14 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules
+    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, ClinvarEvalDates, ClinvarUpdates
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
-from server.services.clinvar_service import retrieve_clinvar_variant_classifications
+from server.services.clinvar_service import retrieve_clinvar_variant_classifications, retrieve_clinvar_dict, \
+    extract_clinvar_germline_classification, extract_clinvar_canonical_spdi
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
+from server.services.view_vus_service import get_last_saved_clinvar_update
 from server.services.vus_publications_service import retrieve_and_store_variant_publications
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
@@ -242,17 +245,14 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 Clinvar.external_clinvar_id == ref.id
             ).one_or_none()
 
-            if clinvar.last_evaluated is not None:
-                clinvar_last_evaluated = datetime.strftime(clinvar.last_evaluated, '%Y/%m/%d %H:%M')
-            else:
-                clinvar_last_evaluated = None
+            clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
 
             # populate the clinvar fields
             vus_df.at[index, 'Clinvar uid'] = clinvar.id
             vus_df.at[index, 'Clinvar canonical spdi'] = clinvar.canonical_spdi
-            vus_df.at[index, 'Clinvar classification'] = clinvar.classification
-            vus_df.at[index, 'Clinvar classification review status'] = clinvar.review_status
-            vus_df.at[index, 'Clinvar classification last eval'] = clinvar_last_evaluated
+            vus_df.at[index, 'Clinvar classification'] = classification
+            vus_df.at[index, 'Clinvar classification review status'] = review_status
+            vus_df.at[index, 'Clinvar classification last eval'] = last_evaluated
             vus_df.at[index, 'Clinvar error msg'] = ref.error_msg
 
     return vus_df
@@ -308,6 +308,87 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     return vus_df
 
 
+def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalResponse:
+    preprocess_and_get_rsids_res = get_rsids(new_vus_df)
+
+    if preprocess_and_get_rsids_res.status != 200:
+        current_app.logger.error(
+            f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
+    else:
+        new_vus_df = preprocess_and_get_rsids_res.data
+
+        retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(new_vus_df)
+
+        if retrieve_clinvar_variant_classifications_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of ClinVar variant classifications failed 500')
+            return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+        else:
+            new_vus_df = retrieve_clinvar_variant_classifications_res.data
+
+    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                             'new_vus_df': new_vus_df}, 200)
+
+
+def scheduled_clinvar_updates():
+    variants: List[Variants] = db.session.query(Variants).all()
+
+    variant_ids = [str(v.id) for v in variants]
+
+    vus_df = pd.DataFrame({'Variant Id': variant_ids})
+
+    get_updated_external_references_for_existing_vus(vus_df)
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
+
+
+# caters for clinvar only
+def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFrame) -> InternalResponse:
+    vus_df_copy = existing_vus_df.copy()
+
+    # load Clinvar UIDs
+    for index, row in vus_df_copy.iterrows():
+        variant_id = row['Variant Id']
+
+        external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(ExternalReferences.variant_id == variant_id, ExternalReferences.db_type == 'clinvar').one_or_none()
+
+        # if variant has clinvar entry
+        if external_ref is not None:
+            clinvar = db.session.query(Clinvar).filter(Clinvar.external_clinvar_id == external_ref.id).one()
+
+            retrieve_clinvar_dict_res = retrieve_clinvar_dict(clinvar.uid)
+
+            if retrieve_clinvar_dict_res.status != 200:
+                current_app.logger.error(
+                    f"Retrieval of ClinVar document summary for ClinVar Id {clinvar.uid} failed 500!")
+                return InternalResponse(None, 500)
+            else:
+                clinvar_dict = retrieve_clinvar_dict_res.data
+
+                # get latest clinvar classification
+                clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict)
+                latest_germline_classification = clinvar_germline_classification.get('description')
+
+                store_clinvar_info(clinvar.id, latest_germline_classification,
+                                   clinvar_germline_classification.get('review_status'), clinvar_germline_classification.get('last_evaluated'),
+                                   False)
+
+                # existing_vus_df.at[index, 'Clinvar classification'] = latest_germline_classification
+
+    return InternalResponse({'existing_vus_df': existing_vus_df}, 200)
+
+
 def preprocess_vus(vus_df: pd.DataFrame):
     vus_df = add_missing_columns(vus_df)
 
@@ -315,30 +396,37 @@ def preprocess_vus(vus_df: pd.DataFrame):
         vus_df = get_gene_ids(vus_df)
 
     # check for existing variants
-    existing_vus_df, vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
+    existing_vus_df, new_vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
 
-    if len(vus_df) > 0:
-        preprocess_and_get_rsids_res = get_rsids(vus_df)
+    # get external references for new vus
+    if len(new_vus_df) > 0:
+        get_external_references_for_new_vus_res = get_external_references_for_new_vus(new_vus_df)
 
-        if preprocess_and_get_rsids_res.status != 200:
+        if get_external_references_for_new_vus_res.status != 200:
             current_app.logger.error(
                 f'Preprocessing of VUS and retrieval of RSIDs failed 500')
-            return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
-                                     'multiple_genes': None}, 500)
+            return InternalResponse(
+                {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
+                 'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
+                 'multiple_genes': None}, 500)
         else:
-            vus_df = preprocess_and_get_rsids_res.data
+            new_vus_df = get_external_references_for_new_vus_res.data['new_vus_df']
 
-            retrieve_clinvar_variant_classifications_res = retrieve_clinvar_variant_classifications(vus_df)
+    # get updated external references for existing vus
+    if len(existing_vus_df) > 0:
+        get_updated_external_references_for_existing_vus_res = get_updated_external_references_for_existing_vus(existing_vus_df)
 
-            if retrieve_clinvar_variant_classifications_res.status != 200:
-                current_app.logger.error(
-                    f'Retrieval of ClinVar variant classifications failed 500')
-                return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False,
-                                         'multiple_genes': None}, 500)
-            else:
-                vus_df = retrieve_clinvar_variant_classifications_res.data
+        if get_updated_external_references_for_existing_vus_res.status != 200:
+            current_app.logger.error(
+                f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+            return InternalResponse(
+                {'areRsidsRetrieved:': True,
+                 'isClinvarAccessed': False,
+                 'multiple_genes': None}, 500)
+        else:
+            existing_vus_df = get_updated_external_references_for_existing_vus_res.data['existing_vus_df']
 
-    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': vus_df,
+    return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': new_vus_df,
                              'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
 
 
@@ -355,7 +443,37 @@ def preprocess_vus_from_file(vus_df: pd.DataFrame, check_for_multiple_genes_flag
         return preprocess_vus(vus_df)
 
 
-def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
+def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool):
+    clinvar_last_evaluated = None
+    if len(last_eval):
+        clinvar_last_evaluated = datetime.strptime(last_eval, '%Y/%m/%d %H:%M')
+
+    create_new_clinvar_update = True
+    new_clinvar_update_id = None
+
+    if not is_new_vus:
+        clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(clinvar_id)
+
+        # compare it to current clinvar info
+        if last_eval == last_saved_eval_date and classification == last_saved_classification and review_status == last_saved_review_status:
+            create_new_clinvar_update = False
+
+    # create new clinvar update
+    if is_new_vus or create_new_clinvar_update:
+        new_clinvar_update = ClinvarUpdates(classification=classification,
+                                            review_status=review_status,
+                                            last_evaluated=clinvar_last_evaluated)
+        db.session.add(new_clinvar_update)
+        db.session.flush()
+
+        new_clinvar_update_id = new_clinvar_update.id
+
+    new_clinvar_eval_date = ClinvarEvalDates(eval_date=datetime.now(), clinvar_id=clinvar_id,
+                                             clinvar_update_id=new_clinvar_update_id)
+    db.session.add(new_clinvar_eval_date)
+
+
+def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     variant_ids = []
 
     # iterate through the dataframe
@@ -387,20 +505,17 @@ def store_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
                                                           db_type='clinvar',
                                                           error_msg=row['Clinvar error msg'])
             db.session.add(new_clinvar_external_ref)
-
             db.session.flush()
-
-            clinvar_last_evaluated = None
-            if len(row['Clinvar classification last eval']):
-                clinvar_last_evaluated = datetime.strptime(row['Clinvar classification last eval'], '%Y/%m/%d %H:%M')
 
             new_clinvar = Clinvar(uid=row['Clinvar uid'],
                                   external_clinvar_id=new_clinvar_external_ref.id,
-                                  canonical_spdi=row['Clinvar canonical spdi'],
-                                  classification=row['Clinvar classification'],
-                                  review_status=row['Clinvar classification review status'],
-                                  last_evaluated=clinvar_last_evaluated)
+                                  canonical_spdi=row['Clinvar canonical spdi'])
             db.session.add(new_clinvar)
+            db.session.flush()
+
+            store_clinvar_info(new_clinvar.id, row['Clinvar classification'],
+                               row['Clinvar classification review status'], row['Clinvar classification last eval'],
+                               True)
 
     return variant_ids
 
@@ -447,8 +562,8 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # extract sample ids
-        sample_ids = extract_sample_ids(str(row['Sample Ids']))\
-
+        sample_ids = extract_sample_ids(str(row['Sample Ids'])) \
+ \
         # ontology ids & their names
         phenotype_terms = []
 
@@ -614,7 +729,7 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     no_hpo_term_phenotypes = create_sample_upload_and_sample_entries_in_db_res.data['no_hpo_term_phenotypes']
 
     # store those vus that do not already exist in the db
-    variant_ids = store_vus_df_in_db(new_vus_df)
+    variant_ids = store_new_vus_df_in_db(new_vus_df)
     new_vus_df['Variant Id'] = variant_ids
 
     # override to include newly added variants' ids
