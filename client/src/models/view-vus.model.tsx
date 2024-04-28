@@ -1,5 +1,10 @@
 import { IPhenotype } from "./phenotype.model";
 
+export interface IVusSample {
+  id: string;
+  hgvs: string;
+}
+
 export interface IVus {
   id: number;
   chromosome: string;
@@ -21,7 +26,7 @@ export interface IVus {
   type: string; //TODO: change to enum?
   numHeterozygous?: number;
   numHomozygous?: number;
-  samples: string[];
+  samples: IVusSample[];
   phenotypes: IPhenotype[];
   acmgRuleIds: number[];
 }

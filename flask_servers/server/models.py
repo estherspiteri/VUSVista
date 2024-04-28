@@ -379,6 +379,21 @@ t_samples_phenotypes = Table(
 )
 
 
+class VariantHgvs(Base):
+    __tablename__ = 'variant_hgvs'
+    __table_args__ = (
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        PrimaryKeyConstraint('id', name='variant_hgvs_pkey')
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    variant_id = mapped_column(Integer, nullable=False)
+    hgvs = mapped_column(Text, nullable=False)
+
+    variant: Mapped['Variants'] = relationship('Variants', back_populates='variant_hgvs')
+    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='variant_hgvs')
+
+
 class Variants(Base):
     __tablename__ = 'variants'
     __table_args__ = (
@@ -409,6 +424,7 @@ class Variants(Base):
                                                                           back_populates='variant')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='variant')
+    variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant')
 
 
 class Reviews(Base):
@@ -465,6 +481,7 @@ t_variants_publications = Table(
 class VariantsSamples(Base):
     __tablename__ = 'variants_samples'
     __table_args__ = (
+        ForeignKeyConstraint(['variant_hgvs_id'], ['variant_hgvs.id'], name='fk_variant_hgvs'),
         ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
         ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
         PrimaryKeyConstraint('variant_id', 'sample_id', name='variants_samples_pkey')
@@ -472,10 +489,12 @@ class VariantsSamples(Base):
 
     variant_id = mapped_column(Integer, nullable=False)
     sample_id = mapped_column(Integer, nullable=False)
+    variant_hgvs_id = mapped_column(Integer, nullable=False)
     genotype = mapped_column(EnumSQL(Genotype, name='genotype'), nullable=False)
 
     sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples')
+    variant_hgvs: Mapped['VariantHgvs'] = relationship('VariantHgvs', back_populates='variants_samples')
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
                                                                                     back_populates='variants_samples')

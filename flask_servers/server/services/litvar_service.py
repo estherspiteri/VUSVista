@@ -14,9 +14,9 @@ from typing import Dict, List
 import json
 
 
-def get_litvar_id(rsid: str) -> InternalResponse:
+def get_litvar_info(search_string: str) -> InternalResponse:
     litvar_search_variant_res = requests.get(
-        f'https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant/autocomplete/?query={rsid}')
+        f'https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant/autocomplete/?query={search_string}')
 
     if litvar_search_variant_res.status_code != 200:
         current_app.logger.error(
@@ -31,11 +31,40 @@ def get_litvar_id(rsid: str) -> InternalResponse:
             # assuming first result is the most relevant
             litvar_id = litvar_search_variant_res_json[0]['_id']
 
-            current_app.logger.info(f"Litvar ID for variant rsid {rsid} is {litvar_id}")
+            current_app.logger.info(f"Litvar ID for variant {search_string} is {litvar_id}")
             return InternalResponse(litvar_id, 200)
         else:
-            current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for RSID {rsid}!')
+            current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for {search_string}!')
             return InternalResponse('', litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
+
+
+# search by rsid if it exists else by hgvs (if it exists)
+def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
+    formatted_hgvs = hgvs.split(' ')[0]
+
+    if rsid is not None:
+        rsid_litvar_info_res = get_litvar_info(rsid)
+
+        if rsid_litvar_info_res.status != 200:
+            current_app.logger.error(
+                f'No Litvar info found for RSID {rsid}')
+
+            if hgvs is not None:
+                hgvs_litvar_info_res = get_litvar_info(formatted_hgvs)
+
+                if hgvs_litvar_info_res.status != 200:
+                    current_app.logger.error(
+                        f'No Litvar info found for HGVS {formatted_hgvs}')
+                return hgvs_litvar_info_res
+        else:
+            return rsid_litvar_info_res
+    else:
+        hgvs_litvar_info_res = get_litvar_info(formatted_hgvs)
+
+        if hgvs_litvar_info_res.status != 200:
+            current_app.logger.error(
+                f'No Litvar info found for HGVS {formatted_hgvs}')
+        return hgvs_litvar_info_res
 
 
 def get_litvar_publications(litvar_id: str, optional_text: str | None) -> InternalResponse:
@@ -154,10 +183,10 @@ def get_more_info_on_litvar_publications(litvar_publications: list[Publications]
         return InternalResponse(litvar_publications, 200)
 
 
-def get_publications(rsid: str, optional_text: str | None) -> InternalResponse:
+def get_publications(hgvs: str | None, rsid: str | None, optional_text: str | None) -> InternalResponse:
     # get LitVar id
-    current_app.logger.info(f'Retrieving LitVar ID for RSID {rsid}')
-    litvar_id_res: InternalResponse = get_litvar_id(rsid)
+    current_app.logger.info(f'Retrieving LitVar ID for HGVS {hgvs} and RSID {rsid}')
+    litvar_id_res: InternalResponse = get_litvar_id(hgvs, rsid)
 
     if litvar_id_res.status != 200:
         current_app.logger.error(

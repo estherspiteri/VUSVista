@@ -45,6 +45,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [altAllele, setAltAllele] = useState<string | undefined>("");
   const [altAlleleErrorMsg, setAltAlleleErrorMsg] = useState("");
 
+  const [hgvs, setHgvs] = useState<string | undefined>(undefined);
+  const [hgvsErrorMsg, setHgvsErrorMsg] = useState("");
+
   const [genotype, setGenotype] = useState<string | undefined>(undefined);
   const [genotypeErrorMsg, setGenotypeErrorMsg] = useState("");
 
@@ -83,6 +86,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     altAllele.length > 0 &&
     altAlleleErrorMsg.length === 0;
 
+  const isHgvsValid = hgvs !== undefined && hgvsErrorMsg.length === 0;
+
   const isGenotypeValid =
     genotype !== undefined && genotypeErrorMsg.length === 0;
 
@@ -104,9 +109,13 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
         <div className={styles.description}>
           <p>
             Click on each section to fill in the variant details. A correctly
-            filled-in section is marked with a tick on the right-hand side. The ACMG Rules section is optional.
+            filled-in section is marked with a tick on the right-hand side. The
+            ACMG Rules section is optional.
           </p>
-          <p>It is assumed that the variant information inputted is based on the <b>GRCh37 (hg19)</b> build. </p>
+          <p>
+            It is assumed that the variant information inputted is based on the{" "}
+            <b>GRCh37 (hg19)</b> build.{" "}
+          </p>
         </div>
 
         <div className={styles["fields-wrapper"]}>
@@ -254,6 +263,18 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             </div>
           </VusUploadField>
 
+          {/** HGVS */}
+          <VusUploadField title="HGVS" showCheckMark={isHgvsValid}>
+            <div className={styles["field-content"]}>
+              <span>Type the HGVS:</span>
+              <Text
+                value={hgvs}
+                onChange={(e) => setHgvs(e.currentTarget.value)}
+                errorMsg={hgvsErrorMsg}
+              />
+            </div>
+          </VusUploadField>
+
           {/** Classification */}
           <VusUploadField
             title="Classification"
@@ -395,6 +416,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             !areAllelesValid ||
             !isGenotypeValid ||
             !isGeneValid ||
+            !isHgvsValid ||
             !isTypeValid ||
             !isClassificationValid ||
             !areSamplesValid
@@ -437,12 +459,17 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   </span>
                 </div>
                 <div className={styles["summary-field"]}>
+                  <p className={styles["selection-name"]}>HGVS</p>
+                  <span>
+                    <b>{hgvs}</b>
+                  </span>
+                </div>
+                <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Classification</p>
                   <span>
                     <b>{classification}</b>
                   </span>
                 </div>
-
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Sample Ids</p>
                   <b>
@@ -599,6 +626,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       samples: samples,
       phenotypes: phenotypes ?? [],
       acmgRules: acmgRules ?? [],
+      hgvs: hgvs,
     };
 
     setIsLoading(true);

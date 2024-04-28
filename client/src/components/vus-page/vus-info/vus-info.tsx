@@ -280,7 +280,10 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <div className={styles.sample}>
                 <div className={styles.bullet}>{"\u25CF"}</div>
                 <div>
-                  <p onClick={() => openInNewWindow(`/sample/${s}`)}>{s}</p>{" "}
+                  <span className={styles['sample-id']} onClick={() => openInNewWindow(`/sample/${s.id}`)}>
+                    {s.id}
+                  </span>
+                  <span>{` (${s.hgvs})`}</span>
                 </div>
               </div>
             ))}

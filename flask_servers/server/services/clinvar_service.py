@@ -52,7 +52,7 @@ def retrieve_clinvar_dict(clinvar_uid: str):
         return InternalResponse(clinvar_res_dict, 200)
 
 
-def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]): # TODO: can this replace retrieve_clinvar_dict?
+def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]): # TODO: use this to replace retrieve_clinvar_dict
     # retrieve clinvar info for multiple variants
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={','.join(clinvar_ids)}&from_esearch=true"
 

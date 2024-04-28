@@ -209,14 +209,13 @@
 
     .sample,
     .phenotype-container {
-      cursor: pointer;
       width: fit-content;
       display: flex;
       flex-direction: row;
       gap: 16px;
     }
 
-    .sample,
+    .sample-id,
     .phenotype {
       &:hover {
         color: #008080;
@@ -227,11 +226,17 @@
       .samples {
         .sample {
           align-items: center;
+
+          .sample-id {
+            cursor: pointer;
+          }
         }
       }
     }
 
     .phenotypes-container {
+      cursor: pointer;
+
       .info-description {
         font-size: 14px;
         margin-bottom: -8px;

@@ -118,7 +118,7 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
 
     # retrieve samples that have this variant
     variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant.id).all()
-    variant_data['samples'] = [vs.sample_id for vs in variant_samples]
+    variant_data['samples'] = [{'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs} for vs in variant_samples]
 
     # retrieve all the unique phenotypes that these samples have
     phenotypes = []

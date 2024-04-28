@@ -16,7 +16,7 @@ def get_publications_of_variant_by_rsid(rsid: str):
     # TODO: check that rsid starts with 'rs'
     current_app.logger.info(f"User requested retrieval of publications for variant with rsid {rsid}")
 
-    get_publications_res = get_publications(rsid, '')
+    get_publications_res = get_publications(None, rsid, '')
 
     if get_publications_res.status != 200:
         current_app.logger.error(f'LitVar publication retrieval query failed 500')
@@ -53,7 +53,7 @@ def get_publications_of_variant_by_variant_id(variant_id: str):
 def get_publications_of_variant_by_rsid_with_optional_text(variant_id: str, rsid: str, optional_text: str):
     current_app.logger.info(f"User requested retrieval of publications for variant with Id {variant_id}, RSID {rsid} and optional text {optional_text}")
 
-    get_publications_res = get_publications(rsid, optional_text)
+    get_publications_res = get_publications(None, rsid, optional_text)
 
     publication_list = []
 

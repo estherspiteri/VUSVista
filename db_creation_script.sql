@@ -141,6 +141,16 @@ CREATE TABLE scientific_members(
 	password TEXT NOT NULL
 );
 
+-- VARIANT HGVS
+CREATE TABLE variant_hgvs(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	variant_id INT NOT NULL,
+    hgvs TEXT NOT NULL,
+    CONSTRAINT fk_variants
+        FOREIGN KEY (variant_id) 
+            REFERENCES variants(id)
+);
+
 -- SAMPLES
 CREATE TABLE samples (
     id TEXT PRIMARY KEY,
@@ -170,7 +180,11 @@ CREATE TABLE samples_phenotypes(
 CREATE TABLE variants_samples (
     variant_id INT NOT NULL,
     sample_id TEXT NOT NULL,
+	variant_hgvs_id INT NOT NULL,
     genotype GENOTYPE NOT NULL,
+	CONSTRAINT fk_variant_hgvs
+        FOREIGN KEY (variant_hgvs_id) 
+            REFERENCES variant_hgvs(id),
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id),
@@ -182,6 +196,7 @@ CREATE TABLE variants_samples (
 
 
 -- Table that references either file or manual upload based on upload_type
+-- VARIANTS SAMPLES UPLOADS
 CREATE TABLE variants_samples_uploads (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	variant_id INT NOT NULL,

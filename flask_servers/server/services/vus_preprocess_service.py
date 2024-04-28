@@ -16,7 +16,7 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, ClinvarEvalDates, ClinvarUpdates
+    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, ClinvarEvalDates, ClinvarUpdates, VariantHgvs
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -693,6 +693,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
         alt = row['Alt']
         vus_genotype = row['Genotype']
+        hgvs = row['HGVS']
 
         genotype_split = vus_genotype.split('/')
 
@@ -710,7 +711,16 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
             # if variants_samples entry does not exist, add new entry
             if existing_variants_samples is None:
-                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id, genotype=genotype)
+                # check if HGVS exists
+                variant_hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == hgvs).one_or_none()
+
+                if variant_hgvs is None:
+                    # create new HGVS entry
+                    variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs)
+                    db.session.add(variant_hgvs)
+                    db.session.flush()
+
+                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id, variant_hgvs_id=variant_hgvs.id ,genotype=genotype)
                 db.session.add(new_variants_samples)
 
             # store the upload details related to this variant & sample
@@ -821,7 +831,8 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
     vus_df.rename(columns={'chromosome': 'Chr', 'chromosomePosition': 'Position', 'type': 'Type',
                            'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': 'Classification',
                            'gene': 'Gene', 'geneId': 'Gene Id', 'genotype': 'Genotype', 'samples': 'Sample Ids',
-                           'phenotypes': 'Sample Phenotypes With Ids', 'acmgRules': 'ACMG Rules With Ids'},
+                           'phenotypes': 'Sample Phenotypes With Ids', 'acmgRules': 'ACMG Rules With Ids',
+                           'hgvs': 'HGVS'},
                   inplace=True)
 
     preprocess_vus_res = preprocess_vus(vus_df)

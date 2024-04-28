@@ -18,4 +18,5 @@ export interface IVusUpload {
   samples: string[];
   phenotypes: IPhenotype[];
   acmgRules: IAcmgRuleUpload[];
+  hgvs: string;
 }

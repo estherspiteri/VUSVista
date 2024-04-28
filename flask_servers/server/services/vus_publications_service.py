@@ -132,9 +132,14 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
                 else:
                     publication_links.append(link_publication_res.data)
 
-        if not variants_already_stored_in_db and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
+        if not variants_already_stored_in_db:
+            if row['RSID'] == 'NORSID':
+                litvar_rsid = None
+            else:
+                litvar_rsid = row['RSID']
+
             # retrieve LitVar publications
-            litvar_publications_res = get_publications(row['RSID'], None)
+            litvar_publications_res = get_publications(row['HGVS'], litvar_rsid, None)
 
             if litvar_publications_res.status != 200:
                 current_app.logger.error(
