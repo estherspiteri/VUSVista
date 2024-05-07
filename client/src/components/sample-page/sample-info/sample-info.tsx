@@ -51,7 +51,6 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               <div className={styles["variant-titles"]}>
                 <div className={styles["variant-summary"]}>Variant Summary</div>
                 <div className={styles.genotype}>Genotype</div>
-                <div>Uploads</div>
               </div>
               <div className={styles.variants}>
                 {props.sample.variants.map((v) => {
@@ -70,24 +69,6 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                           </div>
                           <div className={styles.genotype}>
                             {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
-                          </div>
-                          <div className={styles.uploads}>
-                            {v.files?.length > 0 &&
-                              v.files.map((f) => {
-                                return (
-                                  <div className={styles.upload}>
-                                    <div className={styles.bullet}>
-                                      {"\u25CF"}
-                                    </div>
-                                    <div>
-                                      {f.filename}&nbsp;
-                                      {`(${f.dateOfFileUpload.getDate()}/${
-                                        f.dateOfFileUpload.getMonth() + 1
-                                      }/${f.dateOfFileUpload.getFullYear()})`}
-                                    </div>
-                                  </div>
-                                );
-                              })}
                           </div>
                         </div>
                       </div>
