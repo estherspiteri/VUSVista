@@ -51,6 +51,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               <div className={styles["variant-titles"]}>
                 <div className={styles["variant-summary"]}>Variant Summary</div>
                 <div className={styles.genotype}>Genotype</div>
+                <div>HGVS</div>
               </div>
               <div className={styles.variants}>
                 {props.sample.variants.map((v) => {
@@ -70,6 +71,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                           <div className={styles.genotype}>
                             {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
                           </div>
+                          <div>{v.hgvs}</div>
                         </div>
                       </div>
                     </div>

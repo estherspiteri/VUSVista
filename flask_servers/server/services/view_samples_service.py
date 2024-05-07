@@ -34,7 +34,8 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
 
         variant_summary = get_variant_summary(variant_details)
 
-        variant_sample = {'variantId': v_s.variant_id, 'variant': variant_summary, 'genotype': v_s.genotype.value}
+        variant_sample = {'variantId': v_s.variant_id, 'variant': variant_summary, 'genotype': v_s.genotype.value,
+                          'hgvs': v_s.variant_hgvs.hgvs}
         variants.append(variant_sample)
 
     return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version,

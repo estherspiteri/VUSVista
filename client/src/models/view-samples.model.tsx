@@ -10,6 +10,7 @@ export interface ISampleVariant {
   variantId: number;
   variant: IVUSSummary;
   genotype: Genotype;
+  hgvs: string;
 }
 
 export interface IFile {
