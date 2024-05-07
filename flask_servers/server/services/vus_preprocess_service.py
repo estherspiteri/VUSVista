@@ -801,8 +801,7 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
     # handle multiple genes selection
     if len(multiple_genes_selection) > 0:
         for selection in multiple_genes_selection:
-            selection_row = vus_df.iloc[int(selection['index'])]
-            selection_row['Gene'] = selection['gene']
+            vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
 
     # flag indicating that check is required for multiple genes for a single variant
     one_time_filter_flag = len(multiple_genes_selection) == 0
