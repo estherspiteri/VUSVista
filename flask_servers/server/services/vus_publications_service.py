@@ -33,7 +33,7 @@ def get_publication_info(publication_link: str) -> InternalResponse:
         if 'published' in metadata.keys():
             date = metadata['published']
         elif 'year' in metadata.keys():
-            date = metadata['year'] + '-01-01' # TODO: fix - misleading on front-end
+            date = metadata['year'] + '-01-01'  # TODO: fix - misleading on front-end
 
         if date is not None:
             date = datetime.strptime(date, '%Y-%m-%d')
@@ -55,7 +55,8 @@ def get_publication_info(publication_link: str) -> InternalResponse:
 def extract_publications_already_stored_in_db(pub_list: List[Publications]) -> (List[Publications], List[Publications]):
     doi_list = [p.doi for p in pub_list]
 
-    matching_db_publications: List[Publications] = db.session.query(Publications).filter(Publications.doi.in_(doi_list)).all()
+    matching_db_publications: List[Publications] = db.session.query(Publications).filter(
+        Publications.doi.in_(doi_list)).all()
     matching_db_dois = [p.doi for p in matching_db_publications]
 
     new_pub_list = [p for p in pub_list if p.doi not in matching_db_dois]
@@ -65,7 +66,7 @@ def extract_publications_already_stored_in_db(pub_list: List[Publications]) -> (
 
 # merge user provided publications with those from LitVar for new variants
 def merge_user_and_litvar_publications(user_pub_list: List[Publications], litvar_publications: List[Publications]) -> \
-        (List[Publications], List[Publications]):
+        List[Publications]:
     litvar_publications_dois = [p.doi for p in litvar_publications]
 
     # check if a publication is listed in both the user provided publication links and LitVar's publications
@@ -79,30 +80,32 @@ def merge_user_and_litvar_publications(user_pub_list: List[Publications], litvar
         updated_user_pub = [p for p in user_pub_list if p.doi not in common_publication_dois]
         final_pub_list = updated_user_pub + litvar_publications
 
-    final_pub_list, existing_pub_list = extract_publications_already_stored_in_db(final_pub_list)
-
-    return final_pub_list, existing_pub_list
+    return final_pub_list
 
 
-# merge user provided publications with those already stored in the database
-def merge_user_and_db_publications(user_pub_list: List[Publications], db_publications: List[Publications]) -> \
-        (List[Publications], List[Publications]):
+# merge user provided publications with litvar publications. Merge all with the publications already stored in the
+# database.
+def merge_user_and_litvar_and_db_publications(user_pub_list: List[Publications],
+                                              litvar_publications: List[Publications],
+                                              db_publications: List[Publications]) -> \
+        List[Publications]:
+    # merge user provided publications with litvar publications
+    user_and_litvar_pub_list = merge_user_and_litvar_publications(user_pub_list, litvar_publications)
+
     db_publications_dois = [p.doi for p in db_publications]
 
-    # check if a publication is listed in both the user provided publication links and the publications already stored
-    # in the db by comparing the doi
-    common_publication_dois = [p.doi for p in user_pub_list if p.doi in db_publications_dois]
+    # check if a publication is listed in both the [user provided publication links & the litvar publications] and the
+    # publications already stored in the db by comparing the doi
+    common_publication_dois = [p.doi for p in user_and_litvar_pub_list if p.doi in db_publications_dois]
 
     if len(common_publication_dois) == 0:
         final_pub_list = user_pub_list
     else:
         # remove the publications already stored in the db
-        updated_user_pub = [p for p in user_pub_list if p.doi not in common_publication_dois]
+        updated_user_pub = [p for p in user_and_litvar_pub_list if p.doi not in common_publication_dois]
         final_pub_list = updated_user_pub
 
-    final_pub_list, existing_pub_list = extract_publications_already_stored_in_db(final_pub_list)
-
-    return final_pub_list, existing_pub_list
+    return final_pub_list
 
 
 def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_already_stored_in_db: bool):
@@ -113,8 +116,8 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
         publication_links: List[Publications] = []
         litvar_publications: List[Publications] = []
 
+        # check if user provided any literature links
         if 'Literature Links' in vus_df.keys():
-            # check if user provided any literature links
             links = str(row['Literature Links']).replace(' ', '')
 
             if len(links) > 0:
@@ -132,31 +135,35 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
                 else:
                     publication_links.append(link_publication_res.data)
 
-        if not variants_already_stored_in_db:
-            if row['RSID'] == 'NORSID':
-                litvar_rsid = None
-            else:
-                litvar_rsid = row['RSID']
+        # attempt to get litvar publications using rsid if it exists, else use hgvs
+        if row['RSID'] == 'NORSID':
+            litvar_rsid = None
+        else:
+            litvar_rsid = row['RSID']
 
-            # retrieve LitVar publications
-            litvar_publications_res = get_publications(row['HGVS'], litvar_rsid, None)
+        # retrieve LitVar publications
+        litvar_publications_res = get_publications(row['HGVS'], litvar_rsid, None)
 
-            if litvar_publications_res.status != 200:
-                current_app.logger.error(
-                    f'Retrieval of information for the user provided literature link failed 500')
-                return InternalResponse(None, 500)
-            else:
-                litvar_publications = litvar_publications_res.data
+        if litvar_publications_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of information for the user provided literature link failed 500')
+            return InternalResponse(None, 500)
+        else:
+            litvar_publications = litvar_publications_res.data
 
         # retrieve variant
         variant = get_variant_from_db(row)
 
+        # merge the user's publications together with litvar's publications together with the variant's db publications
         if variants_already_stored_in_db:
-            vus_new_publications, vus_existing_publications = merge_user_and_db_publications(publication_links,
-                                                                                  variant.publications)
+            final_pub_list = merge_user_and_litvar_and_db_publications(publication_links, litvar_publications,
+                                                                       variant.publications)
+        # merge the user's publications together with litvar's publications
         else:
-            vus_new_publications, vus_existing_publications = merge_user_and_litvar_publications(publication_links,
-                                                                                      litvar_publications)
+            final_pub_list = merge_user_and_litvar_publications(publication_links, litvar_publications)
+
+        # check which publications already exist in the publications table in the db
+        vus_new_publications, vus_existing_publications = extract_publications_already_stored_in_db(final_pub_list)
 
         # store new publications
         for p in vus_new_publications:

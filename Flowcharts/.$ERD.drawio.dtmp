@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-04-28T17:03:44.270Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="tPeuneGd0-HnfvIxSWff" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-05-07T12:26:17.366Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="pOiHgsjQh_eM_A6YzZA0" version="22.1.2" type="device" pages="2">
   <diagram name="Page-1" id="n0ZOhfGp7_fPpTbf6uh3">
     <mxGraphModel dx="2636" dy="2230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -619,7 +619,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="-2XMd0_jFtocuSsgo2nn" name="Page-2">
-    <mxGraphModel dx="2316" dy="2077" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1840" dy="1787" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1705,8 +1705,8 @@
         <mxCell id="Se3oO94y5y9juY0bp-Zk-204" value="&lt;font color=&quot;#38f000&quot;&gt;RSID or uid cannot be unique since sometimes&amp;nbsp;&lt;br&gt;an rsid is suggested (with an error msg)&amp;nbsp; &lt;br&gt;=&amp;gt; a valid variant &amp;amp; an invalid variant with suggestion&lt;br&gt;may have the same rsid/uid&amp;nbsp;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="1366.13" y="115.75" width="310" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="Se3oO94y5y9juY0bp-Zk-205" value="&lt;span style=&quot;font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;&lt;font style=&quot;&quot; color=&quot;#ff0000&quot;&gt;User can manually add publications to a variant. (via pmid / link)&lt;/font&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
-          <mxGeometry x="44" y="222.5" width="370" height="40" as="geometry" />
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-205" value="&lt;span style=&quot;font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;&lt;font style=&quot;&quot; color=&quot;#ff0000&quot;&gt;User can manually add publications to a variant. (via pmid / link)&lt;br&gt;&lt;br&gt;Add field for date that shows when publication was added in the db? (for sorting)&lt;br&gt;&lt;br&gt;Add sorting by date published&lt;br&gt;&lt;br&gt;could have been divided into tables - once for user inputted links &amp;amp; one for litvar publications. Litvar&#39;s publications can be overwritten each time the litvar query is made. This ensures that publications maintain the sorting (relevance). Currently new publications found in litvar are appended to the existing publications records with no consideration to their relevancy with respect to the existing publications.&lt;br&gt;&lt;/font&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="65" width="370" height="185" as="geometry" />
         </mxCell>
         <mxCell id="Se3oO94y5y9juY0bp-Zk-206" value="&lt;span style=&quot;color: rgb(240, 32, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;Use for Germline Classifier Verdict&lt;br&gt;- updated when acmg rules change&lt;br&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="129" y="509.87" width="210" height="20" as="geometry" />

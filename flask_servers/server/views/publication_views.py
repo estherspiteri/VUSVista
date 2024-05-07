@@ -11,6 +11,7 @@ from server.services.vus_publications_service import get_publications_by_variant
 publication_views = Blueprint('publication_views', __name__)
 
 
+# TODO: check if can be removed
 @publication_views.route('/getByRsid/<string:rsid>', methods=['GET'])
 def get_publications_of_variant_by_rsid(rsid: str):
     # TODO: check that rsid starts with 'rs'
