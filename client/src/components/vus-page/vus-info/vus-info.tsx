@@ -153,12 +153,14 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                 </div>
               )}
             </div>
-            <div
-              className={styles["clinvar-archive-link"]}
-              onClick={getClinvarUpdates}
-            >
-              Click here to view Clinvar updates
-            </div>
+            {props.vus.clinvarClassification?.length > 0 && (
+              <div
+                className={styles["clinvar-archive-link"]}
+                onClick={getClinvarUpdates}
+              >
+                Click here to view Clinvar updates
+              </div>
+            )}
           </div>
 
           {/** DbSnp */}
@@ -280,7 +282,10 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <div className={styles.sample}>
                 <div className={styles.bullet}>{"\u25CF"}</div>
                 <div>
-                  <span className={styles['sample-id']} onClick={() => openInNewWindow(`/sample/${s.id}`)}>
+                  <span
+                    className={styles["sample-id"]}
+                    onClick={() => openInNewWindow(`/sample/${s.id}`)}
+                  >
                     {s.id}
                   </span>
                   <span>{` (${s.hgvs})`}</span>
@@ -291,7 +296,13 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         </div>
 
         {/** Phenotypes */}
-        <div className={styles["phenotypes-container"]}>
+        <div
+          className={`${styles["phenotypes-container"]} ${
+            props.vus.phenotypes.length > 0
+              ? styles["phenotypes-populated"]
+              : ""
+          }`}
+        >
           <p className={styles["info-title"]}>
             Phenotypes of the above samples:
           </p>
@@ -331,7 +342,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             </>
           ) : (
             <p className={styles["info-description"]}>
-              The samples have no saved phenotypes.
+              The above samples have no saved phenotypes.
             </p>
           )}
         </div>
