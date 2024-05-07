@@ -235,11 +235,13 @@
     }
 
     .phenotypes-container {
-      cursor: pointer;
-
       .info-description {
         font-size: 14px;
         margin-bottom: -8px;
+      }
+
+      &.phenotypes-populated {
+        cursor: pointer;
       }
     }
   }
