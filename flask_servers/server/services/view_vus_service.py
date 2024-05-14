@@ -8,6 +8,7 @@ from server import db
 from server.helpers.data_helper import convert_df_to_list
 from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, \
     ClinvarEvalDates, ClinvarUpdates
+from server.services.clinvar_service import get_last_saved_clinvar_update
 
 
 def retrieve_all_vus_summaries_from_db():
@@ -46,21 +47,6 @@ def retrieve_all_vus_summaries_from_db():
     var_list = convert_df_to_list(vus_df)
 
     return var_list
-
-
-def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
-    clinvar_eval_date: ClinvarEvalDates = db.session.query(ClinvarEvalDates).filter(
-        ClinvarEvalDates.clinvar_id == clinvar_id, ClinvarEvalDates.clinvar_update_id.is_not(None)).order_by(
-        desc(ClinvarEvalDates.eval_date)).first()
-
-    clinvar_update = clinvar_eval_date.clinvar_update
-
-    if clinvar_update.last_evaluated is not None:
-        clinvar_last_evaluated = datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
-    else:
-        clinvar_last_evaluated = None
-
-    return clinvar_update.id, clinvar_update.review_status, clinvar_update.classification, clinvar_last_evaluated
 
 
 def retrieve_vus_from_db(vus_id: int) -> Dict:

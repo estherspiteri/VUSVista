@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 import xmltodict
 from flask import current_app
@@ -8,6 +10,12 @@ from Bio import Entrez
 from requests import RequestException
 
 from typing import Dict, List
+
+from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
+
+from server import db
+from server.models import Variants, ExternalReferences, Clinvar, ClinvarEvalDates, ClinvarUpdates
 from server.responses.internal_response import InternalResponse
 
 
@@ -237,3 +245,106 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
     #     f'Found in ClinVar: {round(success / num_of_variants * 100, 2)}%\nNot found in ClinVar: {round(failure / num_of_variants * 100, 2)}%')
 
     return InternalResponse(vus_df, 200)
+
+
+def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
+    clinvar_eval_date: ClinvarEvalDates = db.session.query(ClinvarEvalDates).filter(
+        ClinvarEvalDates.clinvar_id == clinvar_id, ClinvarEvalDates.clinvar_update_id.is_not(None)).order_by(
+        desc(ClinvarEvalDates.eval_date)).first()
+
+    clinvar_update = clinvar_eval_date.clinvar_update
+
+    if clinvar_update.last_evaluated is not None:
+        clinvar_last_evaluated = datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
+    else:
+        clinvar_last_evaluated = None
+
+    return clinvar_update.id, clinvar_update.review_status, clinvar_update.classification, clinvar_last_evaluated
+
+
+def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool):
+    clinvar_last_evaluated = None
+    if len(last_eval):
+        clinvar_last_evaluated = datetime.strptime(last_eval, '%Y/%m/%d %H:%M')
+
+    create_new_clinvar_update = True
+    new_clinvar_update_id = None
+
+    if not is_new_vus:
+        clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(clinvar_id)
+
+        # compare it to current clinvar info
+        if last_eval == last_saved_eval_date and classification == last_saved_classification and review_status == last_saved_review_status:
+            create_new_clinvar_update = False
+
+    # create new clinvar update
+    if is_new_vus or create_new_clinvar_update:
+        new_clinvar_update = ClinvarUpdates(classification=classification,
+                                            review_status=review_status,
+                                            last_evaluated=clinvar_last_evaluated)
+        db.session.add(new_clinvar_update)
+        db.session.flush()
+
+        new_clinvar_update_id = new_clinvar_update.id
+
+    new_clinvar_eval_date = ClinvarEvalDates(eval_date=datetime.now(), clinvar_id=clinvar_id,
+                                             clinvar_update_id=new_clinvar_update_id)
+    db.session.add(new_clinvar_eval_date)
+
+
+# checks for the latest Clinvar updates
+def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFrame) -> InternalResponse:
+    vus_df_copy = existing_vus_df.copy()
+
+    # load Clinvar UIDs
+    for index, row in vus_df_copy.iterrows():
+        variant_id = row['Variant Id']
+
+        external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(ExternalReferences.variant_id == variant_id, ExternalReferences.db_type == 'clinvar').one_or_none()
+
+        # if variant has clinvar entry
+        if external_ref is not None:
+            clinvar = db.session.query(Clinvar).filter(Clinvar.external_clinvar_id == external_ref.id).one()
+
+            retrieve_clinvar_dict_res = retrieve_clinvar_dict(clinvar.uid)
+
+            if retrieve_clinvar_dict_res.status != 200:
+                current_app.logger.error(
+                    f"Retrieval of ClinVar document summary for ClinVar Id {clinvar.uid} failed 500!")
+                return InternalResponse(None, 500)
+            else:
+                clinvar_dict = retrieve_clinvar_dict_res.data
+
+                # get latest clinvar classification
+                clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict)
+                latest_germline_classification = clinvar_germline_classification.get('description')
+
+                store_clinvar_info(clinvar.id, latest_germline_classification,
+                                   clinvar_germline_classification.get('review_status'), clinvar_germline_classification.get('last_evaluated'),
+                                   False)
+
+                # existing_vus_df.at[index, 'Clinvar classification'] = latest_germline_classification
+
+    return InternalResponse({'existing_vus_df': existing_vus_df}, 200)
+
+
+def scheduled_clinvar_updates():
+    variants: List[Variants] = db.session.query(Variants).all()
+
+    variant_ids = [str(v.id) for v in variants]
+
+    vus_df = pd.DataFrame({'Variant Id': variant_ids})
+
+    get_updated_external_references_for_existing_vus(vus_df)
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)

@@ -21,7 +21,7 @@ def get_litvar_info(search_string: str) -> InternalResponse:
     if litvar_search_variant_res.status_code != 200:
         current_app.logger.error(
             f'Response failure {litvar_search_variant_res.status_code}: {litvar_search_variant_res.reason}')
-        return InternalResponse(None, litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
+        return InternalResponse(None, 500, litvar_search_variant_res.reason)
     else:
         litvar_search_variant_res_json = litvar_search_variant_res.json()
 
@@ -35,7 +35,7 @@ def get_litvar_info(search_string: str) -> InternalResponse:
             return InternalResponse(litvar_id, 200)
         else:
             current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for {search_string}!')
-            return InternalResponse('', litvar_search_variant_res.status_code, litvar_search_variant_res.reason)
+            return InternalResponse('', 500, litvar_search_variant_res.reason)
 
 
 # search by rsid if it exists else by hgvs (if it exists)
@@ -55,8 +55,13 @@ def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
                 if hgvs_litvar_info_res.status != 200:
                     current_app.logger.error(
                         f'No Litvar info found for HGVS {formatted_hgvs}')
+                else:
+                    current_app.logger.info(
+                        f'Litvar info found for HGVS {formatted_hgvs}')
                 return hgvs_litvar_info_res
         else:
+            current_app.logger.info(
+                f'Litvar info found for RSID {rsid}')
             return rsid_litvar_info_res
     else:
         hgvs_litvar_info_res = get_litvar_info(formatted_hgvs)
@@ -64,6 +69,9 @@ def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
         if hgvs_litvar_info_res.status != 200:
             current_app.logger.error(
                 f'No Litvar info found for HGVS {formatted_hgvs}')
+        else:
+            current_app.logger.info(
+                f'Litvar info found for HGVS {formatted_hgvs}')
         return hgvs_litvar_info_res
 
 

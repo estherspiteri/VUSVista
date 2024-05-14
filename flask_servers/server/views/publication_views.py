@@ -54,21 +54,24 @@ def get_publications_of_variant_by_variant_id(variant_id: str):
 def get_publications_of_variant_by_rsid_with_optional_text(variant_id: str, rsid: str, optional_text: str):
     current_app.logger.info(f"User requested retrieval of publications for variant with Id {variant_id}, RSID {rsid} and optional text {optional_text}")
 
-    get_publications_res = get_publications(None, rsid, optional_text)
+    variant = db.session.query(Variants).filter(Variants.id == variant_id).one_or_none()
 
+    status = 500
     publication_list = []
 
-    for publication in get_publications_res.data:
-        encoded_publication = alchemy_encoder(publication)
+    if variant is not None:
+        get_publications_res = get_publications(variant.variant_hgvs[0].hgvs, rsid, optional_text)
+        status = get_publications_res.status
 
-        # changing keys of dictionary
-        encoded_publication['date'] = encoded_publication.pop('date_published')
+        for publication in get_publications_res.data:
+            encoded_publication = alchemy_encoder(publication)
 
-        publication_list.append(encoded_publication)
+            # changing keys of dictionary
+            encoded_publication['date'] = encoded_publication.pop('date_published')
 
-    variant = db.session.query(Variants).filter(Variants.id == variant_id).first()
+            publication_list.append(encoded_publication)
 
     variant_summary = get_variant_summary(variant)
 
-    return Response(json.dumps({'isSuccess': get_publications_res.status == 200, 'variant': variant_summary, 'publications': publication_list}), get_publications_res.status)
+    return Response(json.dumps({'isSuccess': status == 200, 'variant': variant_summary, 'publications': publication_list}), status)
 

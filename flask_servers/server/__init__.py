@@ -6,7 +6,8 @@ from flask_login import LoginManager
 
 from server.config import SQLALCHEMY_DATABASE_URI, db
 from server.models import Base, ScientificMembers
-from server.services.vus_preprocess_service import scheduled_clinvar_updates
+from server.services.clinvar_service import scheduled_clinvar_updates
+from server.services.vus_publications_service import check_for_new_litvar_publications
 from server.views.auth_views import auth_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views
@@ -66,8 +67,14 @@ def create_app():
         with app.app_context():
             scheduled_clinvar_updates()
 
+    # schedule litvar publications updates
+    def scheduled_litvar_updates_():
+        with app.app_context():
+            check_for_new_litvar_publications()
+
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=60)
+    scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=70)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
