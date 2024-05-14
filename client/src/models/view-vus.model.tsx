@@ -15,7 +15,7 @@ export interface IVus {
   clinvarClassificationReviewStatus?: string;
   clinvarCanonicalSpdi?: string;
   clinvarId?: number;
-  clinvarUid?: string;
+  clinvarVariationId?: string;
   clinvarErrorMsg?: string;
   gene: string;
   altAllele: string;

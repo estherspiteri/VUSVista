@@ -6,8 +6,7 @@ from sqlalchemy import desc
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
-from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, \
-    ClinvarEvalDates, ClinvarUpdates
+from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples
 from server.services.clinvar_service import get_last_saved_clinvar_update
 
 
@@ -81,11 +80,11 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
             ).one_or_none()
 
             if clinvar is not None:
-                clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
+                auto_clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
 
                 # populate the clinvar fields
                 variant_data['clinvarId'] = clinvar.id
-                variant_data['clinvarUid'] = clinvar.uid
+                variant_data['clinvarVariationId'] = clinvar.variation_id
                 variant_data['clinvarCanonicalSpdi'] = clinvar.canonical_spdi
                 variant_data['clinvarClassification'] = classification
                 variant_data['clinvarClassificationReviewStatus'] = review_status

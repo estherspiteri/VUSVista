@@ -5,7 +5,6 @@ from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
 from flask_login import current_user
-from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 import json
@@ -16,13 +15,11 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, ClinvarEvalDates, ClinvarUpdates, VariantHgvs
+    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
-from server.services.clinvar_service import retrieve_clinvar_variant_classifications, retrieve_clinvar_dict, \
-    extract_clinvar_germline_classification, extract_clinvar_canonical_spdi, \
-    get_updated_external_references_for_existing_vus, store_clinvar_info
+from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
 from server.services.view_vus_service import get_last_saved_clinvar_update
 from server.services.vus_publications_service import retrieve_and_store_variant_publications
@@ -246,10 +243,10 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 Clinvar.external_clinvar_id == ref.id
             ).one_or_none()
 
-            clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
+            auto_clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
 
             # populate the clinvar fields
-            vus_df.at[index, 'Clinvar uid'] = clinvar.id
+            vus_df.at[index, 'Clinvar variation id'] = clinvar.variation_id
             vus_df.at[index, 'Clinvar canonical spdi'] = clinvar.canonical_spdi
             vus_df.at[index, 'Clinvar classification'] = classification
             vus_df.at[index, 'Clinvar classification review status'] = review_status
@@ -294,7 +291,7 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     vus_df['Clinvar classification review status'] = ""
     vus_df['Clinvar error msg'] = ""
     vus_df['Clinvar canonical spdi'] = ""
-    vus_df['Clinvar uid'] = ""
+    vus_df['Clinvar variation id'] = ""
 
     # insert columns for dbsnp and error messages
     vus_df['RSID'] = ""
@@ -413,14 +410,14 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
                               external_db_snp_id=new_dbnsp_external_ref.id)
             db.session.add(new_dbsnp)
 
-        if len(row['Clinvar uid']) > 0:
+        if len(row['Clinvar variation id']) > 0:
             new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.id,
                                                           db_type='clinvar',
                                                           error_msg=row['Clinvar error msg'])
             db.session.add(new_clinvar_external_ref)
             db.session.flush()
 
-            new_clinvar = Clinvar(uid=row['Clinvar uid'],
+            new_clinvar = Clinvar(variation_id=row['Clinvar variation id'],
                                   external_clinvar_id=new_clinvar_external_ref.id,
                                   canonical_spdi=row['Clinvar canonical spdi'])
             db.session.add(new_clinvar)
@@ -664,47 +661,45 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     if retrieve_and_store_variant_pub_res.status != 200:
         current_app.logger.error(
             f'Get publications for new variants failed 500')
-        return Response(json.dumps({'isSuccess': False}), 200)
-    else:
-        # retrieve and store the publications (user links & LitVar) of existing variants
-        retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
 
-        if retrieve_and_store_existing_variant_pub_res.status != 200:
-            current_app.logger.error(
-                f'Get publications for existing variants failed 500')
-            return Response(json.dumps({'isSuccess': False}), 200)
-        else:
-            # join existing vus_df's variant ids with the new vus variant ids
-            all_variant_ids = existing_variant_ids + variant_ids
+    # retrieve and store the publications (user links & LitVar) of existing variants
+    retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
 
-            # store the acmg rules related to this variant
-            store_acmg_rules_for_variant('ACMG Rules With Ids' in all_vus_df.keys(), all_vus_df, all_variant_ids)
+    if retrieve_and_store_existing_variant_pub_res.status != 200:
+        current_app.logger.error(
+            f'Get publications for existing variants failed 500')
 
-            # store variants-samples entries in db
-            store_variant_sample_relations_in_db(all_vus_df, all_variant_ids, file, is_file_upload)
+    # join existing vus_df's variant ids with the new vus variant ids
+    all_variant_ids = existing_variant_ids + variant_ids
 
-            try:
-                # Commit the session to persist changes to the database
-                db.session.commit()
-            except SQLAlchemyError as e:
-                # Changes were rolled back due to an error
-                db.session.rollback()
+    # store the acmg rules related to this variant
+    store_acmg_rules_for_variant('ACMG Rules With Ids' in all_vus_df.keys(), all_vus_df, all_variant_ids)
 
-                current_app.logger.error(
-                    f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
+    # store variants-samples entries in db
+    store_variant_sample_relations_in_db(all_vus_df, all_variant_ids, file, is_file_upload)
 
-                response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
-                return Response(json.dumps(response), 200)
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
 
-            # update column names to camelCase format
-            new_vus_df = prep_vus_df_for_react(all_vus_df)
+        current_app.logger.error(
+            f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
 
-            # convert df to list
-            vus_list = convert_df_to_list(new_vus_df)
+        response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
+        return Response(json.dumps(response), 200)
 
-            return Response(
-                json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                            'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)
+    # update column names to camelCase format
+    new_vus_df = prep_vus_df_for_react(all_vus_df)
+
+    # convert df to list
+    vus_list = convert_df_to_list(new_vus_df)
+
+    return Response(
+        json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                    'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)
 
 
 def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:

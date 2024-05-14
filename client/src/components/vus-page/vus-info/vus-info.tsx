@@ -44,15 +44,12 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               altAllele: props.vus.altAllele,
             }}
           />
-          {props.vus.rsidDbsnpVerified && (
-            <Button
-              text="View Publications"
-              icon="publication"
-              onClick={() =>
-                openInNewWindow(`/publication-view/${props.vus.id}`)
-              }
-            />
-          )}
+          <Button
+            text="View Publications"
+            icon="publication"
+            disabled={!props.vus.rsidDbsnpVerified}
+            onClick={() => openInNewWindow(`/publication-view/${props.vus.id}`)}
+          />
         </div>
         <div className={styles["top-container"]}>
           {/** General information */}
@@ -104,7 +101,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     if (props.vus.clinvarErrorMsg?.length === 0) {
                       e.stopPropagation();
                       openInNewWindow(
-                        `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarUid}`
+                        `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarVariationId}`
                       );
                     }
                   }}

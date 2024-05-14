@@ -15,7 +15,7 @@ from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
-from server.models import Variants, ExternalReferences, Clinvar, ClinvarEvalDates, ClinvarUpdates
+from server.models import Variants, ExternalReferences, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates
 from server.responses.internal_response import InternalResponse
 
 
@@ -41,9 +41,9 @@ def retrieve_clinvar_ids(rsid: str) -> InternalResponse:
 
 # Function to retrieve the variant's Clinvar document summary
 # The esummary() function is used to return document summaries from ClinVar for a given ClinVar unique variant id.
-def retrieve_clinvar_dict(clinvar_uid: str):
+def retrieve_clinvar_dict(clinvar_variation_id: str):
     # retrieve clinvar info for a single variant
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={clinvar_uid}&from_esearch=true"
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={clinvar_variation_id}&from_esearch=true"
 
     try:
         clinvar_res = requests.post(url)
@@ -134,8 +134,8 @@ def extract_clinvar_canonical_spdi(clinvar_dict: Dict):
     return canonical_spdi
 
 
-# Retrieve the ClinVar variant's uid.
-def extract_clinvar_uid(clinvar_dict: Dict):
+# Retrieve the ClinVar variation's id.
+def extract_clinvar_variation_id(clinvar_dict: Dict):
     return clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('@VariationID')
 
 
@@ -144,7 +144,7 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
     is_success = True
     clinical_significance = {}
     canonical_spdi = ''
-    uid = ''
+    variation_id = ''
     error_msg = ''
 
     retrieve_clinvar_ids_res = retrieve_clinvar_ids(rsid)
@@ -184,11 +184,11 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
                     if are_equivalent:
                         clinical_significance = extract_clinvar_germline_classification(clinvar_dict)
                         canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict)
-                        uid = extract_clinvar_uid(clinvar_dict)
+                        variation_id = extract_clinvar_variation_id(clinvar_dict)
                     else:
                         is_success = False
 
-        return InternalResponse((is_success, clinical_significance, canonical_spdi, uid, error_msg), 200)
+        return InternalResponse((is_success, clinical_significance, canonical_spdi, variation_id, error_msg), 200)
 
 
 # TODO: retrieve other vital infor from clinvar (such as last modfied)
@@ -218,7 +218,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
             return InternalResponse(None, 500)
         else:
             # execute pipeline
-            is_success, clinical_significance, canonical_spdi, uid, error_msg = (
+            is_success, clinical_significance, canonical_spdi, variation_id, error_msg = (
                 clinvar_clinical_significance_pipeline_res.data)
 
             if clinical_significance:
@@ -228,7 +228,7 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
 
             vus_df.at[index, 'Clinvar error msg'] = error_msg
             vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
-            vus_df.at[index, 'Clinvar uid'] = uid
+            vus_df.at[index, 'Clinvar variation id'] = variation_id
 
             # update performance for given variant
     #         if row['VUS Id'] in performance_dict:
@@ -248,18 +248,18 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
 
 
 def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
-    clinvar_eval_date: ClinvarEvalDates = db.session.query(ClinvarEvalDates).filter(
-        ClinvarEvalDates.clinvar_id == clinvar_id, ClinvarEvalDates.clinvar_update_id.is_not(None)).order_by(
-        desc(ClinvarEvalDates.eval_date)).first()
+    clinvar_eval_date: AutoClinvarEvalDates = db.session.query(AutoClinvarEvalDates).filter(
+        AutoClinvarEvalDates.clinvar_id == clinvar_id, AutoClinvarEvalDates.auto_clinvar_update_id.is_not(None)).order_by(
+        desc(AutoClinvarEvalDates.eval_date)).first()
 
-    clinvar_update = clinvar_eval_date.clinvar_update
+    auto_clinvar_update = clinvar_eval_date.auto_clinvar_update
 
-    if clinvar_update.last_evaluated is not None:
-        clinvar_last_evaluated = datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
+    if auto_clinvar_update.last_evaluated is not None:
+        clinvar_last_evaluated = datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
     else:
         clinvar_last_evaluated = None
 
-    return clinvar_update.id, clinvar_update.review_status, clinvar_update.classification, clinvar_last_evaluated
+    return auto_clinvar_update.id, auto_clinvar_update.review_status, auto_clinvar_update.classification, clinvar_last_evaluated
 
 
 def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool):
@@ -271,7 +271,7 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
     new_clinvar_update_id = None
 
     if not is_new_vus:
-        clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(clinvar_id)
+        auto_clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(clinvar_id)
 
         # compare it to current clinvar info
         if last_eval == last_saved_eval_date and classification == last_saved_classification and review_status == last_saved_review_status:
@@ -279,7 +279,7 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
 
     # create new clinvar update
     if is_new_vus or create_new_clinvar_update:
-        new_clinvar_update = ClinvarUpdates(classification=classification,
+        new_clinvar_update = AutoClinvarUpdates(classification=classification,
                                             review_status=review_status,
                                             last_evaluated=clinvar_last_evaluated)
         db.session.add(new_clinvar_update)
@@ -287,8 +287,8 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
 
         new_clinvar_update_id = new_clinvar_update.id
 
-    new_clinvar_eval_date = ClinvarEvalDates(eval_date=datetime.now(), clinvar_id=clinvar_id,
-                                             clinvar_update_id=new_clinvar_update_id)
+    new_clinvar_eval_date = AutoClinvarEvalDates(eval_date=datetime.now(), clinvar_id=clinvar_id,
+                                             auto_clinvar_update_id=new_clinvar_update_id)
     db.session.add(new_clinvar_eval_date)
 
 
@@ -296,7 +296,7 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
 def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFrame) -> InternalResponse:
     vus_df_copy = existing_vus_df.copy()
 
-    # load Clinvar UIDs
+    # load Clinvar variation ids
     for index, row in vus_df_copy.iterrows():
         variant_id = row['Variant Id']
 
@@ -306,11 +306,11 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
         if external_ref is not None:
             clinvar = db.session.query(Clinvar).filter(Clinvar.external_clinvar_id == external_ref.id).one()
 
-            retrieve_clinvar_dict_res = retrieve_clinvar_dict(clinvar.uid)
+            retrieve_clinvar_dict_res = retrieve_clinvar_dict(clinvar.variation_id)
 
             if retrieve_clinvar_dict_res.status != 200:
                 current_app.logger.error(
-                    f"Retrieval of ClinVar document summary for ClinVar Id {clinvar.uid} failed 500!")
+                    f"Retrieval of ClinVar document summary for ClinVar Variation Id {clinvar.variation_id} failed 500!")
                 return InternalResponse(None, 500)
             else:
                 clinvar_dict = retrieve_clinvar_dict_res.data

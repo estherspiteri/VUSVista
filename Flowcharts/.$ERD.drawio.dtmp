@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-05-07T14:24:52.763Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="95sb8l9Py9qqyRAlC48A" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-05-14T17:27:10.443Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="PR3lGQDvsvu4MYr3FDJY" version="22.1.2" type="device" pages="2">
   <diagram name="Page-1" id="n0ZOhfGp7_fPpTbf6uh3">
     <mxGraphModel dx="2636" dy="2230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -619,7 +619,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="-2XMd0_jFtocuSsgo2nn" name="Page-2">
-    <mxGraphModel dx="2033" dy="1904" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2410" dy="2134" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1170,8 +1170,8 @@
         <mxCell id="6C0SObV1-QNve3I2pQrh-63" value="rsid" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="1454.27" y="192.5" width="57.86" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="6C0SObV1-QNve3I2pQrh-64" value="&lt;b&gt;&amp;nbsp;&lt;/b&gt;uid" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
-          <mxGeometry x="1419.9999999999995" y="336" width="56.53" height="30" as="geometry" />
+        <mxCell id="6C0SObV1-QNve3I2pQrh-64" value="variation_id" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1402.13" y="336" width="87.87" height="30" as="geometry" />
         </mxCell>
         <mxCell id="6C0SObV1-QNve3I2pQrh-66" value="&lt;b&gt;id&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
           <mxGeometry x="557.71" y="1081.5" width="53" height="30" as="geometry" />
@@ -1711,8 +1711,8 @@
         <mxCell id="Se3oO94y5y9juY0bp-Zk-206" value="&lt;span style=&quot;color: rgb(240, 32, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;Use for Germline Classifier Verdict&lt;br&gt;- updated when acmg rules change&lt;br&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="129" y="509.87" width="210" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="Se3oO94y5y9juY0bp-Zk-209" value="clinvar_eval_dates" style="whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
-          <mxGeometry x="1645.28" y="419.37" width="120" height="40" as="geometry" />
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-209" value="auto_clinvar_eval_dates" style="whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1620" y="419.37" width="145.28" height="40" as="geometry" />
         </mxCell>
         <mxCell id="Se3oO94y5y9juY0bp-Zk-210" value="" style="endArrow=none;html=1;rounded=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Se3oO94y5y9juY0bp-Zk-211" target="Se3oO94y5y9juY0bp-Zk-209">
           <mxGeometry relative="1" as="geometry">
@@ -1755,8 +1755,8 @@
             <mxPoint x="1745.28" y="429.37" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Se3oO94y5y9juY0bp-Zk-219" value="clinvar_updates" style="whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
-          <mxGeometry x="1925.28" y="419.62" width="120" height="40" as="geometry" />
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-219" value="auto_clinvar_updates" style="whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1925.28" y="419.62" width="144.72" height="40" as="geometry" />
         </mxCell>
         <mxCell id="Se3oO94y5y9juY0bp-Zk-220" value="classification" style="ellipse;whiteSpace=wrap;html=1;align=center;" vertex="1" parent="1">
           <mxGeometry x="1875.2799999999997" y="503.87" width="100" height="40" as="geometry" />

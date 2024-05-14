@@ -6,7 +6,7 @@ from flask import Blueprint, Response, current_app, request
 import json
 
 from server import db
-from server.models import GeneAttributes, Clinvar, ClinvarEvalDates, ClinvarUpdates
+from server.models import GeneAttributes, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates
 from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_variant, remove_acmg_rule_from_variant
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
@@ -130,16 +130,16 @@ def get_clinvar_updates(clinvar_id: str):
 
     clinvar: Clinvar = db.session.get(Clinvar, int(clinvar_id))
 
-    eval_dates: List[ClinvarEvalDates] = clinvar.clinvar_eval_dates
+    eval_dates: List[AutoClinvarEvalDates] = clinvar.auto_clinvar_eval_dates
 
     # reversed to get dates in desc order
     eval_dates.reverse()
 
     for eval_date in eval_dates:
         update = None
-        if eval_date.clinvar_update_id is not None:
-            clinvar_update: ClinvarUpdates = eval_date.clinvar_update
-            update = {'classification': clinvar_update.classification, 'reviewStatus': clinvar_update.review_status, 'lastEval': datetime.strftime(clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
+        if eval_date.auto_clinvar_update_id is not None:
+            auto_clinvar_update: AutoClinvarUpdates = eval_date.auto_clinvar_update
+            update = {'classification': auto_clinvar_update.classification, 'reviewStatus': auto_clinvar_update.review_status, 'lastEval': datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
 
         clinvar_updates_list.append({'dateChecked': datetime.strftime(eval_date.eval_date, '%Y/%m/%d %H:%M'), 'update': update})
 

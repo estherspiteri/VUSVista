@@ -56,7 +56,7 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     new_vus_df['clinvarClassificationLastEval'] = vus_df['Clinvar classification last eval']
     new_vus_df['clinvarClassificationReviewStatus'] = vus_df['Clinvar classification review status']
     new_vus_df['clinvarCanonicalSpdi'] = vus_df['Clinvar canonical spdi']
-    new_vus_df['clinvarUid'] = vus_df['Clinvar uid']
+    new_vus_df['clinvarVariationId'] = vus_df['Clinvar variation id']
 
     return new_vus_df
 

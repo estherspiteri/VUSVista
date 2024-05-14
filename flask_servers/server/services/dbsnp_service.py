@@ -37,7 +37,7 @@ def get_rsids(genome_version: str, variants_vcf_filename: str) -> InternalRespon
         rsids = []
 
         for variant_rsid_res in rsid_vcf_res.text.split('PASS\n'):
-            if re.match("^# Error in the next line: The reference sequence for '[A-Z0-9\._]+' at position '\d' \('N'\), is not equal to variant's asserted reference \('[G|A|C|T]'\)", variant_rsid_res, re.IGNORECASE):
+            if re.match("# Error in the next line: The reference sequence for '[A-Z0-9\._]+' at position '[\d]+' \('N'\), is not equal to variant's asserted reference \('[G|A|C|T]'\).+", variant_rsid_res, re.IGNORECASE | re.DOTALL):
                 # TODO: try and get RSID with refAllele set to 'N'
                 rsids.append('NORSID')
             # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
