@@ -104,7 +104,7 @@ CREATE TABLE db_snp (
 
 CREATE TABLE clinvar (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    uid TEXT NOT NULL,
+    variation_id TEXT NOT NULL,
     external_clinvar_id INT NOT NULL UNIQUE,
     canonical_spdi TEXT NOT NULL,
     CONSTRAINT fk_external_references
@@ -112,24 +112,24 @@ CREATE TABLE clinvar (
             REFERENCES external_references(id)
 );
 
-CREATE TABLE clinvar_updates (
+CREATE TABLE auto_clinvar_updates (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     classification TEXT,
     review_status TEXT,
 	last_evaluated TIMESTAMP
 );
 
-CREATE TABLE clinvar_eval_dates (
+CREATE TABLE auto_clinvar_eval_dates (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     clinvar_id INT NOT NULL,
-	clinvar_update_id INT,
+	auto_clinvar_update_id INT,
     eval_date TIMESTAMP,
     CONSTRAINT fk_clinvar
         FOREIGN KEY (clinvar_id) 
             REFERENCES clinvar(id),
-	CONSTRAINT fk_clinvar_updates
-        FOREIGN KEY (clinvar_update_id) 
-            REFERENCES clinvar_updates(id)
+	CONSTRAINT fk_auto_clinvar_updates
+        FOREIGN KEY (auto_clinvar_update_id) 
+            REFERENCES auto_clinvar_updates(id)
 );
 
 -- SCIENTIFIC_MEMBERS
