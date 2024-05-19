@@ -11,7 +11,6 @@ const ProfilePageWrapper: React.FunctionComponent = () => {
   useEffect(() => {
     if (isLoading) {
       profileService.profile().then((res) => {
-        console.log(res);
         setData(res.profile);
         setIsLoading(false);
       });

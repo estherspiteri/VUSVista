@@ -4,10 +4,12 @@ import styles from "./icon.module.scss";
 export type IconName =
   | "add"
   | "add-outline"
+  | "asc"
   | "bin"
   | "checkmark"
   | "chev-right"
   | "close"
+  | "desc"
   | "document"
   | "external-link"
   | "file-upload"
@@ -18,6 +20,7 @@ export type IconName =
   | "publication"
   | "remove"
   | "search"
+  | "sort"
   | "warning";
 
 type IconProps = {
@@ -58,6 +61,17 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
             <circle cx="32" cy="32" r="24" />
             <line x1="20" y1="32" x2="44" y2="32" />
             <line x1="32" y1="20" x2="32" y2="44" />
+          </svg>
+        );
+      }
+      case "asc": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+            <path d="M7.931 9h8.138c.605 0 .908 0 1.049-.12a.5.5 0 0 0 .173-.42c-.014-.183-.228-.397-.657-.826l-4.068-4.068c-.198-.198-.297-.297-.412-.334a.5.5 0 0 0-.309 0c-.114.037-.213.136-.41.334l-4.07 4.068c-.428.429-.642.643-.656.827a.5.5 0 0 0 .173.42C7.022 9 7.325 9 7.932 9" />
           </svg>
         );
       }
@@ -117,6 +131,17 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+          </svg>
+        );
+      }
+      case "desc": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M16.069 15H7.93c-.606 0-.908 0-1.049.12a.5.5 0 0 0-.173.42c.014.183.228.397.657.826l4.068 4.068c.198.198.297.297.411.334.1.033.209.033.31 0 .114-.037.213-.136.41-.334l4.07-4.068c.428-.429.642-.643.656-.827a.5.5 0 0 0-.174-.42C16.978 15 16.675 15 16.07 15Z" />
           </svg>
         );
       }
@@ -263,6 +288,17 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+          </svg>
+        );
+      }
+      case "sort": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+            <path d="M16.069 15H7.93c-.606 0-.908 0-1.049.12a.5.5 0 0 0-.173.42c.014.183.228.397.657.826l4.068 4.068c.198.198.297.297.411.334a.5.5 0 0 0 .31 0c.114-.037.213-.136.41-.334l4.07-4.068c.428-.429.642-.643.656-.827a.5.5 0 0 0-.174-.42C16.978 15 16.675 15 16.07 15M7.931 9h8.138c.605 0 .908 0 1.049-.12a.5.5 0 0 0 .173-.42c-.014-.183-.228-.397-.657-.826l-4.068-4.068c-.198-.198-.297-.297-.412-.334a.5.5 0 0 0-.309 0c-.114.037-.213.136-.41.334l-4.07 4.068c-.428.429-.642.643-.656.827a.5.5 0 0 0 .173.42C7.022 9 7.325 9 7.932 9" />
           </svg>
         );
       }

@@ -2,9 +2,10 @@ import React from "react";
 import styles from "./view-vus.module.scss";
 import { Link } from "react-router-dom";
 import { IVUSSummary } from "../../../models/vus-summary.model";
+import { Row, flexRender } from "@tanstack/react-table";
 
 type ViewVusProps = {
-  vus?: IVUSSummary;
+  vusRow?: Row<IVUSSummary>;
   isColoured?: boolean;
 };
 
@@ -13,24 +14,18 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
 ) => {
   return (
     <Link
-      to={`/vus/${props.vus.id}`}
+      to={`/vus/${props.vusRow.id}`}
       className={`${styles["view-vus-container"]} ${
         props.isColoured ? styles.coloured : ""
       }`}
     >
-      <div className={styles.header}>
-        <div className={styles["header-content"]}>{props.vus.id}</div>
-        <div className={styles["header-content"]}>{props.vus.chromosome}</div>
-        <div className={styles["header-content"]}>
-          {props.vus.chromosomePosition}
-        </div>
-        <div className={styles["header-content"]}>{props.vus.gene}</div>
-        <div className={styles["header-content"]}>{props.vus.refAllele}</div>
-        <div className={styles["header-content"]}>{props.vus.altAllele}</div>
-        <div className={styles["header-content"]}>
-          {props.vus.rsidDbsnpVerified ? props.vus.rsid : "-"}
-        </div>
-      </div>
+      <tr key={props.vusRow.id} className={styles.header}>
+        {props.vusRow.getVisibleCells().map((cell) => (
+          <td key={cell.id} className={styles["header-content"]}>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
+      </tr>
       <div className={styles["additional-info"]}>
         <div className={styles["additional-info-content"]}></div>
       </div>

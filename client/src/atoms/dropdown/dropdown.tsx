@@ -19,7 +19,6 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  console.log(dropdownList);
   useEffect(() => {
     //close dropdown on click outside
     function handleClickOutside(event) {

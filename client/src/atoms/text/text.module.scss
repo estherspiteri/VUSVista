@@ -14,7 +14,7 @@
       border: 2px solid #008080;
       border-left-width: 4px;
       border-right-width: 4px;
-      border-radius: 4px !important;
+      border-radius: var(--border-radius) !important;
 
       &:focus {
         outline: none !important;

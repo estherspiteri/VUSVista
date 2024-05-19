@@ -28,6 +28,8 @@ const ViewAllVus: React.FunctionComponent<ViewAllVusProps> = (
       <div className={styles.description}>
         <p>
           Below you can find a list of all the VUS stored within our database.
+          Multiple column sorting can be enabled by holding down the SHIFT
+          button and clicking on the desired columns.
         </p>
       </div>
       {vusList ? <VusTable vusList={vusList} /> : <Loader />}

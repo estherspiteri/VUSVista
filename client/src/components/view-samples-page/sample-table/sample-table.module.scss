@@ -15,16 +15,38 @@
       padding: 16px;
       text-align: center;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
 
       &.id {
         flex-grow: 1;
+        min-width: 700px;
         text-align: left;
         padding-left: 32px;
       }
 
       &.variants {
         flex-shrink: 0;
-        width: 200px;
+        width: 250px;
+      }
+
+      .title {
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        align-items: center;
+        justify-content: space-between;
+
+        .sort-icons {
+          cursor: pointer;
+          width: 16px;
+          height: 16px;
+
+          svg * {
+            fill: #fff;
+          }
+        }
       }
     }
   }

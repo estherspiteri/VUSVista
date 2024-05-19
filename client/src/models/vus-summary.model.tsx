@@ -1,7 +1,7 @@
 export interface IVUSSummary {
   id: number;
   chromosome: string;
-  chromosomePosition: string;
+  chromosomePosition: number;
   gene: string;
   altAllele: string;
   refAllele: string;
