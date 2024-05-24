@@ -14,7 +14,7 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
 ) => {
   return (
     <Link
-      to={`/vus/${props.vusRow.id}`}
+      to={`/vus/${props.vusRow.original.id}`}
       className={`${styles["view-vus-container"]} ${
         props.isColoured ? styles.coloured : ""
       }`}

@@ -1,12 +1,9 @@
 import json
-import urllib
-from urllib.parse import urlencode
 
-import requests
 from flask import Blueprint, current_app, Response, request
 
 from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
-from server.services.view_samples_service import retrieve_all_samples_from_db, retrieve_sample_from_db
+from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db
 
 sample_views = Blueprint('sample_views', __name__)
 
