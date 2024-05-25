@@ -14,6 +14,7 @@
   .modal-title {
     font-size: 18px;
     padding-bottom: 24px;
+    font-weight: bold;
 
     &.closable {
       display: flex;
@@ -22,7 +23,7 @@
       .close-icon {
         cursor: pointer;
         padding: 4px;
-        
+
         svg {
           stroke: #008080;
         }

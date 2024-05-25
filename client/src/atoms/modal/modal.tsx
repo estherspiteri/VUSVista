@@ -45,6 +45,8 @@ const ModalRef: ForwardRefRenderFunction<
               <Icon
                 name="close"
                 onClick={props.onCloseIconClickCallback}
+                width={32}
+                height={32}
                 className={styles["close-icon"]}
               />
             )}

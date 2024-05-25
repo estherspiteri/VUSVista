@@ -12,6 +12,7 @@ import AcmgRuleInfo from "../../sample-page/acmg-rule-info/acmg-rule-info";
 import { IClinvarUpdate } from "../../../models/clinvar-updates.model";
 import Modal from "../../../atoms/modal/modal";
 import Loader from "../../../atoms/loader/loader";
+import CalendarDisplay from "../../../atoms/calendar-display/calendar-display";
 
 type VusInfoProps = {
   vus: IVus;
@@ -354,34 +355,43 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           {clinvarUpdates.length > 0 ? (
             <div className={styles["clinvar-updates"]}>
               <p>
-                Below is a list of dates when Clinvar was checked for updates.
+                Clinvar's classification was checked on every highlighted date
+                shown below.
               </p>
               <p>
-                Dates marked in bold indicate a change in Clinvar's germline
-                classifcation. Such dates are followed by details related to the
-                classifcation change.
+                Dates in bold indicate a change in Clinvar's germline
+                classifcation. Further details about the change can be found
+                below the calendar.
               </p>
-              {clinvarUpdates.map((u) => (
-                <div
-                  className={`${styles["clinvar-update-info"]} ${
-                    u.update ? styles["clinvar-update-info-with-update"] : ""
-                  }`}
-                >
-                  <p className={styles["clinvar-date-checked-container"]}>
-                    <div className={styles.bullet}>{"\u25CF"}</div>
-                    <span className={styles["clinvar-date-checked"]}>
-                      {u.dateChecked}
-                    </span>
-                  </p>
-                  {u.update && (
+              <div className={styles.calendar}>
+                <CalendarDisplay
+                  markedDates={Array.from(
+                    clinvarUpdates.map((c) => {
+                      return {
+                        date: c.dateChecked.split(" ")[0],
+                        update: c.update !== undefined && c.update !== null,
+                      };
+                    })
+                  )}
+                />
+              </div>
+              {clinvarUpdates
+                .filter((u) => u.update !== null && u.update !== undefined)
+                .map((u) => (
+                  <div className={styles["clinvar-update-info-with-update"]}>
+                    <p className={styles["clinvar-date-checked-container"]}>
+                      <span className={styles.bullet}>{"\u25CF"}</span>
+                      <span className={styles["clinvar-date-checked"]}>
+                        {u.dateChecked}
+                      </span>
+                    </p>
                     <div className={styles["clinvar-update"]}>
                       <p>Last evaluated: {u.update.lastEval}</p>
                       <p>Classification: {u.update.classification}</p>
                       <p>Review status: {u.update.reviewStatus}</p>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
             </div>
           ) : (
             <Loader />

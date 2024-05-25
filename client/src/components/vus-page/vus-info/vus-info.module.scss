@@ -250,22 +250,30 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    align-items: center;
+
+    p {
+      width: 100%;
+    }
+
+    .calendar {
+      margin-top: 16px;
+      margin-bottom: 32px;
+    }
 
     .clinvar-update {
       margin-left: 32px;
     }
 
-    .clinvar-update-info {
+    .clinvar-update-info-with-update {
       .clinvar-date-checked-container {
         display: flex;
         flex-direction: row;
         gap: 8px;
       }
 
-      &.clinvar-update-info-with-update {
-        .clinvar-date-checked {
-          font-weight: bold;
-        }
+      .clinvar-date-checked {
+        font-weight: bold;
       }
     }
   }

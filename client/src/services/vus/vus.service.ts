@@ -18,14 +18,10 @@ import {
 } from "./vus.dto";
 
 export class VusService {
-  async uploadVus(
-    input: IUploadVusRequest
-  ): Promise<IUploadVusResponse> {
+  async uploadVus(input: IUploadVusRequest): Promise<IUploadVusResponse> {
     let data = new FormData();
 
-    const vusJsonData = input.vus
-      ? JSON.stringify(input.vus)
-      : "";
+    const vusJsonData = input.vus ? JSON.stringify(input.vus) : "";
 
     // Append the JSON string as a blob to the FormData
     data.append("vus", vusJsonData);
@@ -184,7 +180,9 @@ export class VusService {
     return result;
   }
 
-  async getClinvarUpdates(input: IGetClinvarUpdatesRequest): Promise<IGetClinvarUpdatesResponse> {
+  async getClinvarUpdates(
+    input: IGetClinvarUpdatesRequest
+  ): Promise<IGetClinvarUpdatesResponse> {
     const result: IGetClinvarUpdatesResponse = await fetch(
       `/vus/get_clinvar_updates/${input.clinvarId}`,
       {
@@ -192,6 +190,7 @@ export class VusService {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
+        cache: "no-cache",
       }
     )
       .then((response: Response) => {
