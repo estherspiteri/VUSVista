@@ -93,9 +93,14 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
     clinvar_genes = clinvar_allele.get('GeneList')
 
     # if none of the genes match the expected gene
-    if gene not in [clinvar_genes[key]['@Symbol'] for key in clinvar_genes.keys()]:
-        return False, (f"None of the gene names {[clinvar_genes[key]['@Symbol'] for key in clinvar_genes.keys()]} "
-                       f"match the expected gene name {gene}!")
+    if isinstance(clinvar_genes['Gene'], list):
+        if gene not in [g['@Symbol'] for g in clinvar_genes['Gene']]:
+            return False, (f"None of the gene names {[g['@Symbol'] for g in clinvar_genes['Gene']]} "
+                           f"match the expected gene name {gene}!")
+    else:
+        if gene != clinvar_genes['Gene']['@Symbol']:
+            return False, (f"None of the gene names {clinvar_genes['Gene']['@Symbol']} "
+                           f"match the expected gene name {gene}!")
 
     clinvar_locations = clinvar_allele.get('Location').get('SequenceLocation')
     for loc in clinvar_locations:
