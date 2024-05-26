@@ -40,7 +40,9 @@ def get_litvar_info(search_string: str) -> InternalResponse:
 
 # search by rsid if it exists else by hgvs (if it exists)
 def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
-    formatted_hgvs = hgvs.split(' ')[0]
+    formatted_hgvs = None
+    if hgvs is not None:
+        formatted_hgvs = hgvs.split(' ')[0]
 
     if rsid is not None:
         rsid_litvar_info_res = get_litvar_info(rsid)

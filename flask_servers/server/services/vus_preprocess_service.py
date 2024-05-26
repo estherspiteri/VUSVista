@@ -15,7 +15,7 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs
+    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs, Classification
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -390,7 +390,7 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     for index, row in vus_df.iterrows():
         # create new variant
         new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=row['Type'],
-                               ref=row['Reference'], alt=row['Alt'], classification=row['Classification'],
+                               ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
                                gene_id=row['Gene Id'], gene_name=row['Gene'])
         # add the new variant to the session
         db.session.add(new_variant)
@@ -736,7 +736,7 @@ def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Respon
 def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
     # adjust existing column names - rename the existing DataFrame
     vus_df.rename(columns={'chromosome': 'Chr', 'chromosomePosition': 'Position', 'type': 'Type',
-                           'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': 'Classification',
+                           'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': Classification.VUS,
                            'gene': 'Gene', 'geneId': 'Gene Id', 'genotype': 'Genotype', 'samples': 'Sample Ids',
                            'phenotypes': 'Sample Phenotypes With Ids', 'acmgRules': 'ACMG Rules With Ids',
                            'hgvs': 'HGVS'},

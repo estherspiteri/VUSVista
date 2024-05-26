@@ -56,11 +56,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [geneInputErrorMsg, setGeneInputErrorMsg] = useState("");
   const [geneId, setGeneId] = useState<number | undefined>(undefined);
 
-  const [classification, setClassification] = useState<string | undefined>(
-    undefined
-  );
-  const [classificationErrorMsg, setClassificationErrorMsg] = useState("");
-
   const [type, setType] = useState<string | undefined>(undefined);
   const [typeErrorMsg, setTypeErrorMsg] = useState("");
 
@@ -92,9 +87,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     genotype !== undefined && genotypeErrorMsg.length === 0;
 
   const isGeneValid = geneId !== undefined;
-
-  const isClassificationValid =
-    classification !== undefined && classificationErrorMsg.length === 0;
 
   const isTypeValid = type !== undefined && typeErrorMsg.length === 0;
 
@@ -275,30 +267,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             </div>
           </VusUploadField>
 
-          {/** Classification */}
-          <VusUploadField
-            title="Classification"
-            showCheckMark={isClassificationValid}
-          >
-            <div className={styles["field-content"]}>
-              <span>Select the classification:</span>
-              <div className={styles.pills}>
-                {["VUS", "Uncertain significance", "Unclassified"].map((c) => {
-                  return (
-                    <div
-                      className={`${styles.pill} ${
-                        classification === c ? styles["selected-pill"] : ""
-                      }`}
-                      onClick={() => setClassification(c)}
-                    >
-                      {c}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </VusUploadField>
-
           {/** Type */}
           <VusUploadField title="Type" showCheckMark={isTypeValid}>
             <div className={styles["field-content"]}>
@@ -418,7 +386,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             !isGeneValid ||
             !isHgvsValid ||
             !isTypeValid ||
-            !isClassificationValid ||
             !areSamplesValid
           }
           onClick={() => setIsSummaryModelOpen(true)}
@@ -462,12 +429,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   <p className={styles["selection-name"]}>HGVS</p>
                   <span>
                     <b>{hgvs}</b>
-                  </span>
-                </div>
-                <div className={styles["summary-field"]}>
-                  <p className={styles["selection-name"]}>Classification</p>
-                  <span>
-                    <b>{classification}</b>
                   </span>
                 </div>
                 <div className={styles["summary-field"]}>
@@ -622,7 +583,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       type: type,
       gene: geneInput.toUpperCase(),
       geneId: geneId,
-      classification: classification.replace(" ", "_").toUpperCase(),
       samples: samples,
       phenotypes: phenotypes ?? [],
       acmgRules: acmgRules ?? [],

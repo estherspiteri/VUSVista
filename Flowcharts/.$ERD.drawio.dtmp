@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-05-22T20:16:50.779Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="SesifcQKitLf4CBVwLTV" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-05-26T15:55:26.084Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="-TRX-WTmwl-7-9BmS_yk" version="22.1.2" type="device" pages="2">
   <diagram name="Page-1" id="n0ZOhfGp7_fPpTbf6uh3">
-    <mxGraphModel dx="1853" dy="1912" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1853" dy="1941" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -619,7 +619,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="-2XMd0_jFtocuSsgo2nn" name="Page-2">
-    <mxGraphModel dx="2110" dy="2134" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2033" dy="1904" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1819,9 +1819,6 @@
             <mxPoint x="1965" y="430" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Se3oO94y5y9juY0bp-Zk-235" value="variant_hgvs" style="whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
-          <mxGeometry x="409" y="586" width="140" height="40" as="geometry" />
-        </mxCell>
         <mxCell id="Se3oO94y5y9juY0bp-Zk-236" value="" style="endArrow=none;html=1;rounded=0;exitX=0.341;exitY=1.025;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="6FRRIMLwlLPpchPOm-Yn-29" target="Se3oO94y5y9juY0bp-Zk-235" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="653" y="410" as="sourcePoint" />
@@ -1888,6 +1885,15 @@
         </mxCell>
         <mxCell id="fSSbPiV607XOXLuudJaw-2" value="Entry is added only when clinvar is updated &lt;br&gt;and info differs from what we have stored" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="1864.72" y="297.12" width="250" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="J5ARr6pLjrk6q77dcwbg-1" value="&lt;span style=&quot;color: rgb(240, 32, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;most recent classification by review, else VUS&lt;br&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="360" y="449" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Se3oO94y5y9juY0bp-Zk-235" value="classific" style="whiteSpace=wrap;html=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="409" y="586" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="J5ARr6pLjrk6q77dcwbg-3" value="TODO: remove classification column from excel sheet" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-385" y="-72" width="310" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

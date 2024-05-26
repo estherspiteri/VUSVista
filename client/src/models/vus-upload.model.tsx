@@ -8,7 +8,6 @@ export interface IAcmgRuleUpload {
 export interface IVusUpload {
   chromosome: string;
   chromosomePosition: string;
-  classification: string;
   gene: string;
   geneId: number;
   altAllele: string;
