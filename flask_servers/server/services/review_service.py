@@ -27,9 +27,6 @@ def load_review_page_content(vus_id: str) -> Tuple[Dict, List[Dict], List[Dict],
     classifications = [Classification.BENIGN.value, Classification.LIKELY_BENIGN.value,
                        Classification.VUS.value, Classification.LIKELY_PATHOGENIC.value, Classification.PATHOGENIC.value]
 
-    # eliminate vus' current classification
-    classifications.remove(vus.classification.value)
-
     return variant_summary, publications, acmg_rules, classifications
 
 
