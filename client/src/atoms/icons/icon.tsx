@@ -7,10 +7,12 @@ export type IconName =
   | "asc"
   | "bin"
   | "checkmark"
-  | "chev-right"
+  | "chev-down"
+  | "chev-right-circle"
   | "close"
   | "desc"
   | "document"
+  | "edit"
   | "external-link"
   | "file-upload"
   | "file-process"
@@ -106,7 +108,18 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
           </svg>
         );
       }
-      case "chev-right": {
+      case "chev-down": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+            <path d="M8.65 10.85a.495.495 0 0 1 .7-.7L12 12.79l2.65-2.64a.495.495 0 0 1 .7.7l-3 3a.49.49 0 0 1-.7 0Z" />
+          </svg>
+        );
+      }
+      case "chev-right-circle": {
         return (
           <svg
             viewBox="0 0 24 24"
@@ -154,6 +167,21 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
           >
             <path d="M9.069 2.672V17.6H2.672v8.718c0 2.129 1.983 3.01 3.452 3.01H26.13c1.616 0 3.199-1.572 3.199-3.199V2.672H9.07zm-2.945 25.59c-.664 0-2.385-.349-2.385-1.944v-7.652H9.07v7.192c0 .714-.933 2.404-2.404 2.404h-.542zm22.138-2.133c0 1.036-1.096 2.133-2.133 2.133H9.016c.718-.748 1.119-1.731 1.119-2.404V3.738h18.126v22.391z" />
             <path d="M12.268 5.871h13.861v1.066H12.268V5.871zm0 14.394h13.861v1.066H12.268v-1.066zm0 3.732h13.861v1.066H12.268v-1.066zM26.129 9.602H12.268v7.997h13.861V9.602zm-1.066 6.931H13.334v-5.864h11.729v5.864z" />
+          </svg>
+        );
+      }
+      case "edit": {
+        return (
+          <svg
+            viewBox="0 -0.5 21 21"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+
+            <path
+              d="M0 20h21v-1.99H0zm10.334-5.968H6.3V9.95L16.63 0 21 4.116z"
+              fill-rule="evenodd"
+            />
           </svg>
         );
       }

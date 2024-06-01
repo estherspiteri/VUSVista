@@ -1,11 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import styles from "./dropdown.module.scss";
+import Icon from "../icons/icon";
 
 type DropdownElt = { elt: {}; displayElt: JSX.Element };
 
 type DropdownProps = {
   inputPlaceholder?: string;
   list?: { elt: {}; displayElt: JSX.Element }[];
+  openOnClick?: boolean;
+  borderRadius?: number;
+  dropdownContentContainerClassname?: string;
   onEltClickCallback?: (elt: {}) => void;
   onInputFocusCallback?: (val: string) => void;
   onInputChangeCallback?: (val: string) => void;
@@ -16,6 +20,7 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
 ) => {
   const [dropdownList, setDropdownList] = useState(props.list ?? []);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [inputValue, setInputValue] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -41,27 +46,59 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
     setDropdownList(props.list);
   }, [props.list]);
 
+  console.log(inputValue, "pppp");
+
   return (
     <div className={styles["dropdown-container"]}>
-      <input
-        className={styles.input}
-        type="text"
-        placeholder={props.inputPlaceholder}
-        onFocus={(e) => {
-          setIsDropdownOpen(e.currentTarget.value.length > 2);
-          
-          props.onInputFocusCallback &&
-            props.onInputFocusCallback(e.currentTarget.value);
-        }}
-        onChange={(e) => {
-          setIsDropdownOpen(e.currentTarget.value.length > 2);
+      <div
+        className={styles["input-container"]}
+        style={
+          { "--border-radius": `${props.borderRadius ?? 8}px` } as CSSProperties
+        }
+      >
+        <input
+          className={styles.input}
+          type="text"
+          value={inputValue}
+          placeholder={props.inputPlaceholder}
+          onFocus={(e) => {
+            setIsDropdownOpen(
+              e.currentTarget.value.length > 2 || props.openOnClick
+            );
 
-          props.onInputChangeCallback &&
-            props.onInputChangeCallback(e.currentTarget.value);
-        }}
-      />
+            props.onInputFocusCallback &&
+              props.onInputFocusCallback(e.currentTarget.value);
+          }}
+          onChange={(e) => {
+            setInputValue(e.currentTarget.value);
+
+            setIsDropdownOpen(
+              e.currentTarget.value.length > 2 || props.openOnClick
+            );
+
+            props.onInputChangeCallback &&
+              props.onInputChangeCallback(e.currentTarget.value);
+          }}
+          onClick={() => {
+            if (props.openOnClick) setIsDropdownOpen(true);
+          }}
+        />
+        <Icon
+          name="chev-down"
+          fill="#fff"
+          className={styles.chev}
+          width={32}
+          height={32}
+          onClick={() => {
+            if (props.openOnClick) setIsDropdownOpen(true);
+          }}
+        />
+      </div>
       {isDropdownOpen && (
-        <div className={styles["dropdown-container"]} ref={dropdownRef}>
+        <div
+          className={`${styles["dropdown-content-container"]} ${props.dropdownContentContainerClassname}`}
+          ref={dropdownRef}
+        >
           {dropdownList.length === 0 ? (
             <p>No results found.</p>
           ) : (
@@ -71,6 +108,9 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
                   onClick={() => {
                     props.onEltClickCallback &&
                       props.onEltClickCallback(elt.elt);
+
+                    setInputValue("");
+
                     setIsDropdownOpen(false);
                   }}
                 >
@@ -83,6 +123,10 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
       )}
     </div>
   );
+};
+
+Dropdown.defaultProps = {
+  openOnClick: false,
 };
 
 export default Dropdown;

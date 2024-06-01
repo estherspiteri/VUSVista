@@ -1,0 +1,225 @@
+.review-page-container {
+  width: 1248px;
+  margin: 40px auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+
+  .title-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .title {
+      width: "100%";
+      font-family: "Poppins-Bold", sans-serif;
+      font-size: 48px;
+    }
+
+    .description {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  .variant-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .variant-summary {
+      width: 40%;
+    }
+
+    .prev-classification-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: -24px;
+
+      .prev-classification {
+        color: #008080;
+        font-size: 18px;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .classification-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 50%;
+    border-radius: 8px;
+    padding-right: 16px;
+
+    .classifications {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+
+      .classification {
+        min-width: 100px;
+        width: fit-content;
+        padding: 4px 8px;
+        border-radius: 24px;
+        border: 2px solid #008080;
+        background-color: #fff;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        cursor: pointer;
+
+        &:not(.selected-gene) {
+          &:hover,
+          &.selected-chromosome,
+          &.selected-pill {
+            background-color: #008080;
+            color: #fff;
+          }
+        }
+      }
+    }
+
+    .selected {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px;
+      padding: 8px 16px;
+      box-sizing: border-box;
+      background-color: #008080;
+      font-weight: bold;
+      color: #fff;
+      font-size: 18px;
+      height: 53px;
+
+      .close {
+        cursor: pointer;
+        flex-shrink: 0;
+        stroke: #fff;
+      }
+    }
+  }
+
+  .section-title,
+  .reason-title {
+    font-weight: bold;
+    font-size: 18px;
+  }
+
+  .dropdown-containers-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    width: 100%;
+
+    .dropdown-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+
+      &.acmg-container {
+        width: 50%;
+        border-right: 4px solid #84bcbc;
+        padding-right: 24px;
+      }
+
+      .dropdown-content-container {
+        max-height: 300px;
+      }
+
+      .doi {
+        justify-content: flex-end;
+        display: flex;
+        margin-top: 4px;
+        font-style: italic;
+      }
+
+      .selection-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        justify-content: center;
+
+        .selected-values-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .selected {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          border-radius: 8px;
+          border: 2px solid #008080;
+          padding: 8px 16px;
+          width: 100%;
+          box-sizing: border-box;
+          background-color: #fff;
+
+          .selected-content {
+            width: 100%;
+          }
+
+          .close {
+            cursor: pointer;
+            flex-shrink: 0;
+          }
+        }
+
+        .no-selection {
+          font-style: italic;
+          width: fit-content;
+          margin: 0 auto;
+          margin-top: -4px;
+          color: #008080;
+        }
+      }
+    }
+  }
+
+  .reason-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .reason {
+      width: 100%;
+      height: 200px;
+
+      textarea {
+        vertical-align: top;
+      }
+    }
+  }
+
+  .btn {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: -8px;
+  }
+
+  .confirm-save-modal {
+    .confirm-save-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
+    }
+  }
+}

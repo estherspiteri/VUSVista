@@ -16,6 +16,7 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
   return (
     <Dropdown
       inputPlaceholder="Type in a phenotype . . ."
+      borderRadius={0}
       list={HPOTerms.map((t) => {
         return {
           elt: t,

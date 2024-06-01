@@ -7,4 +7,5 @@ export interface IVUSSummary {
   refAllele: string;
   rsid?: string;
   rsidDbsnpVerified?: boolean;
+  classification?: string;
 }

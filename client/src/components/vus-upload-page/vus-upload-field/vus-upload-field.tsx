@@ -44,7 +44,7 @@ const VusUploadField: React.FunctionComponent<VusUploadFieldProps> = (
         }}
       >
         <div className={styles["header-left"]}>
-          <Icon name="chev-right" className={styles["chev-right"]} />
+          <Icon name="chev-right-circle" className={styles["chev-right"]} />
           <span>{props.title}</span>
         </div>
         {props.showCheckMark && <Icon name="checkmark" />}

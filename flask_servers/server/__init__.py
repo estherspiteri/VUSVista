@@ -11,6 +11,7 @@ from server.services.vus_publications_service import check_for_new_litvar_public
 from server.views.auth_views import auth_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views
+from server.views.review_views import review_views
 from server.views.sample_views import sample_views
 from server.views.vus_views import vus_views
 
@@ -51,6 +52,7 @@ def create_app():
     app.register_blueprint(sample_views, url_prefix='/sample')
     app.register_blueprint(auth_views, url_prefix='/auth')
     app.register_blueprint(profile_views)
+    app.register_blueprint(review_views, url_prefix='/review')
 
     # specify user loader: tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
     login_manager = LoginManager()

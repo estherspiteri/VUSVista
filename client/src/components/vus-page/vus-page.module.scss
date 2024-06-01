@@ -2,14 +2,21 @@
   width: 1248px;
   margin: 40px auto;
 
-  .title {
-    width: "100%";
-    font-family: "Poppins-Bold", sans-serif;
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: space-between;
+    
+    .title {
+      width: "100%";
+      font-family: "Poppins-Bold", sans-serif;
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
 
-  .description {
-    margin-bottom: 32px;
+    .description {
+      margin-bottom: 32px;
+    }
   }
 }

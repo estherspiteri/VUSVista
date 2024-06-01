@@ -111,7 +111,7 @@ class AcmgRules(Base):
     default_strength = mapped_column(EnumSQL(ACMGStrength, name='acmg_strength'), nullable=False)
     requires_lab_verification = mapped_column(Boolean, nullable=False)
 
-    review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_acmg_rules', back_populates='acmg_rules')
+    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_acmg_rules', back_populates='acmg_rules')
     variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
                                                                           back_populates='acmg_rule')
 
@@ -241,7 +241,7 @@ class Publications(Base):
 
     variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications',
                                                      back_populates='publications')
-    review: Mapped['Reviews'] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
+    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
 class ScientificMembers(UserMixin, Base):
@@ -441,11 +441,11 @@ class Reviews(Base):
     review_status = mapped_column(EnumSQL(ReviewStatus, name='review_status'))
     classification_reason = mapped_column(Text)
 
-    publications: Mapped['Publications'] = relationship('Publications', secondary='reviews_publications',
+    publications: Mapped[List['Publications']] = relationship('Publications', secondary='reviews_publications',
                                                         back_populates='review')
     scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='reviews')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='reviews')
-    acmg_rules: Mapped['AcmgRules'] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
+    acmg_rules: Mapped[List['AcmgRules']] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
 
 
 class VariantsAcmgRules(Base):
@@ -499,7 +499,7 @@ class VariantsSamples(Base):
 t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,
     Column('review_id', Integer, nullable=False),
-    Column('acmg_rule_id', EnumSQL(ACMGRule, name='acmg_rule'), nullable=False),
+    Column('acmg_rule_id', Integer, nullable=False),
     ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
     ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
     PrimaryKeyConstraint('review_id', 'acmg_rule_id', name='reviews_acmg_rules_pkey')

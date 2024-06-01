@@ -1,0 +1,18 @@
+.text-area-container {
+  textarea {
+    width: 200px;
+    padding: 16px;
+    border: 2px solid #008080;
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-radius: var(--border-radius) !important;
+    resize: none;
+    font: inherit;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none !important;
+      border-color: #9bdede;
+    }
+  }
+}

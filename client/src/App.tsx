@@ -16,6 +16,7 @@ import SamplePageWrapper from "./wrappers/sample-page-wrapper";
 import VusPageWrapper from "./wrappers/vus-page-wrapper";
 import PublicationPhenotypeViewPageWrapper from "./wrappers/publication-phenotype-view-page-wrapper";
 import VusUploadPageWrapper from "./wrappers/vus-upload-page-wrapper";
+import ReviewPageWrapper from "./wrappers/review-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -75,6 +76,7 @@ const App: React.FunctionComponent<AppProps> = () => {
           element={<RegisterPage authService={authService} />}
         />
         <Route path="/profile" element={<ProfilePageWrapper />} />
+        <Route path="/review/*" element={<ReviewPageWrapper />} />
         {/*TODO: handle no route match*/}
         {/* <Route path="*" element={<NoMatch />} /> */}
       </Routes>
