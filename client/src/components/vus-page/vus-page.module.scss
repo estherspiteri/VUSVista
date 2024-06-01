@@ -7,7 +7,7 @@
     flex-direction: row;
     gap: 16px;
     justify-content: space-between;
-    
+
     .title {
       width: "100%";
       font-family: "Poppins-Bold", sans-serif;
@@ -17,6 +17,10 @@
 
     .description {
       margin-bottom: 32px;
+    }
+
+    .review-btn {
+      height: fit-content;
     }
   }
 }

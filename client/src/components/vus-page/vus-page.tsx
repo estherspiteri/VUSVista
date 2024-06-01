@@ -25,7 +25,7 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
             <p>Below you can find information about the selected variant.</p>
           </div>
         </div>
-        <Link to={`/review/${props.vus.id}`}>
+        <Link to={`/review/${props.vus.id}`} className={styles["review-btn"]}>
           <Button text="Classification Review" icon="edit" />
         </Link>
       </div>
