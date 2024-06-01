@@ -233,7 +233,7 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 DbSnp.external_db_snp_id == ref.id
             ).one_or_none()
 
-            vus_df.at[index, 'RSID'] = dbsnp.id
+            vus_df.at[index, 'RSID'] = dbsnp.rsid
             vus_df.at[index, 'RSID dbSNP verified'] = len(ref.error_msg) == 0
             vus_df.at[index, 'RSID dbSNP errorMsgs'] = ref.error_msg
 
