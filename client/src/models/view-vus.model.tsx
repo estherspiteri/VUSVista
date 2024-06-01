@@ -8,7 +8,7 @@ export interface IVusSample {
 export interface IVus {
   id: number;
   chromosome: string;
-  chromosomePosition: string;
+  chromosomePosition: number;
   classification: string;
   clinvarClassification?: string;
   clinvarClassificationLastEval?: string;
