@@ -79,5 +79,9 @@
       font-weight: bold;
       border: 2px solid #008080;
     }
+
+    &.hide {
+      opacity: 0.2;
+    }
   }
 }
