@@ -207,47 +207,38 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
     new_vus_df = vus_df.copy()
 
     for index, row in new_vus_df.iterrows():
-        current_app.logger.info(
-            f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: "
-            f"{row['Position']}\n\tGenotype: {row['Genotype']}")
-
-        # TODO: add fix for when multiple rsids are found
-        clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
-                                                                                            row['RSID'], row['Gene'],
-                                                                                            row['Chr'],
-                                                                                            row['Position'])
-
-        if clinvar_clinical_significance_pipeline_res.status != 200:
+        if row['RSID'] == "NORSID":
             current_app.logger.error(
-                f"ClinVar clinical significance pipeline failed for variant with RSID {row['RSID']}!")
-            return InternalResponse(None, 500)
+                f"ClinVar clinical significance pipeline cannot run for variant without RSID!")
+            vus_df.at[index, 'Clinvar error msg'] = "No RSID"
         else:
-            # execute pipeline
-            is_success, clinical_significance, canonical_spdi, variation_id, error_msg = (
-                clinvar_clinical_significance_pipeline_res.data)
+            current_app.logger.info(
+                f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: "
+                f"{row['Position']}\n\tGenotype: {row['Genotype']}")
 
-            if clinical_significance:
-                vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
-                vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
-                vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
+            # TODO: add fix for when multiple rsids are found
+            clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
+                                                                                                row['RSID'], row['Gene'],
+                                                                                                row['Chr'],
+                                                                                                row['Position'])
 
-            vus_df.at[index, 'Clinvar error msg'] = error_msg
-            vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
-            vus_df.at[index, 'Clinvar variation id'] = variation_id
+            if clinvar_clinical_significance_pipeline_res.status != 200:
+                current_app.logger.error(
+                    f"ClinVar clinical significance pipeline failed for variant with RSID {row['RSID']}!")
+                return InternalResponse(None, 500)
+            else:
+                # execute pipeline
+                is_success, clinical_significance, canonical_spdi, variation_id, error_msg = (
+                    clinvar_clinical_significance_pipeline_res.data)
 
-            # update performance for given variant
-    #         if row['VUS Id'] in performance_dict:
-    #             if is_success:
-    #                 performance_dict[row['VUS Id']] = True
-    #         else:
-    #             performance_dict[row['VUS Id']] = is_success
-    #
-    # num_of_variants = len(performance_dict.keys())
-    # success = len([key for key in performance_dict.keys() if performance_dict[key] is True])
-    # failure = num_of_variants - success
-    #
-    # current_app.logger.info(
-    #     f'Found in ClinVar: {round(success / num_of_variants * 100, 2)}%\nNot found in ClinVar: {round(failure / num_of_variants * 100, 2)}%')
+                if clinical_significance:
+                    vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
+                    vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
+                    vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
+
+                vus_df.at[index, 'Clinvar error msg'] = error_msg
+                vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
+                vus_df.at[index, 'Clinvar variation id'] = variation_id
 
     return InternalResponse(vus_df, 200)
 
