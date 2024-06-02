@@ -13,6 +13,9 @@ from server.services.clinvar_service import get_last_saved_clinvar_update
 def retrieve_all_vus_summaries_from_db():
     variants: List[Variants] = db.session.query(Variants).all()
 
+    # sort by id
+    variants.sort(key=lambda x: x.id)
+
     variants_data = [{'id': v.id, 'chromosome': v.chromosome,
                       'chromosomePosition': v.chromosome_position, 'gene': v.gene_name,
                       'refAllele': v.ref, 'altAllele': v.alt} for v in variants]

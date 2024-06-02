@@ -1,0 +1,181 @@
+.review-container {
+  $date-shift-left: 63.64px;
+
+  width: 100%;
+  padding: 32px;
+  padding-left: calc($date-shift-left + 16px);
+  border-left: 4px solid #008080;
+  position: relative;
+
+  .date {
+    background-color: #008080;
+    width: fit-content;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+
+    position: absolute;
+    top: 32px;
+    left: -$date-shift-left;
+  }
+
+  .classification {
+    line-height: 40px;
+    font-size: 21px;
+    font-weight: bold;
+
+    &.likely-pathogenic {
+      color: orangered;
+    }
+
+    &.pathogenic {
+      color: rgb(251, 67, 67);
+    }
+
+    &.vus {
+      color: #008080;
+    }
+
+    &.likely-benign {
+      color: rgb(93, 155, 93);
+    }
+
+    &.benign {
+      color: green;
+    }
+  }
+
+  .review-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+
+    .acmg {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+
+      .selected-acmg {
+        padding: 4px 8px;
+        border-radius: 4px;
+        height: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 28px;
+        color: #fff;
+
+        &.pp {
+          background-color: orange;
+        }
+
+        &.pm {
+          background-color: orangered;
+        }
+
+        &.ps {
+          background-color: rgb(251, 67, 67);
+        }
+
+        &.pvs {
+          background-color: red;
+        }
+
+        &.bp {
+          background-color: lightgreen;
+        }
+
+        &.bs {
+          background-color: green;
+        }
+
+        &.ba {
+          background-color: rgb(0, 132, 255);
+        }
+
+        .bin {
+          fill: white;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .publications-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .publications {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .publication-title {
+          margin-bottom: 8px;
+        }
+
+        .publication {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          border: 2px solid #008080;
+          border-radius: 8px;
+          padding: 8px 16px;
+
+          .doi {
+            align-self: flex-end;
+            font-style: italic;
+          }
+
+          &.link {
+            cursor: pointer;
+
+            &:hover {
+              background-color: #008080;
+              color: #fff;
+            }
+          }
+        }
+      }
+    }
+
+    .reason-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .reason {
+        text-align: justify;
+        text-justify: inter-word;
+        line-height: 32px;
+      }
+    }
+
+    .submitter {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      background-color: #008080;
+      color: #fff;
+      padding: 8px 16px;
+      width: fit-content;
+      border-radius: 8px;
+      align-self: flex-end;
+      margin-top: 16px;
+
+      .email {
+        font-size: 14px;
+        color: #fff;
+        text-decoration: underline;
+        font-style: italic;
+
+        &:hover {
+          color: rgb(0, 255, 221);
+        }
+      }
+    }
+  }
+}

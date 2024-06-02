@@ -42,9 +42,28 @@
       margin-bottom: -24px;
 
       .prev-classification {
-        color: #008080;
         font-size: 18px;
         font-weight: bold;
+
+        &.likely-pathogenic {
+          color: orangered;
+        }
+
+        &.pathogenic {
+          color: rgb(251, 67, 67);
+        }
+
+        &.vus {
+          color: #008080;
+        }
+
+        &.likely-benign {
+          color: rgb(93, 155, 93);
+        }
+
+        &.benign {
+          color: green;
+        }
       }
     }
   }

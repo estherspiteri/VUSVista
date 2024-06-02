@@ -1,7 +1,7 @@
 import json
 
 from flask import Blueprint, Response, request
-from server.services.review_service import load_review_page_content, save_review
+from server.services.review_service import load_review_page_content, save_review, get_all_reviews
 
 review_views = Blueprint('review_views', __name__)
 
@@ -38,3 +38,10 @@ def save_classification_review(vus_id: str):
 
     return Response(json.dumps({"isSuccess": res.status == 200}), res.status, mimetype='application/json')
 
+
+@review_views.route('/view/<string:vus_id>', methods=['GET'])
+def get_variant_classification_reviews(vus_id: str):
+    classification_reviews, variant_summary, date_added = get_all_reviews(vus_id)
+
+    return Response(json.dumps({"variantSummary": variant_summary, "reviews": classification_reviews, "isSuccess": True,
+                                "dateVariantAdded": date_added}), 200, mimetype='application/json')

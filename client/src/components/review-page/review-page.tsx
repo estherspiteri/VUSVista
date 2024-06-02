@@ -73,8 +73,12 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
           <p className={styles["section-title"]}>
             This variant's current classification is:
           </p>
-          <p className={styles["prev-classification"]}>
-            {props.variantSummary.classification}
+          <p
+            className={`${styles["prev-classification"]} ${
+              styles[props.variantSummary.classification.toLowerCase().replace("_", "-")]
+            }`}
+          >
+            {props.variantSummary.classification.replace("_", " ")}
           </p>
         </div>
       </div>

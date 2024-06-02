@@ -404,6 +404,7 @@ class Variants(Base):
     chromosome_position = mapped_column(Text, nullable=False)
     variant_type = mapped_column(EnumSQL(VariantType, name='variant_type'), nullable=False)
     ref = mapped_column(Text, nullable=False)
+    date_added = mapped_column(DateTime, nullable=False)
     classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
     gene_id = mapped_column(Integer, nullable=False)
     gene_name = mapped_column(Text, nullable=False)

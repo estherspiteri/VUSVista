@@ -3,6 +3,7 @@ import styles from "./publication-preview.module.scss";
 import Icon from "../../../atoms/icons/icon";
 import { IPublicationPreview } from "../../../models/publication-view.model";
 import { openInNewWindow } from "../../../helpers/open-links";
+import { getMonthString } from "../../../helpers/date-helper";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;
@@ -109,25 +110,6 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
       </div>
     </div>
   );
-
-  function getMonthString(month: number) {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    return months[month];
-  }
 };
 
 export default PublicationPreview;

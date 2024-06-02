@@ -233,7 +233,8 @@ def get_external_references(variant_id: int, index: Hashable, vus_df: pd.DataFra
                 DbSnp.external_db_snp_id == ref.id
             ).one_or_none()
 
-            vus_df.at[index, 'RSID'] = dbsnp.rsid
+            if dbsnp.rsid != "NORSID":
+                vus_df.at[index, 'RSID'] = dbsnp.rsid
             vus_df.at[index, 'RSID dbSNP verified'] = len(ref.error_msg) == 0
             vus_df.at[index, 'RSID dbSNP errorMsgs'] = ref.error_msg
 
@@ -391,7 +392,7 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
         # create new variant
         new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=row['Type'],
                                ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
-                               gene_id=row['Gene Id'], gene_name=row['Gene'])
+                               gene_id=row['Gene Id'], gene_name=row['Gene'], date_added=datetime.now())
         # add the new variant to the session
         db.session.add(new_variant)
 

@@ -1,3 +1,4 @@
+import { IClassificationReview } from "../../models/classification-review.model";
 import {
   ILoadReviewAcmgRules,
   ILoadReviewPublications,
@@ -25,4 +26,15 @@ export interface ISaveClassificationReviewRequest {
 
 export interface ISaveClassificationReviewResponse {
   isSuccess: boolean;
+}
+
+export interface IGetAllClassificationReviewsRequest {
+  vusId: number;
+}
+
+export interface IGetAllClassificationReviewsResponse {
+  isSuccess: boolean;
+  variantSummary: IVUSSummary;
+  reviews: IClassificationReview[];
+  dateVariantAdded: Date;
 }

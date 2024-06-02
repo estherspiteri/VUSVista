@@ -5,7 +5,7 @@ import Loader from "../atoms/loader/loader";
 import React, { useEffect, useState } from "react";
 import { IPublicationPreview } from "../models/publication-view.model";
 import { IVUSSummary } from "../models/vus-summary.model";
-import { convertPubDates } from "../helpers/pub-date-convertors";
+import { convertPubDates } from "../helpers/date-helper";
 
 const PublicationViewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);

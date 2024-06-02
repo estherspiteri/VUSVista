@@ -72,6 +72,7 @@ CREATE TABLE variants (
     variant_type VARIANT_TYPE NOT NULL,
     ref TEXT NOT NULL,
     alt TEXT,
+	date_added TIMESTAMP NOT NULL,
     consequences CONSEQUENCE,
     classification CLASSIFICATION NOT NULL,
     gene_id INT NOT NULL,

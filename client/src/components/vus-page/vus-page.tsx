@@ -4,8 +4,8 @@ import { IVus } from "../../models/view-vus.model";
 import VusInfo from "./vus-info/vus-info";
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import { VusService } from "../../services/vus/vus.service";
-import Button from "../../atoms/button/button";
 import { Link } from "react-router-dom";
+import Icon from "../../atoms/icons/icon";
 
 type VusPageProps = {
   vus: IVus;
@@ -20,14 +20,37 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
     <div className={styles["vus-page-container"]}>
       <div className={styles["title-container"]}>
         <div>
-          <div className={styles.title}>Vus Information</div>
+          <div className={styles.title}>Variant Information</div>
           <div className={styles.description}>
             <p>Below you can find information about the selected variant.</p>
           </div>
         </div>
-        <Link to={`/review/${props.vus.id}`} className={styles["review-btn"]}>
-          <Button text="Classification Review" icon="edit" />
-        </Link>
+
+        <div className={styles["option-container"]}>
+          <div className={styles["option-btn"]}>
+            <span>Variant Options</span>
+            <Icon name="options" width={12} height={12} />
+          </div>
+          <div className={styles.options}>
+            <Link to={`/review/${props.vus.id}`} className={styles.option}>
+              New Classification Review
+            </Link>
+            <Link
+              to={`/review-history/${props.vus.id}`}
+              className={styles.option}
+            >
+              Classification Review History
+            </Link>
+            {props.vus.rsidDbsnpVerified /**TODO: get num of publication */ && (
+              <Link
+                to={`/publication-view/${props.vus.id}`}
+                className={styles.option}
+              >
+                View Publications
+              </Link>
+            )}
+          </div>
+        </div>
       </div>
 
       <VusInfo

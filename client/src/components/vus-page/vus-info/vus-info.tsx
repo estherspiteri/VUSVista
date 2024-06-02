@@ -4,7 +4,6 @@ import { IVus } from "../../../models/view-vus.model";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import Icon from "../../../atoms/icons/icon";
 import { openInNewWindow } from "../../../helpers/open-links";
-import Button from "../../../atoms/button/button";
 import { IAcmgRule } from "../../../models/acmg-rule.model";
 import AcmgRulesEdit from "../../sample-page/acmg-rules-edit/acmg-rules-edit";
 import { VusService } from "../../../services/vus/vus.service";
@@ -45,12 +44,13 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               altAllele: props.vus.altAllele,
             }}
           />
-          <Button
-            text="View Publications"
-            icon="publication"
-            disabled={!props.vus.rsidDbsnpVerified}
-            onClick={() => openInNewWindow(`/publication-view/${props.vus.id}`)}
-          />
+          <div
+            className={`${styles.classification} ${
+              styles[props.vus.classification.toLowerCase().replace("_", "-")]
+            }`}
+          >
+            {props.vus.classification.replace("_", " ")}
+          </div>
         </div>
         <div className={styles["top-container"]}>
           {/** General information */}

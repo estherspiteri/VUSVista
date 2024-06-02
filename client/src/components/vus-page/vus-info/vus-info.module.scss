@@ -21,6 +21,33 @@
       align-self: center;
       gap: 16px;
       width: 40%;
+
+      .classification {
+        padding: 8px 32px;
+        border-radius: 32px;
+        color: #fff;
+        font-weight: bold;
+
+        &.likely-pathogenic {
+          background-color: orangered;
+        }
+
+        &.pathogenic {
+          background-color: rgb(251, 67, 67);
+        }
+
+        &.vus {
+          background-color: #008080;
+        }
+
+        &.likely-benign {
+          background-color: rgb(93, 155, 93);
+        }
+
+        &.benign {
+          background-color: green;
+        }
+      }
     }
 
     .info-title {

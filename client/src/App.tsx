@@ -17,6 +17,7 @@ import VusPageWrapper from "./wrappers/vus-page-wrapper";
 import PublicationPhenotypeViewPageWrapper from "./wrappers/publication-phenotype-view-page-wrapper";
 import VusUploadPageWrapper from "./wrappers/vus-upload-page-wrapper";
 import ReviewPageWrapper from "./wrappers/review-page-wrapper";
+import ReviewHistoryPageWrapper from "./wrappers/review-history-page-wrapper";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -77,6 +78,10 @@ const App: React.FunctionComponent<AppProps> = () => {
         />
         <Route path="/profile" element={<ProfilePageWrapper />} />
         <Route path="/review/*" element={<ReviewPageWrapper />} />
+        <Route
+          path="/review-history/*"
+          element={<ReviewHistoryPageWrapper />}
+        />
         {/*TODO: handle no route match*/}
         {/* <Route path="*" element={<NoMatch />} /> */}
       </Routes>

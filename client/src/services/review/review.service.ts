@@ -1,4 +1,6 @@
 import {
+  IGetAllClassificationReviewsRequest,
+  IGetAllClassificationReviewsResponse,
   ILoadReviewPageRequest,
   ILoadReviewPageResponse,
   ISaveClassificationReviewRequest,
@@ -52,6 +54,26 @@ export class ReviewService {
       {
         method: "POST",
         body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async getAllClassificationReviews(
+    input: IGetAllClassificationReviewsRequest
+  ): Promise<IGetAllClassificationReviewsResponse> {
+    const result: IGetAllClassificationReviewsResponse = await fetch(
+      `/review/view/${input.vusId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
       }
     )
       .then((response: Response) => {
