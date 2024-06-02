@@ -211,6 +211,12 @@
           align-self: center;
         }
       }
+
+      .info-description-container{
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
     }
 
     .acmg-rules,
@@ -263,13 +269,16 @@
 
     .phenotypes-container {
       .info-description {
-        font-size: 14px;
         margin-bottom: -8px;
       }
 
       &.phenotypes-populated {
         cursor: pointer;
       }
+    }
+
+    .info-description {
+      font-size: 14px;
     }
   }
 

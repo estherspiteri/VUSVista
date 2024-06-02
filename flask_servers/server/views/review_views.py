@@ -21,6 +21,8 @@ def save_classification_review(vus_id: str):
     reason = request.form['reason']
     publication_ids = request.form['publicationIds']
     acmg_rule_ids = request.form['acmgRuleIds']
+    is_new_acmg_rule_added = request.form['isNewAcmgAdded'] == 'true'
+    is_existing_acmg_removed = request.form['isExistingAcmgRemoved'] == 'true'
 
     # Parse the JSON string into a Python object
     if publication_ids:
@@ -34,14 +36,14 @@ def save_classification_review(vus_id: str):
     else:
         acmg_rule_ids_list = []
 
-    res = save_review(vus_id, new_classification, reason, publication_ids_list, acmg_rule_ids_list)
+    res = save_review(vus_id, new_classification, reason, publication_ids_list, acmg_rule_ids_list, is_new_acmg_rule_added, is_existing_acmg_removed)
 
     return Response(json.dumps({"isSuccess": res.status == 200}), res.status, mimetype='application/json')
 
 
 @review_views.route('/view/<string:vus_id>', methods=['GET'])
 def get_variant_classification_reviews(vus_id: str):
-    classification_reviews, variant_summary, date_added = get_all_reviews(vus_id)
+    classification_reviews, variant_summary = get_all_reviews(vus_id)
 
-    return Response(json.dumps({"variantSummary": variant_summary, "reviews": classification_reviews, "isSuccess": True,
-                                "dateVariantAdded": date_added}), 200, mimetype='application/json')
+    return Response(json.dumps({"variantSummary": variant_summary, "reviews": classification_reviews, "isSuccess": True
+                                }), 200, mimetype='application/json')

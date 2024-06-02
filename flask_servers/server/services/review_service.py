@@ -10,6 +10,7 @@ from server.helpers.data_helper import get_variant_summary
 from server.models import Variants, Publications, VariantsAcmgRules, Classification, Reviews, AcmgRules, \
     ScientificMembers
 from server.responses.internal_response import InternalResponse
+from server.services.acmg_service import remove_acmg_rule_from_variant, add_acmg_rule_to_variant
 
 
 def load_review_page_content(vus_id: str) -> Tuple[Dict, List[Dict], List[Dict], List[str]]:
@@ -32,10 +33,11 @@ def load_review_page_content(vus_id: str) -> Tuple[Dict, List[Dict], List[Dict],
     return variant_summary, publications, acmg_rules, classifications
 
 
+# when is_new_acmg_rule_Added or is_existing_acmg_removed is True, then it is expected to only have a single acmg rule id
 def save_review(vus_id: str, new_classification: str, reason: str, publication_ids: List[int],
-                acmg_rule_ids: List[int]):
+                acmg_rule_ids: List[int], is_new_acmg_rule_added=False, is_existing_acmg_removed=False):
     review = Reviews(variant_id=vus_id, scientific_member_id=current_user.id, date_added=datetime.now(),
-                     classification=new_classification.replace(" ", "_"), classification_reason=reason)
+                     classification=new_classification.replace(" ", "_"), classification_reason=reason, is_acmg_rule_added=is_new_acmg_rule_added, is_acmg_rule_deleted=is_existing_acmg_removed)
 
     vus: Variants = db.session.query(Variants).get(vus_id)
     publications: List[Publications] = db.session.query(Publications).filter(Publications.id.in_(publication_ids)).all()
@@ -44,6 +46,11 @@ def save_review(vus_id: str, new_classification: str, reason: str, publication_i
     review.variant = vus
     review.publications = publications
     review.acmg_rules = acmg_rules
+
+    if is_new_acmg_rule_added:
+        add_acmg_rule_to_variant(vus.id, acmg_rules[0].id)
+    elif is_existing_acmg_removed:
+        remove_acmg_rule_from_variant(vus.id, acmg_rules[0].id)
 
     vus.classification = new_classification.replace(" ", "_")
 
@@ -83,10 +90,10 @@ def get_all_reviews(vus_id: str):
              "dateAdded": review.date_added.strftime('%Y/%m/%d'), "scientificMemberName": scientific_member.name + " " +
                                                                      scientific_member.surname,
              "scientificMemberEmail": scientific_member.email, "acmgRules": acmg_rules_list,
-             "publications": publications_list}
+             "publications": publications_list, "isNewAcmgAdded": review.is_acmg_rule_added, "isExistingAcmgRemoved": review.is_acmg_rule_deleted}
 
         reviews_list.append(r)
 
     variant_summary = get_variant_summary(vus)
 
-    return reviews_list, variant_summary, vus.date_added.strftime('%Y/%m/%d')
+    return reviews_list, variant_summary

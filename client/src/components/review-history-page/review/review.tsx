@@ -6,7 +6,6 @@ import { openInNewWindow } from "../../../helpers/open-links";
 
 type ReviewProps = {
   review?: IClassificationReview;
-  dateVariantAdded?: Date;
 };
 
 const Review: React.FunctionComponent<ReviewProps> = (props: ReviewProps) => {
@@ -14,7 +13,6 @@ const Review: React.FunctionComponent<ReviewProps> = (props: ReviewProps) => {
     <div className={styles["review-container"]}>
       <div className={styles.date}>
         {props.review && getDate(props.review.dateAdded)}
-        {props.dateVariantAdded && getDate(props.dateVariantAdded)}
       </div>
 
       {props.review && (
@@ -34,7 +32,14 @@ const Review: React.FunctionComponent<ReviewProps> = (props: ReviewProps) => {
           {props.review.acmgRules.length > 0 && (
             <div className={styles.acmg}>
               <span>
-                <b>Relevant ACMG Rules: </b>
+                <b>
+                  {props.review.isNewAcmgAdded
+                    ? "Added ACMG Rule"
+                    : props.review.isExistingAcmgRemoved
+                    ? "Removed ACMG Rule"
+                    : "Relevant ACMG Rules"}
+                  :&nbsp;
+                </b>
               </span>
               {props.review.acmgRules.map((r) => {
                 const styleClass = r.substring(0, r.length - 1).toLowerCase();
@@ -102,9 +107,6 @@ const Review: React.FunctionComponent<ReviewProps> = (props: ReviewProps) => {
             </div>
           </div>
         </div>
-      )}
-      {props.dateVariantAdded && (
-        <p className={`${styles.classification} ${styles.vus}`}>VUS</p>
       )}
     </div>
   );

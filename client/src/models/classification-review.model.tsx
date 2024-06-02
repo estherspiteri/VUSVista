@@ -12,4 +12,6 @@ export interface IClassificationReview {
   scientificMemberEmail: string;
   acmgRules: string[];
   publications: IClassificationReviewPublications[];
+  isNewAcmgAdded?: boolean;
+  isExistingAcmgRemoved?: boolean;
 }

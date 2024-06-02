@@ -72,7 +72,6 @@ CREATE TABLE variants (
     variant_type VARIANT_TYPE NOT NULL,
     ref TEXT NOT NULL,
     alt TEXT,
-	date_added TIMESTAMP NOT NULL,
     consequences CONSEQUENCE,
     classification CLASSIFICATION NOT NULL,
     gene_id INT NOT NULL,
@@ -275,6 +274,8 @@ CREATE TABLE reviews(
     review_status REVIEW_STATUS,
     classification CLASSIFICATION NOT NULL,
     classification_reason TEXT,
+	is_acmg_rule_added BOOL,
+	is_acmg_rule_deleted BOOL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id),

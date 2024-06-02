@@ -67,24 +67,6 @@ export interface IGetAllAcmgRulesResponse {
   acmgRules: IAcmgRule[];
 }
 
-export interface IAddAcmgRuleRequest {
-  variantId: number;
-  ruleId: number;
-}
-
-export interface IAddAcmgRuleResponse {
-  isSuccess: boolean;
-}
-
-export interface IRemoveAcmgRuleRequest {
-  variantId: number;
-  ruleId: number;
-}
-
-export interface IRemoveAcmgRuleResponse {
-  isSuccess: boolean;
-}
-
 export interface IGetClinvarUpdatesRequest {
   clinvarId: number;
 }

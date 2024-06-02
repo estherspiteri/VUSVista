@@ -11,7 +11,6 @@ const ReviewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [variantSummary, setVariantSummary] = useState<IVUSSummary>(undefined);
   const [reviews, setReviews] = useState<IClassificationReview[]>(undefined);
-  const [dateVariantAdded, setDateVariantAdded] = useState<Date>(undefined);
 
   const loc = useLocation();
   const vusId = loc.pathname.split("/review-history/")[1];
@@ -23,7 +22,6 @@ const ReviewPageWrapper: React.FunctionComponent = () => {
         .then((res) => {
           setVariantSummary(res.variantSummary);
           setReviews(convertReviewDates(res.reviews));
-          setDateVariantAdded(new Date(res.dateVariantAdded));
           setIsLoading(false);
         });
     }
@@ -36,7 +34,6 @@ const ReviewPageWrapper: React.FunctionComponent = () => {
       <ReviewHistoryPage
         variantSummary={variantSummary}
         reviews={reviews}
-        dateVariantAdded={dateVariantAdded}
       />
     );
   }

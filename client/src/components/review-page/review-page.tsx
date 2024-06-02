@@ -16,9 +16,11 @@ import Loader from "../../atoms/loader/loader";
 
 type ReviewPageProps = {
   variantSummary: IVUSSummary;
-  acmgRules: ILoadReviewAcmgRules[];
+  acmgRules?: ILoadReviewAcmgRules[];
   publications: ILoadReviewPublications[];
   classifications: string[];
+  selectedAcmgRuleToAdd?: ILoadReviewAcmgRules;
+  selectedAcmgRuleToRemove?: ILoadReviewAcmgRules;
   reviewService?: ReviewService;
 };
 
@@ -31,7 +33,13 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
 
   const [selectedAcmgRules, setSelectedAcmgRules] = useState<
     ILoadReviewAcmgRules[]
-  >([]);
+  >(
+    props.selectedAcmgRuleToAdd
+      ? [props.selectedAcmgRuleToAdd]
+      : props.selectedAcmgRuleToRemove
+      ? [props.selectedAcmgRuleToRemove]
+      : []
+  );
   const [typedAcmgRule, setTypedAcmgRule] = useState("");
 
   const [selectedPublications, setSelectedPublications] = useState<
@@ -53,16 +61,40 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
       <div className={styles["title-container"]}>
         <div className={styles.title}>Vus Classification Review</div>
         <div className={styles.description}>
-          <p>
-            Update the variant's classification based on relevant publications
-            and/or ACMG rules. You can also choose to write down the motivation
-            behind this classification review in the text box below.
-          </p>
-          <p>
-            For a review to be valid at least one of the following must be
-            selected or populated: ACMG rule/s, publication/s, written-down
-            reason.
-          </p>
+          <p
+            dangerouslySetInnerHTML={{
+              __html: `Update the variant's classification based on ${
+                props.selectedAcmgRuleToAdd || props.selectedAcmgRuleToRemove
+                  ? `the <b>${
+                      props.selectedAcmgRuleToAdd ? "newly added" : "removed"
+                    } ACMG rule ${
+                      props.selectedAcmgRuleToAdd
+                        ? props.selectedAcmgRuleToAdd.name
+                        : props.selectedAcmgRuleToRemove.name
+                    }</b>. You may use other `
+                  : ""
+              } relevant publications ${
+                props.selectedAcmgRuleToAdd || props.selectedAcmgRuleToRemove
+                  ? `that the variant already has to support this ${
+                      props.selectedAcmgRuleToAdd
+                        ? "new ACMG rule addition"
+                        : "ACMG rule removal"
+                    }`
+                  : "and/or ACMG rules"
+              }. You can also choose to write down ${
+                props.selectedAcmgRuleToAdd || props.selectedAcmgRuleToRemove
+                  ? "any comments"
+                  : "the motivation behind this classification review"
+              } in the text box below.`,
+            }}
+          />
+          {!props.selectedAcmgRuleToAdd && !props.selectedAcmgRuleToRemove && (
+            <p>
+              For a review to be valid at least one of the following must be
+              selected or populated: ACMG rule/s, publication/s, written-down
+              reason.
+            </p>
+          )}
         </div>
       </div>
       <div className={styles["variant-info"]}>
@@ -75,7 +107,11 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
           </p>
           <p
             className={`${styles["prev-classification"]} ${
-              styles[props.variantSummary.classification.toLowerCase().replace("_", "-")]
+              styles[
+                props.variantSummary.classification
+                  .toLowerCase()
+                  .replace("_", "-")
+              ]
             }`}
           >
             {props.variantSummary.classification.replace("_", " ")}
@@ -133,34 +169,53 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
           className={`${styles["dropdown-container"]} ${styles["acmg-container"]}`}
         >
           <p className={styles["section-title"]}>ACMG rules selection</p>
-          <Dropdown
-            inputPlaceholder="Select from variant's assigned ACMG rules ..."
-            openOnClick={true}
-            dropdownContentContainerClassname={
-              styles["dropdown-content-container"]
-            }
-            list={
-              props.acmgRules
-                ?.filter(
-                  (a) =>
-                    !selectedAcmgRules?.includes(a) &&
-                    a.name?.toLowerCase().includes(typedAcmgRule?.toLowerCase())
-                )
-                .map((r) => {
-                  return { elt: r, displayElt: <span>{r.name}</span> };
-                }) ?? []
-            }
-            onEltClickCallback={(elt) =>
-              setTimeout(() => {
-                setSelectedAcmgRules(
-                  selectedAcmgRules.concat(elt as ILoadReviewAcmgRules)
-                );
-              }, 300)
-            }
-            onInputChangeCallback={(val) => setTypedAcmgRule(val)}
-          />
+          {!props.selectedAcmgRuleToAdd && !props.selectedAcmgRuleToRemove && (
+            <Dropdown
+              inputPlaceholder="Select from variant's assigned ACMG rules ..."
+              openOnClick={true}
+              dropdownContentContainerClassname={
+                styles["dropdown-content-container"]
+              }
+              list={
+                props.acmgRules
+                  ?.filter(
+                    (a) =>
+                      !selectedAcmgRules?.includes(a) &&
+                      a.name
+                        ?.toLowerCase()
+                        .includes(typedAcmgRule?.toLowerCase())
+                  )
+                  .map((r) => {
+                    return { elt: r, displayElt: <span>{r.name}</span> };
+                  }) ?? []
+              }
+              onEltClickCallback={(elt) =>
+                setTimeout(() => {
+                  setSelectedAcmgRules(
+                    selectedAcmgRules.concat(elt as ILoadReviewAcmgRules)
+                  );
+                }, 300)
+              }
+              onInputChangeCallback={(val) => setTypedAcmgRule(val)}
+            />
+          )}
           <div className={styles["selection-container"]}>
-            <p>This review is based on the following ACMG rules:</p>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: `This review is based on the
+              <b>${
+                props.selectedAcmgRuleToAdd
+                  ? "addition of the "
+                  : props.selectedAcmgRuleToRemove
+                  ? "removal of the "
+                  : ""
+              }</b>following ACMG rule${
+                  props.selectedAcmgRuleToAdd || props.selectedAcmgRuleToRemove
+                    ? ""
+                    : "s"
+                }:`,
+              }}
+            />
             {selectedAcmgRules.length > 0 ? (
               <div className={styles["selected-values-container"]}>
                 {selectedAcmgRules.map((r) => (
@@ -168,16 +223,21 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
                     className={`${styles.selected} ${styles["selected-acmg"]}`}
                   >
                     <p>{r.name}</p>
-                    <Icon
-                      className={styles.close}
-                      name="close"
-                      stroke="#008080"
-                      onClick={() =>
-                        setSelectedAcmgRules(
-                          selectedAcmgRules.filter((rule) => rule.id !== r.id)
-                        )
-                      }
-                    />
+                    {!props.selectedAcmgRuleToAdd &&
+                      !props.selectedAcmgRuleToRemove && (
+                        <Icon
+                          className={styles.close}
+                          name="close"
+                          stroke="#008080"
+                          onClick={() =>
+                            setSelectedAcmgRules(
+                              selectedAcmgRules.filter(
+                                (rule) => rule.id !== r.id
+                              )
+                            )
+                          }
+                        />
+                      )}
                   </div>
                 ))}
               </div>
@@ -312,6 +372,8 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
         reason: reason,
         acmgRuleIds: selectedAcmgRules.map((a) => a.id),
         publicationIds: selectedPublications.map((p) => p.id),
+        isNewAcmgAdded: props.selectedAcmgRuleToAdd !== undefined,
+        isExistingAcmgRemoved: props.selectedAcmgRuleToRemove !== undefined,
       })
       .then((res) => {
         if (res.isSuccess) {

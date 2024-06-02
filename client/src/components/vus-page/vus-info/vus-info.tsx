@@ -245,6 +245,18 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         {/** ACMG rules */}
         <div className={styles["acmg-rules"]}>
           <p className={styles["info-title"]}>ACMG rules:</p>
+          <div className={styles["info-description-container"]}>
+            <p className={styles["info-description"]}>
+              Adding or deleting an ACMG rule requires you to fill in a
+              Classification Review. You will be automatically redirected to the
+              Classification Review page when trying to do so.
+            </p>
+            <p className={styles["info-description"]}>
+              To add an ACMG rule, click on the 'plus' icon. To delete an ACMG
+              rule, hover on the already-added ACMG rule and you will see a
+              'bin' icon. Click on this icon.
+            </p>
+          </div>
           <div
             className={`${styles["acmg-rules-info"]} ${
               isAcmgEditMenuOpen ? styles["acmg-edit-open"] : ""

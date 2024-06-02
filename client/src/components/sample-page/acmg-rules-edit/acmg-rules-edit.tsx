@@ -115,10 +115,9 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
     setSelectedAcmgRules(updatedAcmgRules);
 
     if (props.variantId) {
-      props.vusService?.addAcmgRule({
-        variantId: props.variantId,
-        ruleId: rule_id,
-      });
+      window.location.href = `/review/${props.variantId}?acmg=${rule_id}-${
+        props.allAcmgRules.find((r) => r.id === rule_id).name
+      }`;
     }
 
     props.onAcmgRulesSelectionUpdate &&
@@ -130,10 +129,11 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
     setSelectedAcmgRules(updatedAcmgRules);
 
     if (props.variantId) {
-      props.vusService?.removeAcmgRule({
-        variantId: props.variantId,
-        ruleId: rule_id,
-      });
+      window.location.href = `/review/${
+        props.variantId
+      }?acmg-remove=${rule_id}-${
+        props.allAcmgRules.find((r) => r.id === rule_id).name
+      }`;
     }
 
     props.onAcmgRulesSelectionUpdate &&

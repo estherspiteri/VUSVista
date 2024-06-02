@@ -404,7 +404,6 @@ class Variants(Base):
     chromosome_position = mapped_column(Text, nullable=False)
     variant_type = mapped_column(EnumSQL(VariantType, name='variant_type'), nullable=False)
     ref = mapped_column(Text, nullable=False)
-    date_added = mapped_column(DateTime, nullable=False)
     classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
     gene_id = mapped_column(Integer, nullable=False)
     gene_name = mapped_column(Text, nullable=False)
@@ -441,6 +440,8 @@ class Reviews(Base):
     classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
     review_status = mapped_column(EnumSQL(ReviewStatus, name='review_status'))
     classification_reason = mapped_column(Text)
+    is_acmg_rule_added = mapped_column(Boolean)
+    is_acmg_rule_deleted = mapped_column(Boolean)
 
     publications: Mapped[List['Publications']] = relationship('Publications', secondary='reviews_publications',
                                                         back_populates='review')

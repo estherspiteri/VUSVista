@@ -20,33 +20,10 @@ def add_acmg_rule_to_variant(variant_id: int, acmg_rule_id: str):
 
     db.session.add(variants_acmg_rules)
 
-    try:
-        # Commit the session to persist changes to the database
-        db.session.commit()
-        return InternalResponse({'isSuccess': True}, 200)
-    except SQLAlchemyError as e:
-        # Changes were rolled back due to an error
-        db.session.rollback()
 
-        current_app.logger.error(
-            f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
-        return InternalResponse({'isSuccess': False}, 500)
-
-
-def remove_acmg_rule_from_variant(variant_id: int, acmg_rule_id: str) -> InternalResponse:
+def remove_acmg_rule_from_variant(variant_id: int, acmg_rule_id: str):
     variants_acmg_rules = db.session.query(VariantsAcmgRules).filter_by(variant_id=variant_id,
                                                                         acmg_rule_id=acmg_rule_id).first()
 
     db.session.delete(variants_acmg_rules)
 
-    try:
-        # Commit the session to persist changes to the database
-        db.session.commit()
-        return InternalResponse({'isSuccess': True}, 200)
-    except SQLAlchemyError as e:
-        # Changes were rolled back due to an error
-        db.session.rollback()
-
-        current_app.logger.error(
-            f'Rollback carried out since deletion of VariantsAcmgRules entry in DB failed due to error: {e}')
-        return InternalResponse({'isSuccess': False}, 500)

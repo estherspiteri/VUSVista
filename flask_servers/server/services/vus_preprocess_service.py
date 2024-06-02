@@ -15,7 +15,7 @@ from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs, Classification
+    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs, Classification, Reviews
 from server.responses.internal_response import InternalResponse
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
@@ -392,7 +392,7 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
         # create new variant
         new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=row['Type'],
                                ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
-                               gene_id=row['Gene Id'], gene_name=row['Gene'], date_added=datetime.now())
+                               gene_id=row['Gene Id'], gene_name=row['Gene'])
         # add the new variant to the session
         db.session.add(new_variant)
 
@@ -548,6 +548,7 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
             # TODO include mapping of acmg rules
 
         # store acmg rules to the respective variant, if the variant does not already have that acmg rule
+        new_added_acmg_rule_ids = []
         for rule in acmg_rules:
             # check if variant already has this acmg rule
             variants_acmg_rule: VariantsAcmgRules | None = db.session.query(
@@ -560,6 +561,22 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
                                                            acmg_rule_id=rule['id'],
                                                            rule_name=rule['name'])
                 db.session.add(new_variants_acmg_rule)
+                new_added_acmg_rule_ids.append(new_variants_acmg_rule.acmg_rule_id)
+
+        # ensure classification exists
+        try:
+            Classification(vus_df.at[index, 'Classification'])
+        except ValueError:
+            classification = 'VUS'
+        else:
+            classification = vus_df.at[index, 'Classification']
+
+        # create review to record variant creation
+        new_review: Reviews = Reviews(variant_id=variant_id, scientific_member_id=current_user.id,
+                                      date_added=datetime.now(),
+                                      classification=classification, classification_reason=None)
+        new_review.acmg_rules = db.session.query(AcmgRules).filter(AcmgRules.id.in_(new_added_acmg_rule_ids)).all()
+        db.session.add(new_review)
 
 
 def store_upload_details_for_variant_sample(file_upload: FileUploads, is_file_upload: bool, sample_id: str,

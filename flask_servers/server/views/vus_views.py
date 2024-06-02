@@ -98,30 +98,6 @@ def get_all_acmg_rules():
     return Response(json.dumps({'isSuccess': True, 'acmgRules': acmg_rules}), 200, mimetype='application/json')
 
 
-@vus_views.route('/add-acmg-rule', methods=['POST'])
-def add_acmg_rule():
-    current_app.logger.info(f"Adding ACMG rule")
-
-    variant_id = request.form['variantId']
-    rule_id = request.form['ruleId']
-
-    res = add_acmg_rule_to_variant(int(variant_id), rule_id)
-
-    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
-
-
-@vus_views.route('/remove-acmg-rule', methods=['POST'])
-def remove_acmg_rule():
-    current_app.logger.info(f"Removing ACMG rule")
-
-    variant_id = request.form['variantId']
-    rule_id = request.form['ruleId']
-
-    res = remove_acmg_rule_from_variant(int(variant_id), rule_id)
-
-    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
-
-
 @vus_views.route('/get_clinvar_updates/<string:clinvar_id>', methods=['GET'])
 def get_clinvar_updates(clinvar_id: str):
     current_app.logger.info(f"User requested all clinvar updates for Clinvar id {clinvar_id} ")

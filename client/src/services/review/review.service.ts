@@ -49,6 +49,13 @@ export class ReviewService {
 
     data.append("acmgRuleIds", acmgRuleIdsJsonData);
 
+    data.append("isNewAcmgAdded", input.isNewAcmgAdded.toString());
+
+    data.append(
+      "isExistingAcmgRemoved",
+      input.isExistingAcmgRemoved.toString()
+    );
+
     const result: ISaveClassificationReviewResponse = await fetch(
       `/review/save/${input.vusId}`,
       {

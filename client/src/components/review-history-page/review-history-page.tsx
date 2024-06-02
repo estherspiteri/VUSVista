@@ -8,7 +8,6 @@ import Review from "./review/review";
 type ReviewHistoryPageProps = {
   variantSummary: IVUSSummary;
   reviews: IClassificationReview[];
-  dateVariantAdded: Date;
 };
 
 const ReviewHistoryPage: React.FunctionComponent<ReviewHistoryPageProps> = (
@@ -35,7 +34,6 @@ const ReviewHistoryPage: React.FunctionComponent<ReviewHistoryPageProps> = (
           {props.reviews.map((r) => {
             return <Review review={r} />;
           })}
-          <Review dateVariantAdded={props.dateVariantAdded} />
         </div>
       </div>
     </div>

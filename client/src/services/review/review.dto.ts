@@ -22,6 +22,8 @@ export interface ISaveClassificationReviewRequest {
   reason?: string;
   publicationIds?: number[];
   acmgRuleIds?: number[];
+  isNewAcmgAdded?: boolean;
+  isExistingAcmgRemoved?: boolean;
 }
 
 export interface ISaveClassificationReviewResponse {
@@ -36,5 +38,4 @@ export interface IGetAllClassificationReviewsResponse {
   isSuccess: boolean;
   variantSummary: IVUSSummary;
   reviews: IClassificationReview[];
-  dateVariantAdded: Date;
 }
