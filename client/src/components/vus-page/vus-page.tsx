@@ -41,7 +41,7 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
             >
               Classification Review History
             </Link>
-            {props.vus.rsidDbsnpVerified /**TODO: get num of publication */ && (
+            {props.vus.numOfPublications > 0 && (
               <Link
                 to={`/publication-view/${props.vus.id}`}
                 className={styles.option}

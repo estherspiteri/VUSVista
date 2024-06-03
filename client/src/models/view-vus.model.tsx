@@ -29,4 +29,5 @@ export interface IVus {
   samples: IVusSample[];
   phenotypes: IPhenotype[];
   acmgRuleIds: number[];
+  numOfPublications: number;
 }

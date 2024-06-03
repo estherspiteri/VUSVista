@@ -58,7 +58,7 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
                     'chromosomePosition': variant.chromosome_position, 'gene': variant.gene_name,
                     'type': variant.variant_type.value, 'refAllele': variant.ref, 'altAllele': variant.alt,
                     'classification': variant.classification.value,
-                    'acmgRuleIds': [r.acmg_rule_id for r in variant.variants_acmg_rules]}
+                    'acmgRuleIds': [r.acmg_rule_id for r in variant.variants_acmg_rules], 'numOfPublications': len(variant.publications)}
 
     # retrieve all external references related to that variant
     external_references: List[ExternalReferences] = db.session.query(ExternalReferences).filter(
