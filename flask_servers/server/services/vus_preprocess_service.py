@@ -265,14 +265,14 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
 
     # iterate through the dataframe
     for index, row in new_vus_df.iterrows():
-        variant = get_variant_from_db(row)
+        variant: Variants = get_variant_from_db(row)
 
         # if variant exists in db
         if variant is not None:
             # populate the remaining fields
             vus_df.at[index, 'Variant Id'] = variant.id
             vus_df.at[index, 'Exists in DB'] = True
-            vus_df.at[index, 'Classification'] = str(variant.classification)
+            vus_df.at[index, 'Classification'] = variant.classification.value
             # vus_df.at[index, ''] = variant.consequences TODO: add consequence to variant info
 
             existing_variant_ids.append(variant.id)
@@ -564,12 +564,10 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
                 new_added_acmg_rule_ids.append(new_variants_acmg_rule.acmg_rule_id)
 
         # ensure classification exists
-        try:
-            Classification(vus_df.at[index, 'Classification'])
-        except ValueError:
-            classification = 'VUS'
+        if row['Classification'] in Classification.__members__:
+            classification = row['Classification']
         else:
-            classification = vus_df.at[index, 'Classification']
+            classification = 'VUS'
 
         # create review to record variant creation
         new_review: Reviews = Reviews(variant_id=variant_id, scientific_member_id=current_user.id,

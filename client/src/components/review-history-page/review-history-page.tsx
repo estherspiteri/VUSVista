@@ -21,7 +21,7 @@ const ReviewHistoryPage: React.FunctionComponent<ReviewHistoryPageProps> = (
           <p>
             This page contains the below variant's creation date and any submitted
             Classification Reviews that might have altered this
-            variant's classification.
+            variant's classification. Reviews are generated when ACMG rules are added or removed for a particular variant. They are also created each time the variant is re-uploaded.
           </p>
         </div>
       </div>
