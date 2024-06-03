@@ -14,7 +14,6 @@ export interface IGetPublicationsByVariantIdResponse {
 export interface IGetPublicationsByRsidAndWithOptionalTextRequest {
   variantId: string;
   rsid?: string | null;
-  hgvs: string;
   optionalText: string;
 }
 
