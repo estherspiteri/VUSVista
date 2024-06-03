@@ -769,5 +769,6 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
         existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
 
         vus_df = preprocess_vus_res.data['vus_df']
+        vus_df['Classification'] = 'VUS'
 
         return store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, None, False)
