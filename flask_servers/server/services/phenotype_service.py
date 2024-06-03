@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 
 def get_hpo_terms(phenotype: str) -> InternalResponse:
     url_encoded_phenotype = urllib.parse.quote(phenotype)
-    url = f"https://hpo.jax.org/api/hpo/search?q={url_encoded_phenotype}&max=100&category=terms"
+    url = f"https://ontology.jax.org/api/hp/search?q={url_encoded_phenotype}&max=100&category=terms"
 
     hpo_res = requests.get(url)
 
@@ -22,7 +22,7 @@ def get_hpo_terms(phenotype: str) -> InternalResponse:
             f'Response failure {hpo_res.status_code}: {hpo_res.reason}')
         return InternalResponse({'isSuccess': False, 'hpoTerms': None}, 500)
     else:
-        terms = [{'ontologyId': x['ontologyId'], 'name': x['name']} for x in hpo_res.json()['terms']]
+        terms = [{'ontologyId': x['id'], 'name': x['name']} for x in hpo_res.json()['terms']]
         return InternalResponse({'isSuccess': True, 'hpoTerms': terms}, 200)
 
 
