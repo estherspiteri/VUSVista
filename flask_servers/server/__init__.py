@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask
 from flask_cors import CORS
 from logging.config import dictConfig
@@ -75,8 +77,13 @@ def create_app():
             check_for_new_litvar_publications()
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=60)
-    scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=70)
+    scheduler.add_job(func=scheduled_clinvar_updates_, run_date=datetime.now())
+    # 1 week
+    scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
+
+    scheduler.add_job(func=scheduled_litvar_updates_, run_date=datetime.now())
+    # 10 days
+    scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
