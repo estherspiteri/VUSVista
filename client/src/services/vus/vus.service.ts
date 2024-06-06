@@ -2,6 +2,8 @@ import {
   IGetAllAcmgRulesResponse,
   IGetClinvarUpdatesRequest,
   IGetClinvarUpdatesResponse,
+  IGetPublicationUpdatesRequest,
+  IGetPublicationUpdatesResponse,
   IGetVusRequest,
   IGetVusResponse,
   ILoadAllVusResponse,
@@ -132,11 +134,33 @@ export class VusService {
 
     return result;
   }
+
   async getClinvarUpdates(
     input: IGetClinvarUpdatesRequest
   ): Promise<IGetClinvarUpdatesResponse> {
     const result: IGetClinvarUpdatesResponse = await fetch(
       `/vus/get_clinvar_updates/${input.clinvarId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        cache: "no-cache",
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async getPublicationUpdates(
+    input: IGetPublicationUpdatesRequest
+  ): Promise<IGetPublicationUpdatesResponse> {
+    const result: IGetPublicationUpdatesResponse = await fetch(
+      `/vus/get_publication_updates/${input.variantId}`,
       {
         method: "GET",
         headers: {

@@ -315,6 +315,7 @@ CREATE TABLE publications(
 CREATE TABLE variants_publications(
     variant_id INT NOT NULL,
     publication_id INT NOT NULL,
+	date_added TIMESTAMP,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id),
@@ -322,6 +323,15 @@ CREATE TABLE variants_publications(
         FOREIGN KEY (publication_id) 
             REFERENCES publications(id),
     PRIMARY KEY (variant_id, publication_id)
+);
+
+CREATE TABLE auto_publication_eval_dates(
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    variant_id INT NOT NULL,
+	eval_date TIMESTAMP,
+    CONSTRAINT fk_variants
+        FOREIGN KEY (variant_id) 
+            REFERENCES variants(id)
 );
 
 -- REVIEWS/PUBLICATIONS

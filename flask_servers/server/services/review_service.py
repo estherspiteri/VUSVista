@@ -16,8 +16,8 @@ from server.services.acmg_service import remove_acmg_rule_from_variant, add_acmg
 def load_review_page_content(vus_id: str) -> Tuple[Dict, List[Dict], List[Dict], List[str]]:
     vus: Variants = db.session.query(Variants).get(vus_id)
 
-    # TODO: remove extra info not used in front
-    vus_publications: List[Publications] = vus.publications
+    vus_pub_ids = [vp.publication_id for vp in vus.variants_publications]
+    vus_publications: List[Publications] = db.session.query(Publications).filter(Publications.id.in_(vus_pub_ids)).all()
     publications = [{"id": p.id, "title": p.title, "doi": p.doi} for p in vus_publications]
 
     vus_acmg_rules: List[VariantsAcmgRules] = vus.variants_acmg_rules

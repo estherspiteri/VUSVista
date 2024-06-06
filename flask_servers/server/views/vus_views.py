@@ -6,7 +6,8 @@ from flask import Blueprint, Response, current_app, request
 import json
 
 from server import db
-from server.models import GeneAttributes, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates
+from server.models import GeneAttributes, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates, Variants, \
+    VariantsPublications, Publications, AutoPublicationEvalDates
 from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_variant, remove_acmg_rule_from_variant
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db
@@ -117,6 +118,40 @@ def get_clinvar_updates(clinvar_id: str):
             auto_clinvar_update: AutoClinvarUpdates = eval_date.auto_clinvar_update
             update = {'classification': auto_clinvar_update.classification, 'reviewStatus': auto_clinvar_update.review_status, 'lastEval': datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
 
-        clinvar_updates_list.append({'dateChecked': datetime.strftime(eval_date.eval_date, '%Y/%m/%d %H:%M'), 'update': update})
+        clinvar_updates_list.append({'dateChecked': datetime.strftime(eval_date.eval_date, '%d/%m/%Y %H:%M'), 'update': update})
 
     return Response(json.dumps({'isSuccess': True, 'clinvarUpdates': clinvar_updates_list}), 200, mimetype='application/json')
+
+
+@vus_views.route('/get_publication_updates/<string:variant_id>', methods=['GET'])
+def get_publication_updates(variant_id: str):
+    current_app.logger.info(f"User requested all publication updates for Variant id {variant_id} ")
+
+    variant: Variants = db.session.get(Variants, int(variant_id))
+
+    variant_publication_entries: List[VariantsPublications] = variant.variants_publications
+
+    publication_updates = {}
+    for vp in variant_publication_entries:
+        publication: Publications = db.session.query(Publications).get(vp.publication_id)
+
+        update_arr = publication_updates.get(vp.date_added.date(), [])
+        publication_updates[vp.date_added.date()] = update_arr + [{"title": publication.title, "doi": publication.doi, "link": publication.link}]
+
+    auto_pub_eval_dates: List[AutoPublicationEvalDates] = db.session.query(AutoPublicationEvalDates).filter(AutoPublicationEvalDates.variant_id == variant_id).all()
+
+    # reversed to get dates in desc order
+    auto_pub_eval_dates.reverse()
+
+    variant_publications_update_list = []
+    for auto_pub_eval_date in auto_pub_eval_dates:
+        date_publication_updates = None
+
+        if auto_pub_eval_date.eval_date.date() in publication_updates.keys():
+            date_publication_updates = publication_updates[auto_pub_eval_date.eval_date.date()]
+
+        variant_publications_update_list.append({'lastEval': datetime.strftime(auto_pub_eval_date.eval_date, '%d/%m/%Y %H:%M'),
+                                                     "publicationUpdates": date_publication_updates})
+
+
+    return Response(json.dumps({'isSuccess': True, 'variantPublicationUpdates': variant_publications_update_list}), 200, mimetype='application/json')

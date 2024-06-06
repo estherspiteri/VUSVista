@@ -51,6 +51,19 @@
       border: 1px solid #e2f9f9;
       margin-top: 32px;
 
+      .publication-archive-link {
+        color: #008080;
+        font-size: 14px;
+        margin-bottom: 8px;
+        width: 100%;
+        text-align: end;
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
       .header {
         display: flex;
         flex-direction: column;
@@ -65,6 +78,73 @@
         .header-title {
           font-size: 16px;
           font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .modal {
+    width: 70%;
+
+    .publication-updates-container {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+
+      p {
+        width: 100%;
+      }
+
+      .calendar {
+        margin-top: 16px;
+        margin-bottom: 32px;
+      }
+
+      .publication-update-info-with-update {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 80%;
+
+        .publication-date-checked-container {
+          display: flex;
+          flex-direction: row;
+          gap: 8px;
+
+          .publication-date-checked {
+            font-weight: bold;
+          }
+        }
+
+        .publication-updates {
+          margin-left: 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .publication-update {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            background-color: #fff;
+            border: 2px solid #008080;
+            color: #008080;
+            box-sizing: border-box;
+
+            padding: 16px;
+            border-radius: 8px;
+
+            &.link {
+              cursor: pointer;
+
+              &:hover {
+                background-color: #008080;
+                color: #fff;
+              }
+            }
+          }
         }
       }
     }

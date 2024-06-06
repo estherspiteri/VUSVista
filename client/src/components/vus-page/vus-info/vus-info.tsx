@@ -398,9 +398,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       </span>
                     </p>
                     <div className={styles["clinvar-update"]}>
-                      <p>Last evaluated: {u.update.lastEval}</p>
-                      <p>Classification: {u.update.classification}</p>
-                      <p>Review status: {u.update.reviewStatus}</p>
+                      <p><b>Last evaluated:</b> {u.update.lastEval}</p>
+                      <p><b>Classification:</b> {u.update.classification}</p>
+                      <p><b>Review status:</b> {u.update.reviewStatus}</p>
                     </div>
                   </div>
                 ))}

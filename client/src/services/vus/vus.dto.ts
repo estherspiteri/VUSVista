@@ -1,5 +1,6 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IClinvarUpdate } from "../../models/clinvar-updates.model";
+import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
 import { IVus } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -74,4 +75,13 @@ export interface IGetClinvarUpdatesRequest {
 export interface IGetClinvarUpdatesResponse {
   isSuccess: boolean;
   clinvarUpdates: IClinvarUpdate[];
+}
+
+export interface IGetPublicationUpdatesRequest {
+  variantId: number;
+}
+
+export interface IGetPublicationUpdatesResponse {
+  isSuccess: boolean;
+  variantPublicationUpdates: IVariantPublicationUpdates[];
 }

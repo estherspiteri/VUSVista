@@ -239,8 +239,8 @@ class Publications(Base):
     journal = mapped_column(Text)
     link = mapped_column(Text)
 
-    variant: Mapped[List['Variants']] = relationship('Variants', secondary='variants_publications',
-                                                     back_populates='publications')
+    variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
+                                                                               back_populates='publication')
     review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
 
 
@@ -410,8 +410,8 @@ class Variants(Base):
     alt = mapped_column(Text)
     consequences = mapped_column(EnumSQL(Consequence, name='consequence'))
 
-    publications: Mapped[List['Publications']] = relationship('Publications', secondary='variants_publications',
-                                                              back_populates='variant')
+    variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
+                                                                               back_populates='variant')
     gene: Mapped['GeneAnnotations'] = relationship('GeneAnnotations', back_populates='variants')
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
                                                                            back_populates='variant')
@@ -421,6 +421,7 @@ class Variants(Base):
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='variant')
     variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant')
+    auto_publication_eval_dates: Mapped[List['AutoPublicationEvalDates']] = relationship('AutoPublicationEvalDates', uselist=True, back_populates='variant')
 
 
 class Reviews(Base):
@@ -466,14 +467,34 @@ class VariantsAcmgRules(Base):
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_acmg_rules')
 
 
-t_variants_publications = Table(
-    'variants_publications', metadata,
-    Column('variant_id', Integer, nullable=False),
-    Column('publication_id', Integer, nullable=False),
-    ForeignKeyConstraint(['publication_id'], ['publications.id'], name='fk_publications'),
-    ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
-    PrimaryKeyConstraint('variant_id', 'publication_id', name='variants_publications_pkey')
-)
+class VariantsPublications(Base):
+    __tablename__ = 'variants_publications'
+    __table_args__ = (
+        ForeignKeyConstraint(['publication_id'], ['publications.id'], name='fk_publications'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        PrimaryKeyConstraint('variant_id', 'publication_id', name='variants_publications_pkey')
+    )
+
+    variant_id = mapped_column(Integer, nullable=False)
+    publication_id = mapped_column(Integer, nullable=False)
+    date_added = mapped_column(DateTime)
+
+    publication: Mapped['Publications'] = relationship('Publications', back_populates='variants_publications')
+    variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_publications')
+
+
+class AutoPublicationEvalDates(Base):
+    __tablename__ = 'auto_publication_eval_dates'
+    __table_args__ = (
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        PrimaryKeyConstraint('id', name='auto_publication_eval_dates_pkey')
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    variant_id = mapped_column(Integer, nullable=False)
+    eval_date = mapped_column(DateTime)
+
+    variant: Mapped['Variants'] = relationship('Variants', back_populates='auto_publication_eval_dates')
 
 
 class VariantsSamples(Base):

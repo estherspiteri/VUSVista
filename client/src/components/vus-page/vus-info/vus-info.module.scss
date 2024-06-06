@@ -181,6 +181,10 @@
           width: fit-content;
           align-self: end;
           cursor: pointer;
+
+          &:hover {
+            text-decoration: underline;
+          }
         }
       }
     }
@@ -212,7 +216,7 @@
         }
       }
 
-      .info-description-container{
+      .info-description-container {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -285,7 +289,7 @@
   .clinvar-updates {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 32px;
     align-items: center;
 
     p {
@@ -297,19 +301,31 @@
       margin-bottom: 32px;
     }
 
-    .clinvar-update {
-      margin-left: 32px;
-    }
-
     .clinvar-update-info-with-update {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 90%;
+
       .clinvar-date-checked-container {
         display: flex;
         flex-direction: row;
         gap: 8px;
+
+        .clinvar-date-checked {
+          font-weight: bold;
+        }
       }
 
-      .clinvar-date-checked {
-        font-weight: bold;
+      .clinvar-update {
+        margin-left: 32px;
+
+        background-color: #fff;
+        border: 2px solid #008080;
+        color: #008080;
+        box-sizing: border-box;
+        padding: 16px;
+        border-radius: 8px;
       }
     }
   }

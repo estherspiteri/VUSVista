@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { IPublicationPreview } from "../models/publication-view.model";
 import { IVUSSummary } from "../models/vus-summary.model";
 import { convertPubDates } from "../helpers/date-helper";
+import { vusService } from "../services/vus/vus.service";
 
 const PublicationViewPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +42,7 @@ const PublicationViewPageWrapper: React.FunctionComponent = () => {
         variantId={variantId}
         publications={publications}
         variant={variant}
+        vusService={vusService}
       />
     );
   }
