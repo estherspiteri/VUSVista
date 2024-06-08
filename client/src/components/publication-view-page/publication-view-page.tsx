@@ -218,6 +218,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                     disabled={isAddingPublications}
                     placeholder="Insert URL ..."
                     value={url}
+                    autoFocus={true}
                     onChange={(e) => setUrl(e.currentTarget.value)}
                   />
                 </div>

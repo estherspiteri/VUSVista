@@ -45,7 +45,11 @@ def get_publication_info(publication_link: str) -> InternalResponse:
         if updated_doi is not None:
             updated_doi = updated_doi.replace("\"", "").split(',')[0]
 
-        publication = Publications(title=metadata.get('title', None), pmid=metadata.get('pmid', None),
+        title = metadata.get('title', None)
+        if title is not None:
+            title = title[0].upper() + title[1:]
+
+        publication = Publications(title=title, pmid=metadata.get('pmid', None),
                                    doi=updated_doi,
                                    abstract=metadata.get('abstract', None),
                                    date_published=date,
