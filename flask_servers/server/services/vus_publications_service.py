@@ -1,4 +1,5 @@
 import json
+import math
 from datetime import datetime
 from typing import List, Dict
 from urllib.parse import urlencode
@@ -99,24 +100,20 @@ def merge_user_and_litvar_and_db_publications(user_pub_list: List[Publications],
 
 
 #TODO: stop giving this function publications which the variant already has in first parameter
-def store_variant_publications_in_db(publications: List[Publications], variant_id: int):
+def store_variant_publications_in_db(publications: List[Publications], variant_id: int, manually_added_pub_dois: List[str], date_added=datetime.now()):
     # check which publications already exist in the publications table in the db
     vus_new_publications, vus_existing_publications = extract_publications_already_stored_in_db(publications)
-
-    existing_publications_ids = [p.id for p in vus_existing_publications]
-    new_publications_ids = []
 
     # store new publications
     for p in vus_new_publications:
         db.session.add(p)
         db.session.flush()
-        new_publications_ids.append(p.id)
 
-    all_publications_ids = new_publications_ids + existing_publications_ids
+    all_publications = vus_new_publications + vus_existing_publications
 
     # set up relationship between the variant & its publications
-    for p_id in all_publications_ids:
-        vus_pub = VariantsPublications(variant_id=variant_id, publication_id=p_id, date_added=datetime.now())
+    for p in all_publications:
+        vus_pub = VariantsPublications(variant_id=variant_id, publication_id=p.id, date_added=date_added, is_manually_added=p.doi is not None and p.doi in manually_added_pub_dois) #TODO: get value
         db.session.add(vus_pub)
 
 
@@ -130,7 +127,10 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
 
         # check if user provided any literature links
         if 'Literature Links' in vus_df.keys():
-            links = str(row['Literature Links']).replace(' ', '')
+            links = []
+
+            if str(row['Literature Links']) != 'nan':
+                links = str(row['Literature Links']).replace(' ', '')
 
             if len(links) > 0:
                 links_arr = links.split('|')
@@ -179,14 +179,19 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
         else:
             final_pub_list = merge_2_sets_of_publications(publication_links, litvar_publications)
 
+        date = datetime.now()
+
         # add new evaluation date
-        auto_pub_eval_dates = AutoPublicationEvalDates(variant_id=variant.id, eval_date=datetime.now())
+        auto_pub_eval_dates = AutoPublicationEvalDates(variant_id=variant.id, eval_date=date)
         db.session.add(auto_pub_eval_dates)
+
+        # get doi of manually added links
+        manually_added_dois = [p.doi for p in publication_links]
 
         # extract the publications not yet included for the variant
         variant_publication_ids = [vp.publication_id for vp in variant.variants_publications]
         pub_not_in_variant = [p for p in final_pub_list if p.id not in variant_publication_ids]
-        store_variant_publications_in_db(pub_not_in_variant, variant.id)
+        store_variant_publications_in_db(pub_not_in_variant, variant.id, manually_added_dois, date)
 
     return InternalResponse(None, 200)
 
@@ -201,6 +206,9 @@ def get_publications_by_variant_id_from_db(variant_id: str) -> (Variants, List[D
     var_publications: List[Publications] = db.session.query(Publications).filter(
         Publications.id.in_(variant_pub_ids)).all()
 
+    # get publications ids of those publications added manually to variant
+    manually_added_pub_ids = [vp.publication_id for vp in variant.variants_publications if vp.is_manually_added]
+
     for p in var_publications:
         encoded_publication = alchemy_encoder(p)
 
@@ -208,6 +216,7 @@ def get_publications_by_variant_id_from_db(variant_id: str) -> (Variants, List[D
         encoded_publication['publicationId'] = encoded_publication.pop('id')
         date_published = encoded_publication.pop('date_published')
         encoded_publication['isSupplementaryMaterialMatch'] = encoded_publication.pop('match_in_sup_material')
+        encoded_publication['isAddedManually'] = p.id in manually_added_pub_ids
 
         if date_published is not None:
             encoded_publication['date'] = date_published.strftime('%Y/%m/%d')
@@ -255,10 +264,12 @@ def check_for_new_litvar_publications():
             # extract the publications not yet included for the variant
             pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
 
-            # update the variant's publications in the db
-            store_variant_publications_in_db(pub_not_in_variant, v.id)
+            date = datetime.now()
 
-            auto_pub_eval_date = AutoPublicationEvalDates(eval_date=datetime.now(), variant_id=v.id)
+            # update the variant's publications in the db
+            store_variant_publications_in_db(pub_not_in_variant, v.id, [], date)
+
+            auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=v.id)
             db.session.add(auto_pub_eval_date)
 
     try:

@@ -29,6 +29,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
 
   const [showClinvarArchiveModal, setShowClinvarArchiveModal] = useState(false);
   const [clinvarUpdates, setClinvarUpdates] = useState<IClinvarUpdate[]>([]);
+  const [datesWithUpdates, setDatesWithUpdates] = useState([]);
 
   return (
     <div className={styles["vus-info-container"]}>
@@ -366,22 +367,27 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         >
           {clinvarUpdates.length > 0 ? (
             <div className={styles["clinvar-updates"]}>
-              <p>
-                Clinvar's classification was checked on every highlighted date
-                shown below.
-              </p>
-              <p>
-                Dates in bold indicate a change in Clinvar's germline
-                classifcation. Further details about the change can be found
-                below the calendar.
-              </p>
+              <div className={styles["clinvar-updates-description"]}>
+                <p>
+                  Clinvar's classification was checked on every highlighted date
+                  shown below.
+                </p>
+                <p>
+                  Dates in bold indicate a change in Clinvar's germline
+                  classifcation. Further details about the change can be found
+                  below the calendar.
+                </p>
+              </div>
               <div className={styles.calendar}>
                 <CalendarDisplay
                   markedDates={Array.from(
                     clinvarUpdates.map((c) => {
+                      const date = c.dateChecked.split(" ")[0];
+
                       return {
-                        date: c.dateChecked.split(" ")[0],
-                        update: c.update !== undefined && c.update !== null,
+                        date: date,
+                        update:
+                          datesWithUpdates?.find((d) => d == date) ?? false,
                       };
                     })
                   )}
@@ -398,9 +404,15 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       </span>
                     </p>
                     <div className={styles["clinvar-update"]}>
-                      <p><b>Last evaluated:</b> {u.update.lastEval}</p>
-                      <p><b>Classification:</b> {u.update.classification}</p>
-                      <p><b>Review status:</b> {u.update.reviewStatus}</p>
+                      <p>
+                        <b>Last evaluated:</b> {u.update.lastEval}
+                      </p>
+                      <p>
+                        <b>Classification:</b> {u.update.classification}
+                      </p>
+                      <p>
+                        <b>Review status:</b> {u.update.reviewStatus}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -422,6 +434,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         .then((res) => {
           if (res.isSuccess) {
             setClinvarUpdates(res.clinvarUpdates);
+            if (res.datesWithUpdates) setDatesWithUpdates(res.datesWithUpdates);
           }
         });
     }

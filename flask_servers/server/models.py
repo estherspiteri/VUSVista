@@ -478,6 +478,7 @@ class VariantsPublications(Base):
     variant_id = mapped_column(Integer, nullable=False)
     publication_id = mapped_column(Integer, nullable=False)
     date_added = mapped_column(DateTime)
+    is_manually_added = mapped_column(Boolean)
 
     publication: Mapped['Publications'] = relationship('Publications', back_populates='variants_publications')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_publications')

@@ -1,4 +1,6 @@
 import {
+  IAddPublicationsRequest,
+  IAddPublicationsResponse,
   IGetAllAcmgRulesResponse,
   IGetClinvarUpdatesRequest,
   IGetClinvarUpdatesResponse,
@@ -169,6 +171,34 @@ export class VusService {
         cache: "no-cache",
       }
     )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addPublications(
+    input: IAddPublicationsRequest
+  ): Promise<IAddPublicationsResponse> {
+    let data = new FormData();
+
+    const publicationsJsonData = input.publicationUrls
+      ? JSON.stringify(input.publicationUrls)
+      : "";
+
+    // Append the JSON string as a blob to the FormData
+    data.append("publicationUrls", publicationsJsonData);
+
+    const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/add_publications/${input.variantId}`, {
+      method: "POST",
+      body: data,
+      // headers: {
+      // "Content-Type": "multipart/form-data",
+      // },
+      cache: "no-store", //TODO: is it needed?
+    })
       .then((response: Response) => {
         return response.json();
       })

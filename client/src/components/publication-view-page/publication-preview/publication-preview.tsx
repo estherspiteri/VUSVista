@@ -45,6 +45,11 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
         onClick={() => setIsAdditionalInfoVisible(!isAdditionalInfoVisible)}
       >
         <div className={styles.title}>{props.data?.title}</div>
+        {props.data.isAddedManually && (
+          <div className={styles["profile-icon-wrapper"]}>
+            <Icon name="profile" />
+          </div>
+        )}
         <div className={styles["icon-wrapper"]}>
           <div
             className={styles.icon}

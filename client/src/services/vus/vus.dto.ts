@@ -1,5 +1,6 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IClinvarUpdate } from "../../models/clinvar-updates.model";
+import { IPublicationPreview } from "../../models/publication-view.model";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
 import { IVus } from "../../models/view-vus.model";
 import {
@@ -75,6 +76,7 @@ export interface IGetClinvarUpdatesRequest {
 export interface IGetClinvarUpdatesResponse {
   isSuccess: boolean;
   clinvarUpdates: IClinvarUpdate[];
+  datesWithUpdates?: string[] | null;
 }
 
 export interface IGetPublicationUpdatesRequest {
@@ -84,4 +86,15 @@ export interface IGetPublicationUpdatesRequest {
 export interface IGetPublicationUpdatesResponse {
   isSuccess: boolean;
   variantPublicationUpdates: IVariantPublicationUpdates[];
+  datesWithUpdates?: string[] | null;
+}
+
+export interface IAddPublicationsRequest {
+  variantId: string;
+  publicationUrls: string[];
+}
+
+export interface IAddPublicationsResponse {
+  isSuccess: boolean;
+  publications?: IPublicationPreview[];
 }

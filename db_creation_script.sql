@@ -316,6 +316,7 @@ CREATE TABLE variants_publications(
     variant_id INT NOT NULL,
     publication_id INT NOT NULL,
 	date_added TIMESTAMP,
+	is_manually_added BOOL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id),

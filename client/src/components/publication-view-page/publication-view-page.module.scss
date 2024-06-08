@@ -7,11 +7,18 @@
   gap: 16px;
 
   .title-container {
-    .title {
-      width: "100%";
-      font-family: "Poppins-Bold", sans-serif;
-      font-size: 48px;
-      margin-bottom: 16px;
+    .title-section {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      justify-content: space-between;
+
+      .title {
+        width: "100%";
+        font-family: "Poppins-Bold", sans-serif;
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
     }
 
     .description {
@@ -92,6 +99,13 @@
       gap: 32px;
       align-items: center;
 
+      .publication-updates-description {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: -16px;
+      }
+
       p {
         width: 100%;
       }
@@ -124,9 +138,17 @@
           gap: 16px;
 
           .publication-update {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            .pub {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            }
+
+            .manual-add {
+              stroke: #008080;
+              display: flex;
+              justify-content: flex-end;
+            }
 
             background-color: #fff;
             border: 2px solid #008080;
@@ -142,11 +164,99 @@
               &:hover {
                 background-color: #008080;
                 color: #fff;
+
+                .manual-add {
+                  stroke: #fff;
+                }
               }
             }
           }
         }
       }
+    }
+  }
+
+  .add-pub-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .urls-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .new-input {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+
+        .text {
+          width: 100%;
+
+          input {
+            width: 100%;
+            box-sizing: border-box;
+          }
+        }
+
+        .icon-wrapper {
+          background-color: #008080;
+          padding: 4px;
+          border-radius: 8px;
+          cursor: pointer;
+          width: fit-content;
+          box-sizing: border-box;
+          height: 35px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          .add {
+            fill: #fff;
+          }
+
+          &:hover {
+            background-color: #fff;
+            border: 2px solid #008080;
+            padding: 2px;
+            box-sizing: border-box;
+
+            .add {
+              fill: #008080;
+            }
+          }
+        }
+      }
+
+      .added-url {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 4px 8px;
+        border: 2px solid #008080;
+        border-radius: 8px;
+        width: fit-content;
+
+        a {
+          color: #008080;
+          font-size: 14px;
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        svg {
+          cursor: pointer;
+        }
+      }
+    }
+
+    .add-publications-btn {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
     }
   }
 }

@@ -9,5 +9,5 @@ export interface IPublicationPreview {
   isSupplementaryMaterialMatch: boolean;
   doi?: string | null;
   link?: string | null;
+  isAddedManually: boolean;
 }
-

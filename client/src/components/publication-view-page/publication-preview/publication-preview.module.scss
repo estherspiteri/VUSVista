@@ -63,6 +63,19 @@ body {
       }
     }
 
+    .profile-icon-wrapper {
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px;
+
+      svg {
+        stroke: #008080;
+        stroke-width: 1px;
+      }
+    }
+
     &:hover {
       > * {
         background-color: #cfe7e7ca !important;
