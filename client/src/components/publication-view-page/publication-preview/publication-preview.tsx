@@ -108,7 +108,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
           {props.data.abstract && (
             <div className={styles.info}>
               <span className={styles["info-type"]}>Abstract:</span>
-              <span>{props.data?.abstract}</span>
+              <p dangerouslySetInnerHTML={{__html: props.data?.abstract}}/>
             </div>
           )}
         </div>
