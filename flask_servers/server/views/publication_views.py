@@ -6,7 +6,7 @@ from server import db
 from server.helpers.data_helper import alchemy_encoder, get_variant_summary
 from server.models import Variants
 from server.services.litvar_service import get_publications
-from server.services.vus_publications_service import get_publications_by_variant_id_from_db
+from server.services.publications_service import get_publications_by_variant_id_from_db
 
 publication_views = Blueprint('publication_views', __name__)
 

@@ -22,7 +22,7 @@ from server.services.dbsnp_service import get_rsids_from_dbsnp
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
 from server.services.view_vus_service import get_last_saved_clinvar_update
-from server.services.vus_publications_service import retrieve_and_store_variant_publications
+from server.services.publications_service import retrieve_and_store_variant_publications
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
 

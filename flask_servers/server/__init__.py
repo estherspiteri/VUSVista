@@ -9,7 +9,7 @@ from flask_login import LoginManager
 from server.config import SQLALCHEMY_DATABASE_URI, db
 from server.models import Base, ScientificMembers
 from server.services.clinvar_service import scheduled_clinvar_updates
-from server.services.vus_publications_service import check_for_new_litvar_publications
+from server.services.publications_service import check_for_new_litvar_publications
 from server.views.auth_views import auth_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views

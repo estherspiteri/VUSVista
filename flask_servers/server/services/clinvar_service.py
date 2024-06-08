@@ -2,7 +2,7 @@ from datetime import datetime
 
 import requests
 import xmltodict
-from flask import current_app
+from flask import current_app, Response
 import pandas as pd
 import time
 import json
@@ -344,3 +344,32 @@ def scheduled_clinvar_updates():
         current_app.logger.error(
             f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
+
+
+def get_variant_clinvar_updates(clinvar_id: str):
+    clinvar_updates_list = []
+
+    clinvar: Clinvar = db.session.get(Clinvar, int(clinvar_id))
+
+    eval_dates: List[AutoClinvarEvalDates] = clinvar.auto_clinvar_eval_dates
+
+    # reversed to get dates in desc order
+    eval_dates.reverse()
+
+    for eval_date in eval_dates:
+        update = None
+        if eval_date.auto_clinvar_update_id is not None:
+            auto_clinvar_update: AutoClinvarUpdates = eval_date.auto_clinvar_update
+            update = {'classification': auto_clinvar_update.classification,
+                      'reviewStatus': auto_clinvar_update.review_status,
+                      'lastEval': datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
+
+        clinvar_updates_list.append(
+            {'dateChecked': datetime.strftime(eval_date.eval_date, '%d/%m/%Y %H:%M'), 'update': update})
+
+    dates_with_updates = list(
+        set([u['dateChecked'].split(" ")[0] for u in clinvar_updates_list if u['update'] is not None]))
+
+    return Response(
+        json.dumps({'isSuccess': True, 'clinvarUpdates': clinvar_updates_list, 'datesWithUpdates': dates_with_updates}),
+        200, mimetype='application/json')

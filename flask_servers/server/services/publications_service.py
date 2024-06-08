@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 import pandas as pd
 import requests
-from flask import current_app
+from flask import current_app, Response
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
@@ -284,3 +284,107 @@ def check_for_new_litvar_publications():
             f'Rollback carried out since insertion of new publications for variant with id {v.id} in DB failed '
             f'due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
+
+
+def get_variant_publication_updates(variant_id: str):
+    variant: Variants = db.session.get(Variants, int(variant_id))
+
+    variant_publication_entries: List[VariantsPublications] = variant.variants_publications
+
+    auto_publication_updates = {}
+    manual_publication_updates = {}
+    for vp in variant_publication_entries:
+        publication: Publications = db.session.query(Publications).get(vp.publication_id)
+        date = datetime.strftime(vp.date_added, '%d/%m/%Y %H:%M')
+
+        if vp.is_manually_added:
+            update_arr = manual_publication_updates.get(date, [])
+            manual_publication_updates[date] = update_arr + [
+                {"title": publication.title, "doi": publication.doi, "link": publication.link, "isManuallyAdded": True}]
+        else:
+            update_arr = auto_publication_updates.get(date, [])
+            auto_publication_updates[date] = update_arr + [
+                {"title": publication.title, "doi": publication.doi, "link": publication.link,
+                 "isManuallyAdded": False}]
+
+    auto_pub_eval_dates: List[AutoPublicationEvalDates] = db.session.query(AutoPublicationEvalDates).filter(
+        AutoPublicationEvalDates.variant_id == variant_id).all()
+
+    # get both manual and automatic updates dates
+    all_auto_pub_eval_dates = [d.eval_date for d in auto_pub_eval_dates]
+    all_manual_pub_eval_dates = [vp.date_added for vp in variant_publication_entries if vp.is_manually_added == True]
+    all_dates = all_auto_pub_eval_dates + all_manual_pub_eval_dates
+
+    # reversed to get dates in desc order
+    all_dates.sort()
+    all_dates.reverse()
+
+    all_dates_str = [datetime.strftime(d, '%d/%m/%Y %H:%M') for d in all_dates]
+    all_dates_str_unique = []
+    for d in all_dates_str:
+        if d not in all_dates_str_unique:
+            all_dates_str_unique.append(d)
+
+    all_auto_pub_eval_dates_str = [datetime.strftime(d.eval_date, '%d/%m/%Y %H:%M') for d in auto_pub_eval_dates]
+
+    variant_publications_update_list = []
+    for date in all_dates_str_unique:
+        if date in all_auto_pub_eval_dates_str and date not in auto_publication_updates.keys():
+            pub_updates = None
+
+        else:
+            pub_updates = []
+
+            if date in auto_publication_updates.keys():
+                pub_updates += auto_publication_updates[date]
+
+            if date in manual_publication_updates.keys():
+                pub_updates += manual_publication_updates[date]
+
+        variant_publications_update_list.append({'lastEval': date,
+                                                 "publicationUpdates": pub_updates})
+
+    dates_with_updates = list(set([u['lastEval'].split(" ")[0] for u in variant_publications_update_list if
+                                   u['publicationUpdates'] is not None]))
+
+    return Response(json.dumps({'isSuccess': True, 'variantPublicationUpdates': variant_publications_update_list,
+                                'datesWithUpdates': dates_with_updates}), 200, mimetype='application/json')
+
+
+def add_publications_to_variant(variant_id: str, publication_links_list: List[str]):
+    variant: Variants = db.session.query(Variants).get(variant_id)
+    variant_publication_ids = [vp.publication_id for vp in variant.variants_publications]
+    variant_publications: List[Publications] = db.session.query(Publications).filter(
+        Publications.id.in_(variant_publication_ids)).all()
+
+    added_publications: List[Publications] = []
+    for link in publication_links_list:
+        link_publication_res = get_publication_info(link)
+
+        if link_publication_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of information for the user provided literature link failed 500')
+        else:
+            new_pub = link_publication_res.data
+            added_publications.append(new_pub)
+
+    final_pub_list = merge_2_sets_of_publications(added_publications, variant_publications)
+
+    # extract the publications not yet included for the variant
+    pub_not_in_variant = [p for p in final_pub_list if p.id not in variant_publication_ids]
+    pub_not_in_variant_dois = [p.doi for p in pub_not_in_variant]
+    store_variant_publications_in_db(pub_not_in_variant, variant.id, pub_not_in_variant_dois)
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        variant, publications = get_publications_by_variant_id_from_db(variant_id)
+        return Response(json.dumps({'isSuccess': True, 'publications': publications}), 200, mimetype='application/json')
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since insertion of new publication entries in DB failed due to error: {e}')
+        return Response(json.dumps({'isSuccess': False, "publications": None}), 200, mimetype='application/json')
