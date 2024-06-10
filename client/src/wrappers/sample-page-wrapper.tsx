@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import Loader from "../atoms/loader/loader";
 import React, { useEffect, useState } from "react";
 import { ISample } from "../models/view-samples.model";
@@ -28,13 +28,10 @@ const SamplePageWrapper: React.FunctionComponent = () => {
 
   if (isLoading) {
     return <Loader />;
+  } else if (sample === null) {
+    return <Navigate to="/view-samples" />;
   } else {
-    return (
-      <SamplePage
-        sample={sample}
-        sampleService={samplesService}
-      />
-    );
+    return <SamplePage sample={sample} sampleService={samplesService} />;
   }
 };
 

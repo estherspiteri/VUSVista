@@ -1,11 +1,13 @@
 from typing import List, Dict
 
-import pandas as pd
+from flask import current_app
+from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    Variants, VariantsSamplesUploads
+    Variants, VariantsSamplesUploads, FileUploads
+from server.responses.internal_response import InternalResponse
 
 
 def get_sample_info_from_db(sample: Samples) -> Dict:
@@ -60,7 +62,43 @@ def retrieve_all_samples_from_db():
 
 def retrieve_sample_from_db(sample_id: str):
     # retrieve sample
-    sample = db.session.query(Samples).filter(Samples.id == sample_id).first()
+    sample = db.session.query(Samples).filter(Samples.id == sample_id).one_or_none()
+
+    if sample is None:
+        return InternalResponse({'isSuccess': True, 'sample_dict': None}, 404)
+
     sample_dict = get_sample_info_from_db(sample)
 
-    return sample_dict
+    return InternalResponse({'isSuccess': True, 'sample_dict': sample_dict}, 200)
+
+
+def delete_sample_entry(sample_id: str) -> InternalResponse:
+    sample: Samples = db.session.query(Samples).get(sample_id)
+
+    if not sample:
+        current_app.logger.error(f'Sample with ID: {sample_id} not found')
+        return InternalResponse({'isSuccess': False}, 404)
+
+    current_app.logger.info(
+        f"Deleting sample with ID: {sample.id}")
+    db.session.delete(sample)
+
+    # deleting any file_uploads without variants_samples_uploads
+    file_uploads_query = db.session.query(FileUploads).filter(~FileUploads.variants_samples_uploads.any())
+    file_uploads_query.delete()
+
+    # deleting any phenotypes without samples
+    phenotypes_query = db.session.query(Phenotypes).filter(~Phenotypes.sample.any())
+    phenotypes_query.delete()
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since deletion of sample {sample_id} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)

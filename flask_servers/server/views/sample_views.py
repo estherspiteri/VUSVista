@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, current_app, Response, request
 
 from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
-from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db
+from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db, delete_sample_entry
 
 sample_views = Blueprint('sample_views', __name__)
 
@@ -12,9 +12,9 @@ sample_views = Blueprint('sample_views', __name__)
 def get_sample(sample_id: str):
     current_app.logger.info(f"User requested to view sample with id: {sample_id}")
 
-    sample = retrieve_sample_from_db(sample_id)
+    res = retrieve_sample_from_db(sample_id)
 
-    return Response(json.dumps({'isSuccess': True, 'sample': sample}), 200,
+    return Response(json.dumps({'isSuccess': res.data['isSuccess'], 'sample': res.data['sample_dict']}), 200,
                     mimetype='application/json')
 
 
@@ -67,5 +67,14 @@ def remove_phenotype():
         phenotype_dict = {}
 
     res = remove_phenotype_to_sample(sample_id, phenotype_dict)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@sample_views.route('/delete/<string:sample_id>', methods=['DELETE'])
+def delete_sample(sample_id: str):
+    current_app.logger.info(f"Deleting sample with Id: {sample_id}")
+
+    res = delete_sample_entry(sample_id)
 
     return Response(json.dumps({'isSuccess': res.status == 200}), res.status)

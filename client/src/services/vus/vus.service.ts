@@ -1,6 +1,8 @@
 import {
   IAddPublicationsRequest,
   IAddPublicationsResponse,
+  IDeleteVariantRequest,
+  IDeleteVariantResponse,
   IGetAllAcmgRulesResponse,
   IGetClinvarUpdatesRequest,
   IGetClinvarUpdatesResponse,
@@ -92,6 +94,7 @@ export class VusService {
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
       },
+      cache: "no-cache",
     })
       .then((response: Response) => {
         return response.json();
@@ -191,14 +194,37 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("publicationUrls", publicationsJsonData);
 
-    const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/add_publications/${input.variantId}`, {
-      method: "POST",
-      body: data,
-      // headers: {
-      // "Content-Type": "multipart/form-data",
-      // },
-      cache: "no-store", //TODO: is it needed?
-    })
+    const result: IStoreAndVerifyVusFileResponse = await fetch(
+      `/vus/add_publications/${input.variantId}`,
+      {
+        method: "POST",
+        body: data,
+        // headers: {
+        // "Content-Type": "multipart/form-data",
+        // },
+        cache: "no-store", //TODO: is it needed?
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async deleteVariant(
+    input: IDeleteVariantRequest
+  ): Promise<IDeleteVariantResponse> {
+    const result: IDeleteVariantResponse = await fetch(
+      `/vus/delete/${input.variantId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
       .then((response: Response) => {
         return response.json();
       })

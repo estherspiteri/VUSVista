@@ -1,11 +1,8 @@
 import {
-  IFile,
-  ISample,
-  ISampleVariant,
-} from "../../models/view-samples.model";
-import {
   IAddPhenotypeRequest,
   IAddPhenotypeResponse,
+  IDeleteSampleRequest,
+  IDeleteSampleResponse,
   IGetHPOTermsRequest,
   IGetHPOTermsResponse,
   IGetSampleRequest,
@@ -39,6 +36,7 @@ export class SampleService {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
+        cache: "no-cache",
       }
     )
       .then((response: Response) => {
@@ -102,6 +100,26 @@ export class SampleService {
       {
         method: "POST",
         body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async deleteSample(
+    input: IDeleteSampleRequest
+  ): Promise<IDeleteSampleResponse> {
+    const result: IGetHPOTermsResponse = await fetch(
+      `/sample/delete/${input.sampleId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
       }
     )
       .then((response: Response) => {

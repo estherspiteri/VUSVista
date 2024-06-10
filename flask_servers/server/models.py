@@ -119,7 +119,7 @@ class AcmgRules(Base):
 class ExternalReferences(Base):
     __tablename__ = 'external_references'
     __table_args__ = (
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('id', name='external_references_pkey')
     )
 
@@ -153,7 +153,7 @@ class AutoClinvarEvalDates(Base):
     __tablename__ = 'auto_clinvar_eval_dates'
     __table_args__ = (
         ForeignKeyConstraint(['auto_clinvar_update_id'], ['auto_clinvar_updates.id'], name='fk_auto_clinvar_updates'),
-        ForeignKeyConstraint(['clinvar_id'], ['clinvar.id'], name='fk_clinvar'),
+        ForeignKeyConstraint(['clinvar_id'], ['clinvar.id'], ondelete='CASCADE', name='fk_clinvar'),
         PrimaryKeyConstraint('id', name='auto_clinvar_eval_dates_pkey')
     )
 
@@ -168,7 +168,7 @@ class AutoClinvarEvalDates(Base):
 class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
-        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], name='fk_external_references'),
+        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], ondelete='CASCADE', name='fk_external_references'),
         PrimaryKeyConstraint('id', name='clinvar_pkey'),
         UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
@@ -185,7 +185,7 @@ class Clinvar(Base):
 class DbSnp(Base):
     __tablename__ = 'db_snp'
     __table_args__ = (
-        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], name='fk_external_references'),
+        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], ondelete='CASCADE', name='fk_external_references'),
         PrimaryKeyConstraint('id', name='db_snp_pkey'),
         UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
@@ -290,14 +290,14 @@ class Samples(Base):
     ontology_term: Mapped[List['Phenotypes']] = relationship('Phenotypes', secondary='samples_phenotypes',
                                                              back_populates='sample')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
-                                                                     back_populates='sample')
+                                                                     back_populates='sample', passive_deletes=True)
 
 
 class VariantsSamplesUploads(Base):
     __tablename__ = 'variants_samples_uploads'
     __table_args__ = (
         ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id', 'variants_samples.sample_id'],
-                             name='fk_variants_samples'),
+                             ondelete='CASCADE', name='fk_variants_samples'),
         ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
         PrimaryKeyConstraint('id', name='variants_samples_uploads_pkey')
     )
@@ -334,7 +334,7 @@ t_file_uploads_variants_samples_uploads = Table(
     Column('file_upload_id', Integer, nullable=False),
     Column('variants_samples_uploads_id', Integer, nullable=False),
     ForeignKeyConstraint(['file_upload_id'], ['file_uploads.id'], name='fk_file_uploads'),
-    ForeignKeyConstraint(['variants_samples_uploads_id'], ['variants_samples_uploads.id'], name='fk_variants_samples_uploads'),
+    ForeignKeyConstraint(['variants_samples_uploads_id'], ['variants_samples_uploads.id'], ondelete='CASCADE', name='fk_variants_samples_uploads'),
     PrimaryKeyConstraint('file_upload_id', 'variants_samples_uploads_id', name='file_uploads_variants_samples_uploads_pkey')
 )
 
@@ -342,7 +342,7 @@ t_file_uploads_variants_samples_uploads = Table(
 class ManualUploads(Base):
     __tablename__ = 'manual_uploads'
     __table_args__ = (
-        ForeignKeyConstraint(['variants_samples_uploads_manual_id'], ['variants_samples_uploads.id'], name='fk_variants_samples_uploads'),
+        ForeignKeyConstraint(['variants_samples_uploads_manual_id'], ['variants_samples_uploads.id'], ondelete='CASCADE', name='fk_variants_samples_uploads'),
         PrimaryKeyConstraint('id', name='manual_uploads_pkey')
     )
 
@@ -370,7 +370,7 @@ t_samples_phenotypes = Table(
     Column('sample_id', Text, nullable=False),
     Column('ontology_term_id', Text, nullable=False),
     ForeignKeyConstraint(['ontology_term_id'], ['phenotypes.ontology_term_id'], name='fk_phenotypes'),
-    ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
+    ForeignKeyConstraint(['sample_id'], ['samples.id'], ondelete='CASCADE', name='fk_samples'),
     PrimaryKeyConstraint('sample_id', 'ontology_term_id', name='samples_phenotypes_pkey')
 )
 
@@ -378,7 +378,7 @@ t_samples_phenotypes = Table(
 class VariantHgvs(Base):
     __tablename__ = 'variant_hgvs'
     __table_args__ = (
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('id', name='variant_hgvs_pkey')
     )
 
@@ -411,24 +411,24 @@ class Variants(Base):
     consequences = mapped_column(EnumSQL(Consequence, name='consequence'))
 
     variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
-                                                                               back_populates='variant')
+                                                                               back_populates='variant', passive_deletes=True)
     gene: Mapped['GeneAnnotations'] = relationship('GeneAnnotations', back_populates='variants')
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
-                                                                           back_populates='variant')
-    reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant')
+                                                                           back_populates='variant', passive_deletes=True)
+    reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant', passive_deletes=True)
     variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
-                                                                          back_populates='variant')
+                                                                          back_populates='variant', passive_deletes=True)
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
-                                                                     back_populates='variant')
-    variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant')
-    auto_publication_eval_dates: Mapped[List['AutoPublicationEvalDates']] = relationship('AutoPublicationEvalDates', uselist=True, back_populates='variant')
+                                                                     back_populates='variant', passive_deletes=True)
+    variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant', passive_deletes=True)
+    auto_publication_eval_dates: Mapped[List['AutoPublicationEvalDates']] = relationship('AutoPublicationEvalDates', uselist=True, back_populates='variant', passive_deletes=True)
 
 
 class Reviews(Base):
     __tablename__ = 'reviews'
     __table_args__ = (
         ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('id', name='reviews_pkey')
     )
 
@@ -455,7 +455,7 @@ class VariantsAcmgRules(Base):
     __tablename__ = 'variants_acmg_rules'
     __table_args__ = (
         ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('variant_id', 'acmg_rule_id', name='variants_acmg_rules_pkey')
     )
 
@@ -471,7 +471,7 @@ class VariantsPublications(Base):
     __tablename__ = 'variants_publications'
     __table_args__ = (
         ForeignKeyConstraint(['publication_id'], ['publications.id'], name='fk_publications'),
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('variant_id', 'publication_id', name='variants_publications_pkey')
     )
 
@@ -487,7 +487,7 @@ class VariantsPublications(Base):
 class AutoPublicationEvalDates(Base):
     __tablename__ = 'auto_publication_eval_dates'
     __table_args__ = (
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('id', name='auto_publication_eval_dates_pkey')
     )
 
@@ -502,8 +502,8 @@ class VariantsSamples(Base):
     __tablename__ = 'variants_samples'
     __table_args__ = (
         ForeignKeyConstraint(['variant_hgvs_id'], ['variant_hgvs.id'], name='fk_variant_hgvs'),
-        ForeignKeyConstraint(['sample_id'], ['samples.id'], name='fk_samples'),
-        ForeignKeyConstraint(['variant_id'], ['variants.id'], name='fk_variants'),
+        ForeignKeyConstraint(['sample_id'], ['samples.id'], ondelete='CASCADE', name='fk_samples'),
+        ForeignKeyConstraint(['variant_id'], ['variants.id'], ondelete='CASCADE', name='fk_variants'),
         PrimaryKeyConstraint('variant_id', 'sample_id', name='variants_samples_pkey')
     )
 
@@ -524,7 +524,7 @@ t_reviews_acmg_rules = Table(
     'reviews_acmg_rules', metadata,
     Column('review_id', Integer, nullable=False),
     Column('acmg_rule_id', Integer, nullable=False),
-    ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
+    ForeignKeyConstraint(['review_id'], ['reviews.id'], ondelete='CASCADE', name='fk_reviews'),
     ForeignKeyConstraint(['acmg_rule_id'], ['acmg_rules.id'], name='fk_acmg_rules'),
     PrimaryKeyConstraint('review_id', 'acmg_rule_id', name='reviews_acmg_rules_pkey')
 )
@@ -534,6 +534,6 @@ t_reviews_publications = Table(
     Column('review_id', Integer, nullable=False),
     Column('publication_id', Integer, nullable=False),
     ForeignKeyConstraint(['publication_id'], ['publications.id'], name='fk_publications'),
-    ForeignKeyConstraint(['review_id'], ['reviews.id'], name='fk_reviews'),
+    ForeignKeyConstraint(['review_id'], ['reviews.id'], ondelete='CASCADE', name='fk_reviews'),
     PrimaryKeyConstraint('review_id', 'publication_id', name='reviews_publications_pkey')
 )

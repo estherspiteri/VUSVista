@@ -12,7 +12,7 @@ export interface IGetSampleRequest {
 
 export interface IGetSampleResponse {
   isSuccess: boolean;
-  sample: ISample;
+  sample?: ISample | null;
 }
 
 export interface IGetHPOTermsRequest {
@@ -44,5 +44,13 @@ export interface IRemovePhenotypeRequest {
 }
 
 export interface IRemovePhenotypeResponse {
+  isSuccess: boolean;
+}
+
+export interface IDeleteSampleRequest {
+  sampleId: string;
+}
+
+export interface IDeleteSampleResponse {
   isSuccess: boolean;
 }

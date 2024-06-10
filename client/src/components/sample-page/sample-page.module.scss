@@ -2,11 +2,33 @@
   width: 1248px;
   margin: 40px auto;
 
-  .title {
-    width: "100%";
-    font-family: "Poppins-Bold", sans-serif;
-    font-size: 48px;
-    margin-bottom: 16px;
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .title {
+      width: "100%";
+      font-family: "Poppins-Bold", sans-serif;
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .delete-btn {
+    height: fit-content;
+
+    &:hover {
+      button {
+        background-color: #a51534;
+        color: #fff;
+        border-color: #a51534;
+
+        svg {
+          fill: #fff !important;
+        }
+      }
+    }
   }
 
   .description {
@@ -17,5 +39,22 @@
     display: flex;
     flex-direction: row;
     gap: 8px;
+  }
+
+  .confirm-delete-modal {
+    width: 50%;
+
+    .confirm-delete-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
+    }
   }
 }

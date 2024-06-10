@@ -8,15 +8,13 @@ import json
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
-from server.models import GeneAttributes, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates, Variants, \
-    VariantsPublications, Publications, AutoPublicationEvalDates
-from server.services.acmg_service import get_acmg_rules, add_acmg_rule_to_variant, remove_acmg_rule_from_variant
+from server.models import GeneAttributes
+from server.services.acmg_service import get_acmg_rules
 from server.services.clinvar_service import get_variant_clinvar_updates
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
-    retrieve_vus_from_db
-from server.services.vus_preprocess_service import handle_vus_file, preprocess_vus, handle_vus_from_form
-from server.services.publications_service import get_publication_info, merge_2_sets_of_publications, \
-    store_variant_publications_in_db, get_publications_by_variant_id_from_db, add_publications_to_variant, \
+    retrieve_vus_from_db, delete_variant_entry
+from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form
+from server.services.publications_service import add_publications_to_variant, \
     get_variant_publication_updates
 
 vus_views = Blueprint('vus_views', __name__)
@@ -132,5 +130,12 @@ def add_publications(variant_id: str):
     return add_publications_to_variant(variant_id, publication_links_list)
 
 
+@vus_views.route('/delete/<string:variant_id>', methods=['DELETE'])
+def delete_variant(variant_id: str):
+    current_app.logger.info(f"Deleting variant with Id: {variant_id}")
+
+    res = delete_variant_entry(variant_id)
+
+    return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
 
 

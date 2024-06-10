@@ -79,11 +79,57 @@
             }
           }
         }
+
+        .delete-btn {
+          width: 100%;
+          box-sizing: border-box;
+        }
       }
     }
 
     .description {
       margin-bottom: 32px;
+    }
+  }
+
+  .delete-btn {
+    height: fit-content;
+
+    button {
+      width: 100%;
+
+      div {
+        justify-content: space-between;
+      }
+    }
+
+    &:hover {
+      button {
+        background-color: #a51534;
+        color: #fff;
+        border-color: #a51534;
+
+        svg {
+          fill: #fff !important;
+        }
+      }
+    }
+  }
+
+  .confirm-delete-modal {
+    width: 30%;
+
+    .confirm-delete-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
     }
   }
 }

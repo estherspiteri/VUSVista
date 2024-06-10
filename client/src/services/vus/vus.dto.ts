@@ -98,3 +98,11 @@ export interface IAddPublicationsResponse {
   isSuccess: boolean;
   publications?: IPublicationPreview[];
 }
+
+export interface IDeleteVariantRequest {
+  variantId: string;
+}
+
+export interface IDeleteVariantResponse {
+  isSuccess: boolean;
+}

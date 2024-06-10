@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import Loader from "../atoms/loader/loader";
 import React, { useEffect, useState } from "react";
 import VusPage from "../components/vus-page/vus-page";
@@ -30,6 +30,8 @@ const VusPageWrapper: React.FunctionComponent = () => {
 
   if (isLoading) {
     return <Loader />;
+  } else if (vus === null) {
+    return <Navigate to="/view-vus" />;
   } else {
     return <VusPage vus={vus} acmgRules={acmgRules} vusService={vusService} />;
   }

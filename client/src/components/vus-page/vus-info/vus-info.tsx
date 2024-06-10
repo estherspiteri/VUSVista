@@ -288,22 +288,28 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         {/** Samples */}
         <div className={styles["samples-container"]}>
           <p className={styles["info-title"]}>Samples with this variant:</p>
-          <div className={styles.samples}>
-            {props.vus.samples.map((s) => (
-              <div className={styles.sample}>
-                <div className={styles.bullet}>{"\u25CF"}</div>
-                <div>
-                  <span
-                    className={styles["sample-id"]}
-                    onClick={() => openInNewWindow(`/sample/${s.id}`)}
-                  >
-                    {s.id}
-                  </span>
-                  <span>{` (${s.hgvs})`}</span>
+          {props.vus.samples.length > 0 ? (
+            <div className={styles.samples}>
+              {props.vus.samples.map((s) => (
+                <div className={styles.sample}>
+                  <div className={styles.bullet}>{"\u25CF"}</div>
+                  <div>
+                    <span
+                      className={styles["sample-id"]}
+                      onClick={() => (window.location.href = `/sample/${s.id}`)}
+                    >
+                      {s.id}
+                    </span>
+                    <span>{` (${s.hgvs})`}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles["info-description"]}>
+              This variant has no associated samples.
+            </p>
+          )}
         </div>
 
         {/** Phenotypes */}

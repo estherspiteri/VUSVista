@@ -2,11 +2,15 @@ from datetime import datetime
 from typing import List, Dict
 
 import pandas as pd
+from flask import current_app
 from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
-from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples
+from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, Phenotypes, \
+    FileUploads, Publications, AutoClinvarUpdates
+from server.responses.internal_response import InternalResponse
 from server.services.clinvar_service import get_last_saved_clinvar_update
 
 
@@ -51,8 +55,11 @@ def retrieve_all_vus_summaries_from_db():
     return var_list
 
 
-def retrieve_vus_from_db(vus_id: int) -> Dict:
-    variant: Variants = db.session.query(Variants).filter(Variants.id == vus_id).first()
+def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
+    variant: Variants = db.session.query(Variants).filter(Variants.id == vus_id).one_or_none()
+
+    if variant is None:
+        return None
 
     variant_data = {'id': variant.id, 'chromosome': variant.chromosome,
                     'chromosomePosition': variant.chromosome_position, 'gene': variant.gene_name,
@@ -122,3 +129,47 @@ def retrieve_vus_from_db(vus_id: int) -> Dict:
     variant_data['phenotypes'] = phenotypes
 
     return variant_data
+
+
+def delete_variant_entry(variant_id: str) -> InternalResponse:
+    variant: Variants = db.session.query(Variants).get(variant_id)
+
+    if not variant:
+        current_app.logger.error(f'Variant with ID: {variant_id} not found')
+        return InternalResponse({'isSuccess': False}, 404)
+
+    current_app.logger.info(
+        f"Deleting variant with ID: {variant_id}")
+    db.session.delete(variant)
+
+    # deleting any publications without variants_publications
+    publications_query = db.session.query(Publications).filter(~Publications.variants_publications.any())
+    publications_query.delete()
+
+    # deleting any auto_clinvar_updates without auto_clinvar_eval_dates
+    auto_clinvar_updates_query = db.session.query(AutoClinvarUpdates).filter(AutoClinvarUpdates.auto_clinvar_eval_dates == None)
+    auto_clinvar_updates_query.delete()
+
+    # deleting any samples without variants_samples
+    samples_query = db.session.query(Samples).filter(~Samples.variants_samples.any())
+    samples_query.delete()
+
+    # deleting any file_uploads without variants_samples_uploads
+    file_uploads_query = db.session.query(FileUploads).filter(~FileUploads.variants_samples_uploads.any())
+    file_uploads_query.delete()
+
+    # deleting any phenotypes without samples
+    phenotypes_query = db.session.query(Phenotypes).filter(~Phenotypes.sample.any())
+    phenotypes_query.delete()
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since deletion of variant {variant_id} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)

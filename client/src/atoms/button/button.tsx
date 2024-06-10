@@ -17,7 +17,7 @@ const Button: React.FunctionComponent<ButtonProps> = (props: ButtonProps) => {
     <div className={props.className}>
       <button className={styles.button} {...remainingProps}>
         <div className={styles["btn-content"]}>
-          {props.text}
+          <span>{props.text}</span>
           {props.icon && <Icon name={props.icon} width={16} height={16} />}
         </div>
       </button>

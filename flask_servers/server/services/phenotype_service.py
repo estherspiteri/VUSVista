@@ -90,6 +90,10 @@ def remove_phenotype_to_sample(sample_id: str, phenotype: Dict):
 
     sample.ontology_term.remove(phenotype_removed)
 
+    if len(phenotype_removed.sample) == 0:
+        current_app.logger.info(f"Deleting phenotype: {phenotype_removed.ontology_term_id}")
+        db.session.delete(phenotype_removed)
+
     try:
         # Commit the session to persist changes to the database
         db.session.commit()

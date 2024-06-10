@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./vus-page.module.scss";
 import { IVus } from "../../models/view-vus.model";
 import VusInfo from "./vus-info/vus-info";
@@ -6,6 +6,9 @@ import { IAcmgRule } from "../../models/acmg-rule.model";
 import { VusService } from "../../services/vus/vus.service";
 import { Link } from "react-router-dom";
 import Icon from "../../atoms/icons/icon";
+import Button from "../../atoms/button/button";
+import Modal from "../../atoms/modal/modal";
+import Loader from "../../atoms/loader/loader";
 
 type VusPageProps = {
   vus: IVus;
@@ -16,6 +19,9 @@ type VusPageProps = {
 const VusPage: React.FunctionComponent<VusPageProps> = (
   props: VusPageProps
 ) => {
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isDeletingVariant, setIsDeletingVariant] = useState(false);
+
   return (
     <div className={styles["vus-page-container"]}>
       <div className={styles["title-container"]}>
@@ -44,6 +50,12 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
                   View Publications
                 </Link>
               )}
+              <Button
+                text="Delete Variant"
+                icon="bin"
+                className={styles["delete-btn"]}
+                onClick={() => setIsDeleteModalVisible(true)}
+              />
             </div>
           </div>
         </div>
@@ -57,8 +69,51 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
         acmgRules={props.acmgRules}
         vusService={props.vusService}
       />
+
+      {isDeleteModalVisible && (
+        <Modal
+          modalContainerStyle={styles["confirm-delete-modal"]}
+          isClosable={!isDeletingVariant}
+          onCloseIconClickCallback={() => setIsDeleteModalVisible(false)}
+        >
+          <div className={styles["confirm-delete-modal-content"]}>
+            <p>
+              Are you sure you want to delete Variant&nbsp;
+              <b>{props.vus.id}</b> ?
+            </p>
+            <div className={styles["option-btns"]}>
+              <Button
+                text="Yes, delete it"
+                onClick={deleteVariant}
+                className={styles["delete-btn"]}
+                disabled={isDeletingVariant}
+              />
+              <Button
+                text="No, return to variant page"
+                onClick={() => setIsDeleteModalVisible(false)}
+                disabled={isDeletingVariant}
+              />
+            </div>
+          </div>
+          {isDeletingVariant && <Loader />}
+        </Modal>
+      )}
     </div>
   );
+
+  function deleteVariant() {
+    setIsDeletingVariant(true);
+
+    props.vusService
+      .deleteVariant({ variantId: props.vus.id.toString() })
+      .then((res) => {
+        if (res.isSuccess) {
+          window.location.href = "/view-vus";
+        }
+
+        setIsDeletingVariant(false);
+      });
+  }
 };
 
 export default VusPage;

@@ -91,6 +91,7 @@ CREATE TABLE external_references (
     CONSTRAINT fk_variants
             FOREIGN KEY (variant_id) 
                 REFERENCES variants(id)
+				ON DELETE CASCADE
 );
 
 CREATE TABLE db_snp (
@@ -100,6 +101,7 @@ CREATE TABLE db_snp (
     CONSTRAINT fk_external_references
             FOREIGN KEY (external_db_snp_id) 
                 REFERENCES external_references(id)
+				ON DELETE CASCADE
 );
 
 CREATE TABLE clinvar (
@@ -110,6 +112,7 @@ CREATE TABLE clinvar (
     CONSTRAINT fk_external_references
         FOREIGN KEY (external_clinvar_id) 
             REFERENCES external_references(id)
+			ON DELETE CASCADE
 );
 
 CREATE TABLE auto_clinvar_updates (
@@ -126,7 +129,8 @@ CREATE TABLE auto_clinvar_eval_dates (
     eval_date TIMESTAMP,
     CONSTRAINT fk_clinvar
         FOREIGN KEY (clinvar_id) 
-            REFERENCES clinvar(id),
+            REFERENCES clinvar(id)
+			ON DELETE CASCADE,
 	CONSTRAINT fk_auto_clinvar_updates
         FOREIGN KEY (auto_clinvar_update_id) 
             REFERENCES auto_clinvar_updates(id)
@@ -149,6 +153,7 @@ CREATE TABLE variant_hgvs(
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id)
+			ON DELETE CASCADE
 );
 
 -- SAMPLES
@@ -169,7 +174,8 @@ CREATE TABLE samples_phenotypes(
     ontology_term_id TEXT NOT NULL,
     CONSTRAINT fk_samples
         FOREIGN KEY (sample_id) 
-            REFERENCES samples(id),
+            REFERENCES samples(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_phenotypes
         FOREIGN KEY (ontology_term_id) 
             REFERENCES phenotypes(ontology_term_id),
@@ -187,10 +193,12 @@ CREATE TABLE variants_samples (
             REFERENCES variant_hgvs(id),
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(id),
+            REFERENCES variants(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_samples
         FOREIGN KEY (sample_id) 
-            REFERENCES samples(id),
+            REFERENCES samples(id)
+			ON DELETE CASCADE,
     PRIMARY KEY (variant_id, sample_id)
 ); 
 
@@ -206,7 +214,8 @@ CREATE TABLE variants_samples_uploads (
     scientific_member_id INT NOT NULL,
      CONSTRAINT fk_variants_samples
         FOREIGN KEY (variant_id, sample_id) 
-            REFERENCES variants_samples(variant_id, sample_id),
+            REFERENCES variants_samples(variant_id, sample_id)
+			ON DELETE CASCADE,			
     CONSTRAINT fk_scientific_members
         FOREIGN KEY (scientific_member_id) 
             REFERENCES scientific_members(id)
@@ -229,7 +238,8 @@ CREATE TABLE file_uploads_variants_samples_uploads(
             REFERENCES file_uploads(id),
     CONSTRAINT fk_variants_samples_uploads
         FOREIGN KEY (variants_samples_uploads_id) 
-            REFERENCES variants_samples_uploads(id),
+            REFERENCES variants_samples_uploads(id)
+			ON DELETE CASCADE,
     PRIMARY KEY (file_upload_id, variants_samples_uploads_id)
 );
 
@@ -240,6 +250,7 @@ CREATE TABLE manual_uploads (
     CONSTRAINT fk_variants_samples_uploads
             FOREIGN KEY (variants_samples_uploads_manual_id) 
                 REFERENCES variants_samples_uploads(id)
+				ON DELETE CASCADE
 );
 
 -- ACMG_RULES
@@ -258,7 +269,8 @@ CREATE TABLE variants_acmg_rules(
     rule_name ACMG_RULE NOT NULL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(id),
+            REFERENCES variants(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (acmg_rule_id) 
             REFERENCES acmg_rules(id),
@@ -278,7 +290,8 @@ CREATE TABLE reviews(
 	is_acmg_rule_deleted BOOL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(id),
+            REFERENCES variants(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_scientific_members
         FOREIGN KEY (scientific_member_id) 
             REFERENCES scientific_members(id)
@@ -290,7 +303,8 @@ CREATE TABLE reviews_acmg_rules(
     acmg_rule_id INT NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
-            REFERENCES reviews(id),
+            REFERENCES reviews(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_acmg_rules
         FOREIGN KEY (acmg_rule_id) 
             REFERENCES acmg_rules(id),
@@ -319,7 +333,8 @@ CREATE TABLE variants_publications(
 	is_manually_added BOOL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
-            REFERENCES variants(id),
+            REFERENCES variants(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_publications
         FOREIGN KEY (publication_id) 
             REFERENCES publications(id),
@@ -333,6 +348,7 @@ CREATE TABLE auto_publication_eval_dates(
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id)
+			ON DELETE CASCADE
 );
 
 -- REVIEWS/PUBLICATIONS
@@ -341,7 +357,8 @@ CREATE TABLE reviews_publications(
     publication_id INT NOT NULL,
     CONSTRAINT fk_reviews
         FOREIGN KEY (review_id) 
-            REFERENCES reviews(id),
+            REFERENCES reviews(id)
+			ON DELETE CASCADE,
     CONSTRAINT fk_publications
         FOREIGN KEY (publication_id) 
             REFERENCES publications(id),
