@@ -150,6 +150,7 @@ CREATE TABLE variant_hgvs(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	variant_id INT NOT NULL,
     hgvs TEXT NOT NULL,
+	is_updated BOOL,
     CONSTRAINT fk_variants
         FOREIGN KEY (variant_id) 
             REFERENCES variants(id)

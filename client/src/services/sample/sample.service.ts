@@ -10,6 +10,8 @@ import {
   ILoadAllSamplesResponse,
   IRemovePhenotypeRequest,
   IRemovePhenotypeResponse,
+  IUpdateHgvsRequest,
+  IUpdateHgvsResponse,
 } from "./sample.dto";
 
 export class SampleService {
@@ -117,6 +119,24 @@ export class SampleService {
       `/sample/delete/${input.sampleId}`,
       {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async updateHgvs(input: IUpdateHgvsRequest): Promise<IUpdateHgvsResponse> {
+    const result: IUpdateHgvsResponse = await fetch(
+      `/sample/edit-hgvs/${input.sampleId}/${input.variantId}/${input.updatedHgvs}`,
+      {
+        method: "POST",
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },

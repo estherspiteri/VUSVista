@@ -642,7 +642,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
                 if variant_hgvs is None:
                     # create new HGVS entry
-                    variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs)
+                    variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs, is_updated=False)
                     db.session.add(variant_hgvs)
                     db.session.flush()
 

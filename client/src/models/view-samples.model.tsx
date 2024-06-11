@@ -11,6 +11,7 @@ export interface ISampleVariant {
   variant: IVUSSummary;
   genotype: Genotype;
   hgvs: string;
+  isHgvsUpdated: boolean;
 }
 
 export interface IFile {

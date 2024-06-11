@@ -54,3 +54,13 @@ export interface IDeleteSampleRequest {
 export interface IDeleteSampleResponse {
   isSuccess: boolean;
 }
+
+export interface IUpdateHgvsRequest {
+  sampleId: string;
+  variantId: string;
+  updatedHgvs: string;
+}
+
+export interface IUpdateHgvsResponse {
+  isSuccess: boolean;
+}

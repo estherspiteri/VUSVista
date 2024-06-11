@@ -385,6 +385,7 @@ class VariantHgvs(Base):
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     variant_id = mapped_column(Integer, nullable=False)
     hgvs = mapped_column(Text, nullable=False)
+    is_updated = mapped_column(Boolean)
 
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variant_hgvs')
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='variant_hgvs')

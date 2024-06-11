@@ -37,7 +37,7 @@ def get_sample_info_from_db(sample: Samples) -> Dict:
         variant_summary = get_variant_summary(variant_details)
 
         variant_sample = {'variantId': v_s.variant_id, 'variant': variant_summary, 'genotype': v_s.genotype.value,
-                          'hgvs': v_s.variant_hgvs.hgvs}
+                          'hgvs': v_s.variant_hgvs.hgvs, 'isHgvsUpdated': v_s.variant_hgvs.is_updated}
         variants.append(variant_sample)
 
     return {'sampleId': sample.id, 'phenotype': phenotypes, 'genomeVersion': sample.genome_version,
@@ -101,4 +101,22 @@ def delete_sample_entry(sample_id: str) -> InternalResponse:
 
         current_app.logger.error(
             f'Rollback carried out since deletion of sample {sample_id} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
+
+
+def update_variant_sample_hgvs(sample_id: str, variant_id: str, hgvs: str):
+    variant_sample: VariantsSamples = db.session.query(VariantsSamples).filter(VariantsSamples.sample_id == sample_id, VariantsSamples.variant_id == variant_id).first()
+    variant_sample.variant_hgvs.hgvs = hgvs
+    variant_sample.variant_hgvs.is_updated = True
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+        return InternalResponse({'isSuccess': True}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since update of hgvs {hgvs} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)

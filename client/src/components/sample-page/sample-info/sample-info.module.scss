@@ -86,6 +86,49 @@
               align-items: center;
               min-width: 80px;
             }
+
+            .hgvs {
+              display: flex;
+              flex-direction: row;
+              gap: 8px;
+              align-items: center;
+
+              .hgvs-edit,
+              .hgvs-edit-close {
+                border-radius: 8px;
+                cursor: pointer;
+
+                &:hover {
+                  background-color: #fff;
+                }
+              }
+
+              .hgvs-edit {
+                padding: 4px;
+
+                &:hover {
+                  svg {
+                    fill: #008080;
+                  }
+                }
+              }
+
+              .hgvs-edit-close {
+                &:hover {
+                  svg {
+                    stroke: #008080;
+                  }
+                }
+              }
+
+              .hgvs-updated {
+                font-size: 12px;
+                background-color: #e2f9e2;
+                color: #008080;
+                border-radius: 4px;
+                padding: 2px 4px;
+              }
+            }
           }
 
           .variant-titles {

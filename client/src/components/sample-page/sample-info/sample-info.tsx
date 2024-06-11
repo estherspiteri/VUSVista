@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./sample-info.module.scss";
 import { Genotype, ISample } from "../../../models/view-samples.model";
 import { SampleService } from "../../../services/sample/sample.service";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
 import SamplePhenotypeSelection from "../sample-phenotype-selection/sample-phenotype-selection";
 import Icon from "../../../atoms/icons/icon";
+import Text from "../../../atoms/text/text";
 import { openInNewWindow } from "../../../helpers/open-links";
 
 type SampleInfoProps = {
@@ -15,6 +16,11 @@ type SampleInfoProps = {
 const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   props: SampleInfoProps
 ) => {
+  const [variants, setVariants] = useState(props.sample.variants);
+  const [variantBeingEdited, setVariantBeingEdited] = useState(undefined);
+  const [editedHgvs, setEditedHgvs] = useState(undefined);
+  const [isUpdatingHgvs, setIsUpdatingHgvs] = useState(false);
+
   return (
     <div className={styles["sample-info-container"]}>
       <div className={styles["sample-info"]}>
@@ -54,7 +60,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 <div>HGVS</div>
               </div>
               <div className={styles.variants}>
-                {props.sample.variants.map((v) => {
+                {variants.map((v) => {
                   return (
                     <div className={styles.variant}>
                       <Icon
@@ -71,7 +77,56 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                           <div className={styles.genotype}>
                             {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
                           </div>
-                          <div>{v.hgvs}</div>
+                          <div className={styles.hgvs}>
+                            {variantBeingEdited === v.variantId ? (
+                              <Text
+                                autoFocus={true}
+                                value={editedHgvs}
+                                disabled={isUpdatingHgvs}
+                                onChange={(e) =>
+                                  setEditedHgvs(e.currentTarget.value)
+                                }
+                              />
+                            ) : (
+                              <span>{v.hgvs}</span>
+                            )}
+                            <Icon
+                              className={styles["hgvs-edit"]}
+                              name={
+                                variantBeingEdited === v.variantId
+                                  ? "save"
+                                  : "edit"
+                              }
+                              fill="#fff"
+                              width={16}
+                              height={16}
+                              onClick={() => {
+                                if (!isUpdatingHgvs) {
+                                  variantBeingEdited === v.variantId
+                                    ? updateVariantHgvs(v.variantId, editedHgvs)
+                                    : editVariantHgvs(v.variantId, v.hgvs);
+                                }
+                              }}
+                            />
+                            {variantBeingEdited === v.variantId && (
+                              <Icon
+                                className={styles["hgvs-edit-close"]}
+                                name={"close"}
+                                stroke="#fff"
+                                width={24}
+                                height={24}
+                                onClick={() => {
+                                  setEditedHgvs(undefined);
+                                  setVariantBeingEdited(undefined);
+                                }}
+                              />
+                            )}
+                            {v.isHgvsUpdated && (
+                              <span className={styles["hgvs-updated"]}>
+                                Updated
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -84,6 +139,49 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
       </div>
     </div>
   );
+
+  function editVariantHgvs(variantId: number, hgvs: string) {
+    setVariantBeingEdited(variantId);
+    setEditedHgvs(hgvs);
+  }
+
+  function updateVariantHgvs(variantId: number, editedHgvs: any) {
+    if (
+      editedHgvs?.trim().length > 0 &&
+      variants.find((v) => v.variantId === variantId).hgvs !== editedHgvs
+    ) {
+      setIsUpdatingHgvs(true);
+
+      let updatedVariants = [];
+
+      variants.forEach((v) => {
+        let variant = v;
+
+        if (v.variantId === variantId) {
+          variant.hgvs = editedHgvs;
+          variant.isHgvsUpdated = true;
+        }
+
+        updatedVariants = updatedVariants.concat(variant);
+      });
+
+      props.sampleService
+        .updateHgvs({
+          variantId: variantId.toString(),
+          sampleId: props.sample.sampleId,
+          updatedHgvs: editedHgvs,
+        })
+        .then((res) => {
+          if (res.isSuccess) {
+            setVariants(updatedVariants);
+            setIsUpdatingHgvs(false);
+          }
+        });
+    }
+
+    setEditedHgvs(undefined);
+    setVariantBeingEdited(undefined);
+  }
 };
 
 export default SampleInfo;
