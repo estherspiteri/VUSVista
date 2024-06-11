@@ -184,4 +184,21 @@
       }
     }
   }
+
+  .confirm-update-modal {
+    width: 50%;
+
+    .confirm-update-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
+    }
+  }
 }

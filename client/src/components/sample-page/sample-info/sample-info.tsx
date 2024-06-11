@@ -7,6 +7,8 @@ import SamplePhenotypeSelection from "../sample-phenotype-selection/sample-pheno
 import Icon from "../../../atoms/icons/icon";
 import Text from "../../../atoms/text/text";
 import { openInNewWindow } from "../../../helpers/open-links";
+import Modal from "../../../atoms/modal/modal";
+import Button from "../../../atoms/button/button";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -20,6 +22,8 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   const [variantBeingEdited, setVariantBeingEdited] = useState(undefined);
   const [editedHgvs, setEditedHgvs] = useState(undefined);
   const [isUpdatingHgvs, setIsUpdatingHgvs] = useState(false);
+  const [isHgvsUpdateWarningModalVisible, setIsHgvsUpdateWarningModalVisible] =
+    useState(false);
 
   return (
     <div className={styles["sample-info-container"]}>
@@ -103,7 +107,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                               onClick={() => {
                                 if (!isUpdatingHgvs) {
                                   variantBeingEdited === v.variantId
-                                    ? updateVariantHgvs(v.variantId, editedHgvs)
+                                    ? updatedVariantHgvsCheck()
                                     : editVariantHgvs(v.variantId, v.hgvs);
                                 }
                               }}
@@ -137,6 +141,35 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
           </div>
         </div>
       </div>
+
+      {isHgvsUpdateWarningModalVisible && (
+        <Modal
+          title="Please Note"
+          isClosable={true}
+          modalContainerStyle={styles["confirm-update-modal"]}
+          onCloseIconClickCallback={closeHgvsCheckModal}
+        >
+          <div className={styles["confirm-update-modal-content"]}>
+            <p>
+              Updating an HGVS for this sample's variant will update the HGVS of
+              any other samples' variants which have the same HGVS.
+            </p>
+            <p>Are you sure you want to proceed with the HGVS update?</p>
+            <div className={styles["option-btns"]}>
+              <Button
+                text="Yes, proceed"
+                onClick={() =>
+                  updateVariantHgvs(variantBeingEdited, editedHgvs)
+                }
+              />
+              <Button
+                text="No, return to sample page"
+                onClick={closeHgvsCheckModal}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 
@@ -145,39 +178,55 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
     setEditedHgvs(hgvs);
   }
 
-  function updateVariantHgvs(variantId: number, editedHgvs: any) {
+  function closeHgvsCheckModal() {
+    setIsHgvsUpdateWarningModalVisible(false);
+    setEditedHgvs(undefined);
+    setVariantBeingEdited(undefined);
+  }
+
+  function updatedVariantHgvsCheck() {
+    //check that hgvs has been updated & make sure it is not an empty string
     if (
       editedHgvs?.trim().length > 0 &&
-      variants.find((v) => v.variantId === variantId).hgvs !== editedHgvs
+      variants.find((v) => v.variantId === variantBeingEdited).hgvs !==
+        editedHgvs
     ) {
-      setIsUpdatingHgvs(true);
-
-      let updatedVariants = [];
-
-      variants.forEach((v) => {
-        let variant = v;
-
-        if (v.variantId === variantId) {
-          variant.hgvs = editedHgvs;
-          variant.isHgvsUpdated = true;
-        }
-
-        updatedVariants = updatedVariants.concat(variant);
-      });
-
-      props.sampleService
-        .updateHgvs({
-          variantId: variantId.toString(),
-          sampleId: props.sample.sampleId,
-          updatedHgvs: editedHgvs,
-        })
-        .then((res) => {
-          if (res.isSuccess) {
-            setVariants(updatedVariants);
-            setIsUpdatingHgvs(false);
-          }
-        });
+      setIsHgvsUpdateWarningModalVisible(true);
+    } else {
+      setEditedHgvs(undefined);
+      setVariantBeingEdited(undefined);
     }
+  }
+
+  function updateVariantHgvs(variantId: number, editedHgvs: any) {
+    setIsHgvsUpdateWarningModalVisible(false);
+    setIsUpdatingHgvs(true);
+
+    let updatedVariants = [];
+
+    variants.forEach((v) => {
+      let variant = v;
+
+      if (v.variantId === variantId) {
+        variant.hgvs = editedHgvs;
+        variant.isHgvsUpdated = true;
+      }
+
+      updatedVariants = updatedVariants.concat(variant);
+    });
+
+    props.sampleService
+      .updateHgvs({
+        variantId: variantId.toString(),
+        sampleId: props.sample.sampleId,
+        updatedHgvs: editedHgvs,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          setVariants(updatedVariants);
+          setIsUpdatingHgvs(false);
+        }
+      });
 
     setEditedHgvs(undefined);
     setVariantBeingEdited(undefined);
