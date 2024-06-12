@@ -9,6 +9,9 @@ import Text from "../../../atoms/text/text";
 import { openInNewWindow } from "../../../helpers/open-links";
 import Modal from "../../../atoms/modal/modal";
 import Button from "../../../atoms/button/button";
+import VusTable from "../../view-all-vus-page/vus-table/vus-table";
+import { IVariantToAddInfo } from "../../../models/variant-to-add-info.model";
+import Loader from "../../../atoms/loader/loader";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -19,11 +22,24 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   props: SampleInfoProps
 ) => {
   const [variants, setVariants] = useState(props.sample.variants);
+  const [notSampleVariants, setNotSampleVariants] = useState(
+    props.sample.notSampleVariants
+  );
+
   const [variantBeingEdited, setVariantBeingEdited] = useState(undefined);
   const [editedHgvs, setEditedHgvs] = useState(undefined);
   const [isUpdatingHgvs, setIsUpdatingHgvs] = useState(false);
   const [isHgvsUpdateWarningModalVisible, setIsHgvsUpdateWarningModalVisible] =
     useState(false);
+
+  const [isAddingVariantsModalVisible, setIsAddingVariantsModalVisible] =
+    useState(false);
+  const [variantIdsToAdd, setVariantIdsToAdd] = useState<number[]>([]);
+  const [variantInfoToAdd, setVariantInfoToAdd] = useState<IVariantToAddInfo[]>(
+    []
+  );
+  const [showVariantInfoToAdd, setShowVariantInfoToAdd] = useState(false);
+  const [isAddingVariants, setIsAddingVariants] = useState(false);
 
   return (
     <div className={styles["sample-info-container"]}>
@@ -139,6 +155,15 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               </div>
             </div>
           </div>
+
+          {notSampleVariants.length > 0 && (
+            <Button
+              text="Add variants"
+              icon="add"
+              className={styles["add-variant-button"]}
+              onClick={() => setIsAddingVariantsModalVisible(true)}
+            />
+          )}
         </div>
       </div>
 
@@ -168,6 +193,132 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               />
             </div>
           </div>
+        </Modal>
+      )}
+
+      {isAddingVariantsModalVisible && (
+        <Modal
+          title={showVariantInfoToAdd ? "Input Variant Info" : "Add Variants"}
+          isClosable={!isAddingVariants}
+          modalContainerStyle={styles["add-variants-modal"]}
+          onCloseIconClickCallback={closeAddVariantsModal}
+        >
+          <div className={styles["add-variants-modal-content"]}>
+            {showVariantInfoToAdd ? (
+              <p>
+                For each of the selected variants to be added to this sample,
+                choose the genotype and input the HGVS.
+              </p>
+            ) : (
+              <p>
+                Select which of the below variants you would like to add to
+                Sample&nbsp;
+                <b>{props.sample.sampleId}</b> by ticking the respective
+                checkboxes.
+              </p>
+            )}
+
+            {showVariantInfoToAdd ? (
+              <div className={styles["not-sample-variants"]}>
+                {notSampleVariants
+                  .filter((v) => variantIdsToAdd.includes(v.variantId))
+                  .map((v) => {
+                    const variantInfo =
+                      variantInfoToAdd.find(
+                        (variant) => variant.variantId == v.variantId
+                      ) ?? null;
+
+                    return (
+                      <div className={styles["variant-to-add"]}>
+                        <div className={styles.summary}>
+                          <VariantSummary variant={v.variant} />
+                        </div>
+                        <div className={styles.info}>
+                          <span>Genotype:</span>
+                          <div className={styles.pills}>
+                            {["Heterozygous", "Homozygous"].map((g) => {
+                              return (
+                                <div
+                                  className={`${styles.pill} ${
+                                    variantInfo?.genotype === g
+                                      ? styles["selected-pill"]
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    if (!isAddingVariants) {
+                                      updateAddVariantGenotype(
+                                        g,
+                                        v.variantId,
+                                        variantInfo
+                                      );
+                                    }
+                                  }}
+                                >
+                                  {g}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className={styles.info}>
+                          <span>HGVS:</span>
+                          <Text
+                            disabled={isAddingVariants}
+                            onChange={(e) =>
+                              updateAddVariantHgvs(
+                                e.currentTarget.value,
+                                v.variantId,
+                                variantInfo
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <VusTable
+                vusList={notSampleVariants.map((v) => v.variant)}
+                isClickable={false}
+                showCheckboxes={true}
+                onSelectedVariantsUpdate={(variantsToAdd) =>
+                  setVariantIdsToAdd(variantsToAdd)
+                }
+              />
+            )}
+            <div className={styles["option-btns"]}>
+              {variantIdsToAdd.length > 0 && (
+                <Button
+                  disabled={
+                    (showVariantInfoToAdd &&
+                      (variantInfoToAdd.length !== variantIdsToAdd.length ||
+                        variantInfoToAdd.filter((v) => !v.hgvs || !v.genotype)
+                          .length > 0)) ||
+                    isAddingVariants
+                  }
+                  text={
+                    showVariantInfoToAdd
+                      ? "Add variants"
+                      : "Input variants' info"
+                  }
+                  onClick={() => {
+                    if (variantInfoToAdd.length == 0) {
+                      setShowVariantInfoToAdd(true);
+                    } else {
+                      addVariants();
+                    }
+                  }}
+                />
+              )}
+              <Button
+                text="Return to sample page"
+                onClick={closeAddVariantsModal}
+                disabled={isAddingVariants}
+              />
+            </div>
+          </div>
+          {isAddingVariants && <Loader />}
         </Modal>
       )}
     </div>
@@ -230,6 +381,91 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
 
     setEditedHgvs(undefined);
     setVariantBeingEdited(undefined);
+  }
+
+  function closeAddVariantsModal() {
+    setIsAddingVariantsModalVisible(false);
+    setVariantIdsToAdd([]);
+    setShowVariantInfoToAdd(false);
+    setVariantInfoToAdd([]);
+  }
+
+  function updateAddVariantGenotype(
+    genotype: string,
+    variantId: number,
+    variantInfo?: IVariantToAddInfo
+  ) {
+    if (variantInfo) {
+      let variantsInfoToAddUpdated = [];
+
+      variantInfoToAdd.forEach((info) => {
+        if (info.variantId === variantId) {
+          variantsInfoToAddUpdated = variantsInfoToAddUpdated.concat({
+            ...info,
+            genotype: genotype,
+          });
+        } else {
+          variantsInfoToAddUpdated = variantsInfoToAddUpdated.concat(info);
+        }
+      });
+
+      setVariantInfoToAdd(variantsInfoToAddUpdated);
+    } else {
+      setVariantInfoToAdd(
+        variantInfoToAdd.concat({
+          variantId: variantId,
+          genotype: genotype,
+        })
+      );
+    }
+  }
+
+  function updateAddVariantHgvs(
+    hgvs: string,
+    variantId: number,
+    variantInfo?: IVariantToAddInfo
+  ) {
+    if (variantInfo) {
+      let variantsInfoToAddUpdated = [];
+
+      variantInfoToAdd.forEach((info) => {
+        if (info.variantId === variantId) {
+          variantsInfoToAddUpdated = variantsInfoToAddUpdated.concat({
+            ...info,
+            hgvs: hgvs,
+          });
+        } else {
+          variantsInfoToAddUpdated = variantsInfoToAddUpdated.concat(info);
+        }
+      });
+
+      setVariantInfoToAdd(variantsInfoToAddUpdated);
+    } else {
+      setVariantInfoToAdd(
+        variantInfoToAdd.concat({
+          variantId: variantId,
+          hgvs: hgvs,
+        })
+      );
+    }
+  }
+
+  function addVariants() {
+    setIsAddingVariants(true);
+
+    props.sampleService
+      .addVariants({
+        sampleId: props.sample.sampleId,
+        variantsToAdd: variantInfoToAdd,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          setVariants(res.updatedVariants);
+          setNotSampleVariants(res.updatedNotSampleVariants);
+          closeAddVariantsModal();
+        }
+        setIsAddingVariants(false);
+      });
   }
 };
 

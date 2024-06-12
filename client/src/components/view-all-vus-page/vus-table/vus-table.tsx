@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FunctionComponent, useMemo, useState } from "react";
 import styles from "./vus-table.module.scss";
 import ViewVus from "../view-vus/view-vus";
 import { IVUSSummary } from "../../../models/vus-summary.model";
@@ -18,19 +18,20 @@ import Icon from "../../../atoms/icons/icon";
 
 type VusTableProps = {
   vusList: IVUSSummary[];
+  isClickable?: boolean;
+  showCheckboxes?: boolean;
+  onSelectedVariantsUpdate?: (selectedVariantsIds: number[]) => void;
 };
 
-const VusTable: React.FunctionComponent<VusTableProps> = (
-  props: VusTableProps
-) => {
-  const [data, setData] = React.useState<IVUSSummary[]>(props.vusList);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
+  const [data, setData] = useState<IVUSSummary[]>(props.vusList);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const [selectedVariants, setSelectedVariants] = useState<number[]>([]);
 
   //define columns
-  const columns = React.useMemo<ColumnDef<IVUSSummary, any>[]>(
+  const columns = useMemo<ColumnDef<IVUSSummary, any>[]>(
     () => [
       {
         accessorKey: "id",
@@ -102,7 +103,12 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
       <table className={styles.table}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className={styles.header}>
+            <tr
+              key={headerGroup.id}
+              className={`${styles.header} ${
+                props.showCheckboxes ? styles["show-checkboxes"] : ""
+              }`}
+            >
               {headerGroup.headers.map((header) => {
                 return (
                   <th key={header.id} className={styles["header-content"]}>
@@ -151,7 +157,13 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row, index) => (
-            <ViewVus vusRow={row} isColoured={index % 2 === 0} />
+            <ViewVus
+              vusRow={row}
+              isColoured={index % 2 === 0}
+              isClickable={props.isClickable}
+              showCheckbox={props.showCheckboxes}
+              onCheckboxToggle={() => onCheckboxToggle(row.original.id)}
+            />
           ))}
         </tbody>
       </table>
@@ -193,6 +205,28 @@ const VusTable: React.FunctionComponent<VusTableProps> = (
 
     return a > b ? 1 : -1;
   }
+
+  function onCheckboxToggle(variantId: number) {
+    let updatedSelectedVariants = [];
+
+    if (selectedVariants.some((id) => id === variantId)) {
+      updatedSelectedVariants = selectedVariants.filter(
+        (id) => id !== variantId
+      );
+    } else {
+      updatedSelectedVariants = selectedVariants.concat(variantId);
+    }
+
+    setSelectedVariants(updatedSelectedVariants);
+
+    props.onSelectedVariantsUpdate &&
+      props.onSelectedVariantsUpdate(updatedSelectedVariants);
+  }
+};
+
+VusTable.defaultProps = {
+  isClickable: true,
+  showCheckboxes: false,
 };
 
 export default VusTable;

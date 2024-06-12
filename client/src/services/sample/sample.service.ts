@@ -1,6 +1,8 @@
 import {
   IAddPhenotypeRequest,
   IAddPhenotypeResponse,
+  IAddVariantsRequest,
+  IAddVariantsResponse,
   IDeleteSampleRequest,
   IDeleteSampleResponse,
   IGetHPOTermsRequest,
@@ -140,6 +142,27 @@ export class SampleService {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addVariants(input: IAddVariantsRequest): Promise<IAddVariantsResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("variantsToAdd", JSON.stringify(input.variantsToAdd));
+
+    const result: IAddVariantsResponse = await fetch(
+      `/sample/add-variant/${input.sampleId}`,
+      {
+        method: "POST",
+        body: data,
       }
     )
       .then((response: Response) => {

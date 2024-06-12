@@ -1,5 +1,11 @@
 import { IPhenotype } from "../../models/phenotype.model";
-import { ISample, ISampleSummary } from "../../models/view-samples.model";
+import { IVariantToAddInfo } from "../../models/variant-to-add-info.model";
+import {
+  INotSampleVariant,
+  ISample,
+  ISampleSummary,
+  ISampleVariant,
+} from "../../models/view-samples.model";
 
 export interface ILoadAllSamplesResponse {
   isSuccess: boolean;
@@ -63,4 +69,15 @@ export interface IUpdateHgvsRequest {
 
 export interface IUpdateHgvsResponse {
   isSuccess: boolean;
+}
+
+export interface IAddVariantsRequest {
+  sampleId: string;
+  variantsToAdd: IVariantToAddInfo[];
+}
+
+export interface IAddVariantsResponse {
+  isSuccess: boolean;
+  updatedVariants: ISampleVariant[];
+  updatedNotSampleVariants: INotSampleVariant[];
 }

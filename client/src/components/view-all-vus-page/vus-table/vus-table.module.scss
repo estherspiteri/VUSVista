@@ -13,6 +13,10 @@
       background-color: #008080;
       color: white;
 
+      &.show-checkboxes {
+        padding-right: 40px;
+      }
+
       > * {
         padding: 16px;
         text-align: center;
