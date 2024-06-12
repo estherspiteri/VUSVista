@@ -3,7 +3,8 @@ from typing import List, Dict
 
 from sqlalchemy.orm import DeclarativeMeta
 
-from server.models import Variants
+from server import db
+from server.models import Variants, ExternalReferences, DbSnp
 
 
 def alchemy_encoder(obj):
@@ -61,8 +62,20 @@ def prep_vus_df_for_react(vus_df: pd.DataFrame) -> pd.DataFrame:
     return new_vus_df
 
 
-def get_variant_summary(variant: Variants) -> Dict:
+def get_variant_summary(variant: Variants, include_rsid = False) -> Dict:
     variant_summary = {'id': variant.id, 'chromosome': variant.chromosome, 'chromosomePosition': variant.chromosome_position,
                        'gene': variant.gene_name, 'altAllele': variant.alt, 'refAllele': variant.ref}
+
+    if include_rsid:
+        db_snp_external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(
+            ExternalReferences.variant_id == variant.id, ExternalReferences.db_type == 'db_snp'
+        ).one_or_none()
+
+        if db_snp_external_ref is not None:
+            db_snp: DbSnp = db.session.query(DbSnp).filter(
+                DbSnp.external_db_snp_id == db_snp_external_ref.id
+            ).first()
+
+            variant_summary['rsid'] = db_snp.rsid
 
     return variant_summary

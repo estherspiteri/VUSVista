@@ -4,7 +4,7 @@ from flask import Blueprint, current_app, Response, request
 
 from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
 from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db, delete_sample_entry, \
-    update_variant_sample_hgvs
+    update_variant_sample_hgvs, add_variants_to_sample
 
 sample_views = Blueprint('sample_views', __name__)
 
@@ -88,3 +88,21 @@ def edit_variant_sample_hgvs(sample_id: str, variant_id: str, hgvs: str):
     res = update_variant_sample_hgvs(sample_id, variant_id, hgvs)
 
     return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
+
+
+@sample_views.route('/add-variant/<string:sample_id>', methods=['POST'])
+def add_sample_variants(sample_id: str):
+    current_app.logger.info(f"Add variants to sample {sample_id}")
+
+    variants_to_add = request.form['variantsToAdd']
+
+    # Parse the JSON string into a Python object
+    if variants_to_add:
+        variant_to_add_list = json.loads(variants_to_add)
+    else:
+        variant_to_add_list = []
+
+    res = add_variants_to_sample(sample_id, variant_to_add_list)
+
+    return Response(json.dumps({'isSuccess': res.status == 200, 'updatedVariants': res.data['updatedVariants'], "updatedNotSampleVariants": res.data['updatedNotSampleVariants']}), res.status)
+
