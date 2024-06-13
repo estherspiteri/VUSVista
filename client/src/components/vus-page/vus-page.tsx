@@ -9,11 +9,13 @@ import Icon from "../../atoms/icons/icon";
 import Button from "../../atoms/button/button";
 import Modal from "../../atoms/modal/modal";
 import Loader from "../../atoms/loader/loader";
+import { SampleService } from "../../services/sample/sample.service";
 
 type VusPageProps = {
   vus: IVus;
   acmgRules: IAcmgRule[];
   vusService?: VusService;
+  sampleService?: SampleService;
 };
 
 const VusPage: React.FunctionComponent<VusPageProps> = (
@@ -68,6 +70,7 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
         vus={props.vus}
         acmgRules={props.acmgRules}
         vusService={props.vusService}
+        sampleService={props.sampleService}
       />
 
       {isDeleteModalVisible && (

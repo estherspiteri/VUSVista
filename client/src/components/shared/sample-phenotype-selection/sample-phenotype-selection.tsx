@@ -8,6 +8,7 @@ import PhenotypeSelection from "../../sample-page/phenotype-selection/phenotype-
 
 type SamplePhenotypeSelectionProps = {
   sampleId?: string;
+  isDisabled?: boolean;
   selectedPhenotypes?: IHPOTerm[];
   sampleService?: SampleService;
   isSelectingPhenotypesForVariant?: boolean;
@@ -36,12 +37,13 @@ const SamplePhenotypeSelection: React.FunctionComponent<
               <p className={styles["phenotype"]}>
                 <Icon
                   name="close"
-                  onClick={() => removeSelection(term)}
+                  onClick={() => !props.isDisabled && removeSelection(term)}
                   stroke="#008080"
                 />
                 <span
                   className={styles["phenotype-term"]}
                   onClick={() =>
+                    !props.isDisabled &&
                     openInNewWindow(
                       `https://hpo.jax.org/app/browse/term/${term.ontologyId}`
                     )
@@ -102,6 +104,7 @@ const SamplePhenotypeSelection: React.FunctionComponent<
 
 SamplePhenotypeSelection.defaultProps = {
   isSelectingPhenotypesForVariant: false,
+  isDisabled: false,
 };
 
 export default SamplePhenotypeSelection;

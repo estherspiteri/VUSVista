@@ -16,11 +16,15 @@ import Button from "../../../atoms/button/button";
 import Text from "../../../atoms/text/text";
 import { ISampleToAddInfo } from "../../../models/sample-to-add-info.model";
 import SampleTable from "../../view-samples-page/sample-table/sample-table";
+import { SampleService } from "../../../services/sample/sample.service";
+import SamplePhenotypeSelection from "../../shared/sample-phenotype-selection/sample-phenotype-selection";
+import { IPhenotype } from "../../../models/phenotype.model";
 
 type VusInfoProps = {
   vus: IVus;
   acmgRules: IAcmgRule[];
   vusService?: VusService;
+  sampleService?: SampleService;
 };
 
 const VusInfo: React.FunctionComponent<VusInfoProps> = (
@@ -459,7 +463,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         <Modal
           title={showSamplesInfoToAdd ? "Input Sample Info" : "Add Samples"}
           isClosable={!isAddingSamples}
-          modalContainerStyle={styles["add-samples-modal"]}
+          modalContainerStyle={`${styles["add-samples-modal"]} ${
+            showSamplesInfoToAdd ? styles["show-sample-info"] : ""
+          }`}
           onCloseIconClickCallback={closeAddSamplesModal}
         >
           <div className={styles["add-samples-modal-content"]}>
@@ -492,7 +498,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                           <span>{s.id}</span>
                         </div>
                         <div className={styles.info}>
-                          <span>Genotype:</span>
+                          <span className={styles["info-title"]}>
+                            Genotype:
+                          </span>
                           <div className={styles.pills}>
                             {["Heterozygous", "Homozygous"].map((g) => {
                               return (
@@ -519,12 +527,29 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                           </div>
                         </div>
                         <div className={styles.info}>
-                          <span>HGVS:</span>
+                          <span className={styles["info-title"]}>HGVS:</span>
                           <Text
                             disabled={isAddingSamples}
                             onChange={(e) =>
                               updateAddSampleHgvs(
                                 e.currentTarget.value,
+                                s.id,
+                                sampleInfo
+                              )
+                            }
+                          />
+                        </div>
+                        <div className={`${styles.info} ${styles.phenotypes}`}>
+                          <span className={styles["info-title"]}>
+                            Phenotypes:
+                          </span>
+                          <SamplePhenotypeSelection
+                            isDisabled={isAddingSamples}
+                            isSelectingPhenotypesForVariant={true}
+                            sampleService={props.sampleService}
+                            onPhenotypesUpdateCallback={(phenotypes) =>
+                              updateAddSamplePhenotypes(
+                                phenotypes,
                                 s.id,
                                 sampleInfo
                               )
@@ -652,6 +677,36 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         sampleInfoToAdd.concat({
           sampleId: sampleId,
           hgvs: hgvs,
+        })
+      );
+    }
+  }
+
+  function updateAddSamplePhenotypes(
+    phenotypes: IPhenotype[],
+    sampleId: string,
+    sampleInfo?: ISampleToAddInfo
+  ) {
+    if (sampleInfo) {
+      let samplesInfoToAddUpdated = [];
+
+      sampleInfoToAdd.forEach((info) => {
+        if (info.sampleId === sampleId) {
+          samplesInfoToAddUpdated = samplesInfoToAddUpdated.concat({
+            ...info,
+            phenotypes: phenotypes,
+          });
+        } else {
+          samplesInfoToAddUpdated = samplesInfoToAddUpdated.concat(info);
+        }
+      });
+
+      setSampleInfoToAdd(samplesInfoToAddUpdated);
+    } else {
+      setSampleInfoToAdd(
+        sampleInfoToAdd.concat({
+          sampleId: sampleId,
+          phenotypes: phenotypes,
         })
       );
     }

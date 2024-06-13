@@ -346,6 +346,10 @@
   }
 
   .add-samples-modal {
+    &.show-sample-info {
+      width: 90%;
+    }
+
     .add-samples-modal-content {
       .not-variant-samples {
         display: flex;
@@ -363,7 +367,7 @@
           padding: 24px 16px;
 
           .summary {
-            width: 50%;
+            width: 30%;
           }
 
           .info {
@@ -371,7 +375,15 @@
             flex-direction: row;
             gap: 16px;
 
-            span {
+            &.phenotypes {
+              flex-grow: 1;
+
+              [class*="sample-phenotype-selection-container"] {
+                flex-grow: 1;
+              }
+            }
+
+            .info-title {
               font-weight: bold;
             }
 

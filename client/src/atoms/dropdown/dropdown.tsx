@@ -5,6 +5,7 @@ import Icon from "../icons/icon";
 type DropdownElt = { elt: {}; displayElt: JSX.Element };
 
 type DropdownProps = {
+  isDisabled?: boolean;
   inputPlaceholder?: string;
   list?: { elt: {}; displayElt: JSX.Element }[];
   openOnClick?: boolean;
@@ -57,6 +58,7 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
         }
       >
         <input
+          disabled={props.isDisabled}
           className={styles.input}
           type="text"
           value={inputValue}
@@ -90,7 +92,7 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
           width={32}
           height={32}
           onClick={() => {
-            if (props.openOnClick) setIsDropdownOpen(true);
+            if (props.openOnClick && !props.isDisabled) setIsDropdownOpen(true);
           }}
         />
       </div>

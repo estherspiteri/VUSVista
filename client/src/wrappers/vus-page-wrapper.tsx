@@ -5,6 +5,7 @@ import VusPage from "../components/vus-page/vus-page";
 import { IVus } from "../models/view-vus.model";
 import { vusService } from "../services/vus/vus.service";
 import { IAcmgRule } from "../models/acmg-rule.model";
+import { samplesService } from "../services/sample/sample.service";
 
 const VusPageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +34,7 @@ const VusPageWrapper: React.FunctionComponent = () => {
   } else if (vus === null) {
     return <Navigate to="/view-vus" />;
   } else {
-    return <VusPage vus={vus} acmgRules={acmgRules} vusService={vusService} />;
+    return <VusPage vus={vus} acmgRules={acmgRules} vusService={vusService} sampleService={samplesService}/>;
   }
 };
 

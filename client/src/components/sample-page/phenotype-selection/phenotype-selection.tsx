@@ -4,6 +4,7 @@ import { SampleService } from "../../../services/sample/sample.service";
 import Dropdown from "../../../atoms/dropdown/dropdown";
 
 type PhenotypeSelectionProps = {
+  isDisabled?: boolean;
   sampleService?: SampleService;
   onTermClickCallback?: (term: IHPOTerm) => void;
 };
@@ -15,6 +16,7 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
 
   return (
     <Dropdown
+      isDisabled={props.isDisabled}
       inputPlaceholder="Type in a phenotype . . ."
       borderRadius={0}
       list={HPOTerms.map((t) => {

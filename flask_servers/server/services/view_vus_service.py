@@ -10,6 +10,7 @@ from server.models import ExternalReferences, Variants, DbSnp, Clinvar, Variants
     FileUploads, Publications, AutoClinvarUpdates, VariantHgvs
 from server.responses.internal_response import InternalResponse
 from server.services.clinvar_service import get_last_saved_clinvar_update
+from server.services.phenotype_service import append_phenotype_to_sample
 from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
 
@@ -199,10 +200,16 @@ def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalRes
             db.session.flush()
 
         variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(), variant_hgvs_id=hgvs.id)
-
         db.session.add(variant_sample)
 
         store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
+
+        if 'phenotypes' in s.keys():
+            sample: Samples = db.session.query(Samples).filter(Samples.id == s['sampleId']).first()
+            sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
+            for p in s['phenotypes']:
+                if p['ontologyId'] not in sample_ontology_term_ids:
+                    append_phenotype_to_sample(sample, p)
 
     try:
         # Commit the session to persist changes to the database
