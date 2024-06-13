@@ -2,9 +2,11 @@ import json
 
 from flask import Blueprint, current_app, Response, request
 
+from server import db
+from server.models import Samples
 from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
 from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db, delete_sample_entry, \
-    update_variant_sample_hgvs, add_variants_to_sample
+    update_variant_sample_hgvs, add_variants_to_sample, remove_variants_to_sample
 
 sample_views = Blueprint('sample_views', __name__)
 
@@ -106,3 +108,24 @@ def add_sample_variants(sample_id: str):
 
     return Response(json.dumps({'isSuccess': res.status == 200, 'updatedVariants': res.data['updatedVariants'], "updatedNotSampleVariants": res.data['updatedNotSampleVariants']}), res.status)
 
+
+@sample_views.route('/remove-variants/<string:sample_id>', methods=['POST'])
+def remove_sample_variants(sample_id: str):
+    is_delete_sample: bool = request.form['deleteSample'] == 'true'
+    variants_to_remove = request.form['variantIdsToRemove']
+
+    # Parse the JSON string into a Python object
+    if variants_to_remove:
+        variant_to_remove_list = json.loads(variants_to_remove)
+    else:
+        variant_to_remove_list = []
+
+    current_app.logger.info(f"Remove variants {variant_to_remove_list} from sample {sample_id}")
+
+    # check if all sample's variants are being deleted
+    if is_delete_sample:
+        res = delete_sample_entry(sample_id)
+        return Response(json.dumps({'isSuccess': res.status == 200, 'isSampleDeleted': True}), res.status)
+    else:
+        res = remove_variants_to_sample(sample_id, variant_to_remove_list)
+        return Response(json.dumps({'isSuccess': res.status == 200, 'isSampleDeleted': False, 'updatedVariants': res.data['updatedVariants'], "updatedNotSampleVariants": res.data['updatedNotSampleVariants']}), res.status)

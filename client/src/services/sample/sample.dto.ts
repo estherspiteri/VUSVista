@@ -81,3 +81,16 @@ export interface IAddVariantsResponse {
   updatedVariants: ISampleVariant[];
   updatedNotSampleVariants: INotSampleVariant[];
 }
+
+export interface IRemoveVariantsRequest {
+  sampleId: string;
+  variantIdsToRemove: number[];
+  isDeleteSample: boolean;
+}
+
+export interface IRemoveVariantsResponse {
+  isSuccess: boolean;
+  isSampleDeleted: boolean;
+  updatedVariants?: ISampleVariant[] | null;
+  updatedNotSampleVariants?: INotSampleVariant[] | null;
+}

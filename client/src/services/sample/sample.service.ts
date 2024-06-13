@@ -12,6 +12,8 @@ import {
   ILoadAllSamplesResponse,
   IRemovePhenotypeRequest,
   IRemovePhenotypeResponse,
+  IRemoveVariantsRequest,
+  IRemoveVariantsResponse,
   IUpdateHgvsRequest,
   IUpdateHgvsResponse,
 } from "./sample.dto";
@@ -160,6 +162,30 @@ export class SampleService {
 
     const result: IAddVariantsResponse = await fetch(
       `/sample/add-variants/${input.sampleId}`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async removeVariants(
+    input: IRemoveVariantsRequest
+  ): Promise<IRemoveVariantsResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("deleteSample", JSON.stringify(input.isDeleteSample));
+    data.append("variantIdsToRemove", JSON.stringify(input.variantIdsToRemove));
+
+    const result: IRemoveVariantsResponse = await fetch(
+      `/sample/remove-variants/${input.sampleId}`,
       {
         method: "POST",
         body: data,

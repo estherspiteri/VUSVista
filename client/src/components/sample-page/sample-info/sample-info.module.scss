@@ -135,6 +135,14 @@
             font-weight: bold;
             padding-bottom: 4px;
             padding-left: 56px;
+
+            .delete-variant {
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-end;
+              flex-grow: 1;
+              padding-right: 16px;
+            }
           }
 
           .variant {
@@ -160,8 +168,17 @@
 
             .variant-info-container {
               display: flex;
-              flex-direction: column;
-              gap: 8px;
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+              padding-right: 16px;
+
+              .checkbox {
+                accent-color: #a51534;
+                cursor: pointer;
+                height: fit-content;
+              }
             }
 
             .uploads {
@@ -183,11 +200,26 @@
         }
       }
 
+      .remove-variant-button,
       .add-variant-button {
         width: 100%;
 
         button {
           width: 100%;
+        }
+      }
+
+      .remove-variant-button {
+        &:hover {
+          button {
+            background-color: #a51534;
+            color: #fff;
+            border-color: #a51534;
+
+            svg {
+              fill: #fff !important;
+            }
+          }
         }
       }
     }

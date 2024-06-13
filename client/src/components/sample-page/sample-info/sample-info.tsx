@@ -41,6 +41,12 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   const [showVariantInfoToAdd, setShowVariantInfoToAdd] = useState(false);
   const [isAddingVariants, setIsAddingVariants] = useState(false);
 
+  const [variantIdsToRemove, setVariantIdsToRemove] = useState<number[]>([]);
+  const [isRemovingVariantsModalVisible, setIsRemovingVariantsModalVisible] =
+    useState(false);
+  const [isRemovingVariants, setIsRemovingVariants] = useState(false);
+  const [isDeletingSample, setIsDeletingSample] = useState(false);
+
   return (
     <div className={styles["sample-info-container"]}>
       <div className={styles["sample-info"]}>
@@ -78,6 +84,9 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 <div className={styles["variant-summary"]}>Variant Summary</div>
                 <div className={styles.genotype}>Genotype</div>
                 <div>HGVS</div>
+                <div className={styles["delete-variant"]}>
+                  <Icon name="bin" fill="#fff" width={21} height={21} />
+                </div>
               </div>
               <div className={styles.variants}>
                 {variants.map((v) => {
@@ -148,6 +157,32 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                             )}
                           </div>
                         </div>
+
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          checked={variantIdsToRemove.some(
+                            (id) => id === v.variantId
+                          )}
+                          name={v.variantId.toString()}
+                          onChange={() => {
+                            if (
+                              variantIdsToRemove.some(
+                                (id) => id === v.variantId
+                              )
+                            ) {
+                              setVariantIdsToRemove(
+                                variantIdsToRemove.filter(
+                                  (id) => id !== v.variantId
+                                )
+                              );
+                            } else {
+                              setVariantIdsToRemove(
+                                variantIdsToRemove.concat(v.variantId)
+                              );
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   );
@@ -155,6 +190,19 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               </div>
             </div>
           </div>
+
+          {variantIdsToRemove.length > 0 && (
+            <Button
+              text="Remove selected variants"
+              icon="bin"
+              className={styles["remove-variant-button"]}
+              onClick={() =>
+                variantIdsToRemove.length === variants.length
+                  ? setIsDeletingSample(true)
+                  : setIsRemovingVariantsModalVisible(true)
+              }
+            />
+          )}
 
           {notSampleVariants.length > 0 && (
             <Button
@@ -193,6 +241,51 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
               />
             </div>
           </div>
+        </Modal>
+      )}
+
+      {(isRemovingVariantsModalVisible || isDeletingSample) && (
+        <Modal
+          title="Please Note"
+          isClosable={!isRemovingVariants}
+          modalContainerStyle={styles["confirm-update-modal"]}
+          onCloseIconClickCallback={closeVariantRemovalModal}
+        >
+          <div className={styles["confirm-update-modal-content"]}>
+            {isDeletingSample ? (
+              <p>
+                <p>
+                  When removing all of the sample's variants, the sample itself
+                  is deleted. Are you sure you want to delete sample&nbsp;
+                  <b>{props.sample.sampleId}</b> ?
+                </p>
+              </p>
+            ) : (
+              <p>
+                Are you sure you want to remove the variant/s with the following
+                Ids:&nbsp;
+                <b>{variantIdsToRemove.join(", ")}</b> from sample&nbsp;
+                <b>{props.sample.sampleId}</b> ?
+              </p>
+            )}
+            <div className={styles["option-btns"]}>
+              <Button
+                disabled={isRemovingVariants}
+                text={
+                  isDeletingSample
+                    ? "Yes, delete sample"
+                    : "Yes, remove variant/s"
+                }
+                onClick={() => removeVariants()}
+              />
+              <Button
+                disabled={isRemovingVariants}
+                text="No, return to sample page"
+                onClick={closeVariantRemovalModal}
+              />
+            </div>
+          </div>
+          {isRemovingVariants && <Loader />}
         </Modal>
       )}
 
@@ -335,6 +428,13 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
     setVariantBeingEdited(undefined);
   }
 
+  function closeVariantRemovalModal() {
+    setIsDeletingSample(false);
+    setIsRemovingVariants(false);
+    setIsRemovingVariantsModalVisible(false);
+    setVariantIdsToRemove([]);
+  }
+
   function updatedVariantHgvsCheck() {
     //check that hgvs has been updated & make sure it is not an empty string
     if (
@@ -465,6 +565,29 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
           closeAddVariantsModal();
         }
         setIsAddingVariants(false);
+      });
+  }
+
+  function removeVariants() {
+    setIsRemovingVariants(true);
+
+    props.sampleService
+      .removeVariants({
+        sampleId: props.sample.sampleId,
+        variantIdsToRemove: variantIdsToRemove,
+        isDeleteSample: isDeletingSample,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          if (res.isSampleDeleted) {
+            window.location.href = "/view-samples";
+          } else {
+            setVariants(res.updatedVariants);
+            setNotSampleVariants(res.updatedNotSampleVariants);
+            closeVariantRemovalModal();
+          }
+        }
+        setIsRemovingVariants(false);
       });
   }
 };

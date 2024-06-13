@@ -175,3 +175,30 @@ def add_variants_to_sample(sample_id: str, variants_to_add: List) -> InternalRes
         current_app.logger.error(
             f'Rollback carried out since addition of new variants to sample {sample_id} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
+
+
+def remove_variants_to_sample(sample_id: str, variant_ids_to_remove: List[str]) -> InternalResponse:
+    db.session.query(VariantsSamples).filter(VariantsSamples.sample_id == sample_id,
+                                                              VariantsSamples.variant_id.in_(
+                                                                  variant_ids_to_remove)).delete()
+
+    # deleting any file_uploads without variants_samples_uploads
+    db.session.query(FileUploads).filter(~FileUploads.variants_samples_uploads.any()).delete()
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        # get updated sample's variants
+        sample: Samples = db.session.query(Samples).get(sample_id)
+        variants_samples: List[VariantsSamples] = sample.variants_samples
+        updated_variants, updated_not_sample_variants = get_sample_variants(variants_samples)
+
+        return InternalResponse({'isSuccess': True, 'isSampleDeleted': False, 'updatedVariants': updated_variants, "updatedNotSampleVariants": updated_not_sample_variants}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since addition of new variants to sample {sample_id} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
