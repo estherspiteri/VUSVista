@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./sample-table.module.scss";
 import ViewSample from "../view-sample/view-sample";
 import { ISampleSummary } from "../../../models/view-samples.model";
@@ -17,6 +17,9 @@ import Icon from "../../../atoms/icons/icon";
 
 type SampleTableProps = {
   sampleList: ISampleSummary[];
+  isClickable?: boolean;
+  showCheckboxes?: boolean;
+  onSelectedSamplesUpdate?: (selectedSamplesIds: string[]) => void;
 };
 
 const SampleTable: React.FunctionComponent<SampleTableProps> = (
@@ -27,6 +30,8 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
     []
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const [selectedSamples, setSelectedSamples] = useState<string[]>([]);
 
   //define columns
   const columns = React.useMemo<ColumnDef<ISampleSummary, any>[]>(
@@ -70,7 +75,12 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
       <table>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className={styles.header}>
+            <tr
+              key={headerGroup.id}
+              className={`${styles.header} ${
+                props.showCheckboxes ? styles["show-checkboxes"] : ""
+              }`}
+            >
               {headerGroup.headers.map((header) => {
                 return (
                   <th
@@ -129,12 +139,38 @@ const SampleTable: React.FunctionComponent<SampleTableProps> = (
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row, index) => (
-            <ViewSample sampleRow={row} isColoured={index % 2 === 0} />
+            <ViewSample
+              sampleRow={row}
+              isColoured={index % 2 === 0}
+              isClickable={props.isClickable}
+              showCheckbox={props.showCheckboxes}
+              onCheckboxToggle={() => onCheckboxToggle(row.original.sampleId)}
+            />
           ))}
         </tbody>
       </table>
     </div>
   );
+
+  function onCheckboxToggle(sampleId: string) {
+    let updatedSelectedSamples = [];
+
+    if (selectedSamples.some((id) => id === sampleId)) {
+      updatedSelectedSamples = selectedSamples.filter((id) => id !== sampleId);
+    } else {
+      updatedSelectedSamples = selectedSamples.concat(sampleId);
+    }
+
+    setSelectedSamples(updatedSelectedSamples);
+
+    props.onSelectedSamplesUpdate &&
+      props.onSelectedSamplesUpdate(updatedSelectedSamples);
+  }
+};
+
+SampleTable.defaultProps = {
+  isClickable: true,
+  showCheckboxes: false,
 };
 
 export default SampleTable;

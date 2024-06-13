@@ -9,7 +9,6 @@ type ViewVusProps = {
   isColoured?: boolean;
   isClickable?: boolean;
   showCheckbox?: boolean;
-  isSelectedCheckbox?: boolean;
   onCheckboxToggle?: () => void;
 };
 
@@ -27,7 +26,6 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         <input
           type="checkbox"
           className={styles.checkbox}
-          defaultChecked={props.isSelectedCheckbox}
           name={props.vusRow.original.id.toString()}
           onChange={() => props.onCheckboxToggle && props.onCheckboxToggle()}
         />
@@ -56,7 +54,6 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
 ViewVus.defaultProps = {
   isClickable: true,
   showCheckbox: false,
-  isSelectedCheckbox: false,
 };
 
 export default ViewVus;

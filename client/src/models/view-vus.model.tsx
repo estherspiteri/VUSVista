@@ -3,6 +3,12 @@ import { IPhenotype } from "./phenotype.model";
 export interface IVusSample {
   id: string;
   hgvs: string;
+  noOfVariants: number;
+}
+
+export interface INotVusSample {
+  id: string;
+  noOfVariants: number;
 }
 
 export interface IVus {
@@ -27,6 +33,7 @@ export interface IVus {
   numHeterozygous?: number;
   numHomozygous?: number;
   samples: IVusSample[];
+  notVusSamples: INotVusSample[];
   phenotypes: IPhenotype[];
   acmgRuleIds: number[];
   numOfPublications: number;

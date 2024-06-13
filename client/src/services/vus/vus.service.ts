@@ -1,6 +1,8 @@
 import {
   IAddPublicationsRequest,
   IAddPublicationsResponse,
+  IAddSamplesRequest,
+  IAddSamplesResponse,
   IDeleteVariantRequest,
   IDeleteVariantResponse,
   IGetAllAcmgRulesResponse,
@@ -223,6 +225,27 @@ export class VusService {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
         },
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addSamples(input: IAddSamplesRequest): Promise<IAddSamplesResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("samplesToAdd", JSON.stringify(input.samplesToAdd));
+
+    const result: IAddSamplesResponse = await fetch(
+      `/vus/add-existing-samples/${input.variantId}`,
+      {
+        method: "POST",
+        body: data,
       }
     )
       .then((response: Response) => {

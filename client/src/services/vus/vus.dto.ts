@@ -1,8 +1,10 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IClinvarUpdate } from "../../models/clinvar-updates.model";
 import { IPublicationPreview } from "../../models/publication-view.model";
+import { ISampleToAddInfo } from "../../models/sample-to-add-info.model";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
-import { IVus } from "../../models/view-vus.model";
+import { ISampleSummary } from "../../models/view-samples.model";
+import { INotVusSample, IVus, IVusSample } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
   IVusGene,
@@ -105,4 +107,15 @@ export interface IDeleteVariantRequest {
 
 export interface IDeleteVariantResponse {
   isSuccess: boolean;
+}
+
+export interface IAddSamplesRequest {
+  variantId: number;
+  samplesToAdd: ISampleToAddInfo[];
+}
+
+export interface IAddSamplesResponse {
+  isSuccess: boolean;
+  updatedSamples: IVusSample[];
+  updatedNotVariantSamples: INotVusSample[];
 }

@@ -1,17 +1,16 @@
-from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import pandas as pd
 from flask import current_app
-from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
 from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, Phenotypes, \
-    FileUploads, Publications, AutoClinvarUpdates
+    FileUploads, Publications, AutoClinvarUpdates, VariantHgvs
 from server.responses.internal_response import InternalResponse
 from server.services.clinvar_service import get_last_saved_clinvar_update
+from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
 
 def retrieve_all_vus_summaries_from_db():
@@ -53,6 +52,23 @@ def retrieve_all_vus_summaries_from_db():
     var_list = convert_df_to_list(vus_df)
 
     return var_list
+
+
+def get_variant_samples(variant_id: int) -> Tuple[List, List]:
+    # retrieve samples that have this variant
+    variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(
+        VariantsSamples.variant_id == variant_id).all()
+    variant_samples_list = [
+        {'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs, 'noOfVariants': len(vs.sample.variants_samples)} for vs in
+        variant_samples]
+
+    # retrieve samples that do not have this variant
+    samples_ids = [vs.sample_id for vs in variant_samples]
+    not_variants_samples: List[Samples] = db.session.query(Samples).filter(Samples.id.not_in(samples_ids)).all()
+    not_variant_samples_list = [{'id': s.id, 'noOfVariants': len(s.variants_samples)} for s in
+                                     not_variants_samples]
+
+    return variant_samples_list, not_variant_samples_list
 
 
 def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
@@ -111,9 +127,7 @@ def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
     variant_data['numHeterozygous'] = num_heterozygous
     variant_data['numHomozygous'] = num_homozygous
 
-    # retrieve samples that have this variant
-    variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant.id).all()
-    variant_data['samples'] = [{'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs} for vs in variant_samples]
+    variant_data['samples'], variant_data['notVusSamples'] = get_variant_samples(variant.id)
 
     # retrieve all the unique phenotypes that these samples have
     phenotypes = []
@@ -172,4 +186,36 @@ def delete_variant_entry(variant_id: str) -> InternalResponse:
 
         current_app.logger.error(
             f'Rollback carried out since deletion of variant {variant_id} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
+
+
+def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalResponse:
+    for s in samples_to_add:
+        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == s['hgvs']).one_or_none()
+
+        if hgvs is None:
+            hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
+            db.session.add(hgvs)
+            db.session.flush()
+
+        variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(), variant_hgvs_id=hgvs.id)
+
+        db.session.add(variant_sample)
+
+        store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        # get updated variant's samples
+        updated_samples, updated_not_variant_samples = get_variant_samples(variant_id)
+
+        return InternalResponse({'isSuccess': True, 'updatedSamples': updated_samples, "updatedNotVariantSamples": updated_not_variant_samples}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since addition of new samples to variant {variant_id} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)

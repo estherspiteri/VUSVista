@@ -6,9 +6,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from server import db
 from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
-    Variants, VariantsSamplesUploads, FileUploads, VariantHgvs
+    Variants, FileUploads, VariantHgvs
 from server.responses.internal_response import InternalResponse
-from server.services.vus_preprocess_service import store_upload_details_for_variant_sample
+from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
 
 def get_sample_variants(variants_samples: List[VariantsSamples]) -> Tuple[List, List]:

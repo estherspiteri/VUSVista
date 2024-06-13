@@ -6,34 +6,58 @@ import { Row, flexRender } from "@tanstack/react-table";
 
 type ViewSampleProps = {
   sampleRow: Row<ISampleSummary>;
-  // sample: ISampleSummary;
   isColoured: boolean;
+  isClickable?: boolean;
+  showCheckbox?: boolean;
+  onCheckboxToggle?: () => void;
 };
 
 const ViewSample: React.FunctionComponent<ViewSampleProps> = (
   props: ViewSampleProps
 ) => {
-  return (
-    <Link
-      to={`/sample/${props.sampleRow.original.sampleId}`}
-      className={`${styles["view-vus-container"]} ${
-        props.isColoured ? styles.coloured : ""
-      } `}
-    >
-      <tr key={props.sampleRow.id} className={styles.header}>
-        {props.sampleRow.getVisibleCells().map((cell) => (
-          <td
-            key={cell.id}
-            className={`${styles["header-content"]} ${
-              cell.column.id === "sampleId" ? styles.id : styles.variants
-            }`}
-          >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        ))}
-      </tr>
-    </Link>
+  const row = (
+    <tr key={props.sampleRow.id} className={styles.header}>
+      {props.sampleRow.getVisibleCells().map((cell) => (
+        <td
+          key={cell.id}
+          className={`${styles["header-content"]} ${
+            cell.column.id === "sampleId" ? styles.id : styles.variants
+          }`}
+        >
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </td>
+      ))}
+      {props.showCheckbox && (
+        <input
+          type="checkbox"
+          className={styles.checkbox}
+          name={props.sampleRow.original.sampleId}
+          onChange={() => props.onCheckboxToggle && props.onCheckboxToggle()}
+        />
+      )}
+    </tr>
   );
+
+  const className = `${styles["view-sample-container"]} ${
+    props.isColoured ? styles.coloured : ""
+  }`;
+
+  if (props.isClickable) {
+    return (
+      <Link
+        to={`/sample/${props.sampleRow.original.sampleId}`}
+        className={`${className} ${styles.clickable}`}      >
+        {row}
+      </Link>
+    );
+  } else {
+    return <div className={className}>{row}</div>;
+  }
+};
+
+ViewSample.defaultProps = {
+  isClickable: true,
+  showCheckbox: false,
 };
 
 export default ViewSample;

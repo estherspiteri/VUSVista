@@ -269,6 +269,14 @@
           }
         }
       }
+
+      .add-sample-button {
+        width: 100%;
+
+        button {
+          width: 100%;
+        }
+      }
     }
 
     .phenotypes-container {
@@ -292,13 +300,13 @@
     gap: 32px;
     align-items: center;
 
-    .clinvar-updates-description{
+    .clinvar-updates-description {
       display: flex;
       flex-direction: column;
       gap: 8px;
       margin-top: -16px;
     }
-    
+
     p {
       width: 100%;
     }
@@ -334,6 +342,80 @@
         padding: 16px;
         border-radius: 8px;
       }
+    }
+  }
+
+  .add-samples-modal {
+    .add-samples-modal-content {
+      .not-variant-samples {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 8px;
+
+        > :not(:last-child) {
+          border-bottom: 1px solid #008080;
+        }
+
+        .variant-to-add {
+          display: flex;
+          flex-direction: row;
+          gap: 32px;
+          padding: 24px 16px;
+
+          .summary {
+            width: 50%;
+          }
+
+          .info {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+
+            span {
+              font-weight: bold;
+            }
+
+            .pills {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+
+              .pill {
+                width: 100%;
+                padding: 4px 8px;
+                border-radius: 24px;
+                border: 2px solid #008080;
+                background-color: #fff;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                cursor: pointer;
+                box-sizing: border-box;
+
+                &:hover,
+                &.selected-pill {
+                  background-color: #008080;
+                  color: #fff;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .add-samples-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .option-btns {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      justify-content: center;
     }
   }
 }

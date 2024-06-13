@@ -1,4 +1,4 @@
-.view-vus-container {
+.view-sample-container {
   position: relative;
 
   &.coloured {
@@ -7,12 +7,27 @@
     }
   }
 
+  &.clickable {
+    .header {
+      cursor: pointer;
+
+      &:hover {
+        background-color: #cfe7e7ca !important;
+      }
+    }
+  }
+
   .header {
     display: flex;
     flex-direction: row;
     gap: 16px;
-    cursor: pointer;
     background-color: #fff;
+
+    .checkbox {
+      margin-right: 16px;
+      accent-color: #008080;
+      cursor: pointer;
+    }
 
     .header-content {
       height: 100%;
@@ -29,14 +44,10 @@
         padding-left: 32px;
       }
 
-      &.variants{
+      &.variants {
         flex-shrink: 0;
         width: 200px;
       }
-    }
-
-    &:hover {
-      background-color: #cfe7e7ca !important;
     }
   }
 }

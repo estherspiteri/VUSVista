@@ -21,6 +21,7 @@ from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
+from server.services.variants_samples_service import store_upload_details_for_variant_sample
 from server.services.view_vus_service import get_last_saved_clinvar_update
 from server.services.publications_service import retrieve_and_store_variant_publications
 
@@ -575,31 +576,6 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
                                       classification=classification, classification_reason=None)
         new_review.acmg_rules = db.session.query(AcmgRules).filter(AcmgRules.id.in_(new_added_acmg_rule_ids)).all()
         db.session.add(new_review)
-
-
-def store_upload_details_for_variant_sample(file_upload: FileUploads | None, is_file_upload: bool, sample_id: str,
-                                            variant_id: int):
-    # create sample upload entry
-    if is_file_upload:
-        upload_type = 'file'
-    else:
-        upload_type = 'manual'
-
-    new_variants_sample_upload = VariantsSamplesUploads(date_uploaded=datetime.now(),
-                                                        scientific_member_id=current_user.id,
-                                                        upload_type=upload_type, sample_id=sample_id,
-                                                        variant_id=variant_id)
-
-    if is_file_upload and file_upload is not None:
-        new_variants_sample_upload.file_upload = file_upload
-
-    db.session.add(new_variants_sample_upload)
-    db.session.flush()
-
-    if not is_file_upload:
-        # create manual uploads entry
-        new_manual_upload = ManualUploads(variants_samples_uploads_manual_id=new_variants_sample_upload.id)
-        db.session.add(new_manual_upload)
 
 
 def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], file: FileStorage | None,
