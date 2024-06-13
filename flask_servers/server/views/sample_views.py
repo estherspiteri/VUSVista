@@ -90,10 +90,8 @@ def edit_variant_sample_hgvs(sample_id: str, variant_id: str, hgvs: str):
     return Response(json.dumps({'isSuccess': res.status == 200}), res.status)
 
 
-@sample_views.route('/add-variant/<string:sample_id>', methods=['POST'])
+@sample_views.route('/add-variants/<string:sample_id>', methods=['POST'])
 def add_sample_variants(sample_id: str):
-    current_app.logger.info(f"Add variants to sample {sample_id}")
-
     variants_to_add = request.form['variantsToAdd']
 
     # Parse the JSON string into a Python object
@@ -101,6 +99,8 @@ def add_sample_variants(sample_id: str):
         variant_to_add_list = json.loads(variants_to_add)
     else:
         variant_to_add_list = []
+
+    current_app.logger.info(f"Add variants {[v['variantId'] for v in variant_to_add_list]} to sample {sample_id}")
 
     res = add_variants_to_sample(sample_id, variant_to_add_list)
 

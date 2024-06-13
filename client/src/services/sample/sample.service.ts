@@ -159,7 +159,7 @@ export class SampleService {
     data.append("variantsToAdd", JSON.stringify(input.variantsToAdd));
 
     const result: IAddVariantsResponse = await fetch(
-      `/sample/add-variant/${input.sampleId}`,
+      `/sample/add-variants/${input.sampleId}`,
       {
         method: "POST",
         body: data,

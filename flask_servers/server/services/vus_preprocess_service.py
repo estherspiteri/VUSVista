@@ -577,7 +577,7 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
         db.session.add(new_review)
 
 
-def store_upload_details_for_variant_sample(file_upload: FileUploads, is_file_upload: bool, sample_id: str,
+def store_upload_details_for_variant_sample(file_upload: FileUploads | None, is_file_upload: bool, sample_id: str,
                                             variant_id: int):
     # create sample upload entry
     if is_file_upload:

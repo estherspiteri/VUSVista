@@ -8,6 +8,7 @@ from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
     Variants, VariantsSamplesUploads, FileUploads, VariantHgvs
 from server.responses.internal_response import InternalResponse
+from server.services.vus_preprocess_service import store_upload_details_for_variant_sample
 
 
 def get_sample_variants(variants_samples: List[VariantsSamples]) -> Tuple[List, List]:
@@ -142,9 +143,9 @@ def update_variant_sample_hgvs(sample_id: str, variant_id: str, hgvs: str):
         return InternalResponse({'isSuccess': False}, 500)
 
 
-def add_variants_to_sample(sample_id: str, variants_to_add: List):
+def add_variants_to_sample(sample_id: str, variants_to_add: List) -> InternalResponse:
     for v in variants_to_add:
-        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id==v['variantId'], VariantHgvs.hgvs==v['hgvs']).one_or_none()
+        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == v['variantId'], VariantHgvs.hgvs == v['hgvs']).one_or_none()
 
         if hgvs is None:
             hgvs = VariantHgvs(variant_id=v['variantId'], hgvs=v['hgvs'], is_updated=False)
@@ -154,6 +155,8 @@ def add_variants_to_sample(sample_id: str, variants_to_add: List):
         variant_sample = VariantsSamples(variant_id=v['variantId'], sample_id=sample_id, genotype=v['genotype'].upper(), variant_hgvs_id=hgvs.id)
 
         db.session.add(variant_sample)
+
+        store_upload_details_for_variant_sample(None, False, sample_id, v['variantId'])
 
     try:
         # Commit the session to persist changes to the database
