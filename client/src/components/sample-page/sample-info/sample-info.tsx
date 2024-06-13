@@ -248,10 +248,10 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
         <Modal
           title="Please Note"
           isClosable={!isRemovingVariants}
-          modalContainerStyle={styles["confirm-update-modal"]}
+          modalContainerStyle={styles["remove-variants-modal"]}
           onCloseIconClickCallback={closeVariantRemovalModal}
         >
-          <div className={styles["confirm-update-modal-content"]}>
+          <div className={styles["remove-variants-modal-content"]}>
             {isDeletingSample ? (
               <p>
                 <p>
