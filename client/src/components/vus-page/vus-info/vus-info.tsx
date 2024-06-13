@@ -39,6 +39,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
   const [clinvarUpdates, setClinvarUpdates] = useState<IClinvarUpdate[]>([]);
   const [datesWithUpdates, setDatesWithUpdates] = useState([]);
 
+  const [phenotypes, setPhenotypes] = useState(props.vus.phenotypes);
   const [samples, setSamples] = useState(props.vus.samples);
   const [notVariantSamples, setNotVariantSamples] = useState(
     props.vus.notVusSamples
@@ -345,15 +346,13 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         {/** Phenotypes */}
         <div
           className={`${styles["phenotypes-container"]} ${
-            props.vus.phenotypes.length > 0
-              ? styles["phenotypes-populated"]
-              : ""
+            phenotypes.length > 0 ? styles["phenotypes-populated"] : ""
           }`}
         >
           <p className={styles["info-title"]}>
             Phenotypes of the above samples:
           </p>
-          {props.vus.phenotypes.length > 0 ? (
+          {phenotypes.length > 0 ? (
             <>
               <p className={styles["info-description"]}>
                 Checkout if there are any publications for this variant in
@@ -361,7 +360,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                 the phenotype.
               </p>
               <div className={styles.phenotypes}>
-                {props.vus.phenotypes.map((p) => (
+                {phenotypes.map((p) => (
                   <div className={styles["phenotype-container"]}>
                     <div className={styles.bullet}>{"\u25CF"}</div>
                     <div
@@ -731,6 +730,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         if (res.isSuccess) {
           setSamples(res.updatedSamples);
           setNotVariantSamples(res.updatedNotVariantSamples);
+          setPhenotypes(res.updatedPhenotypes);
           closeAddSamplesModal();
         }
         setIsAddingSamples(false);

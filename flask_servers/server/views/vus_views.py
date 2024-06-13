@@ -153,4 +153,4 @@ def add_variant_existing_samples(variant_id: str):
 
     res = add_samples_to_variant(int(variant_id), samples_to_add_list)
 
-    return Response(json.dumps({'isSuccess': res.status == 200, 'updatedSamples': res.data['updatedSamples'], "updatedNotVariantSamples": res.data['updatedNotVariantSamples']}), res.status)
+    return Response(json.dumps({'isSuccess': res.status == 200, 'updatedSamples': res.data['updatedSamples'], "updatedNotVariantSamples": res.data['updatedNotVariantSamples'], "updatedPhenotypes": res.data["updatedPhenotypes"]}), res.status)

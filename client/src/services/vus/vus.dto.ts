@@ -1,5 +1,6 @@
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import { IClinvarUpdate } from "../../models/clinvar-updates.model";
+import { IPhenotype } from "../../models/phenotype.model";
 import { IPublicationPreview } from "../../models/publication-view.model";
 import { ISampleToAddInfo } from "../../models/sample-to-add-info.model";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
@@ -118,4 +119,5 @@ export interface IAddSamplesResponse {
   isSuccess: boolean;
   updatedSamples: IVusSample[];
   updatedNotVariantSamples: INotVusSample[];
+  updatedPhenotypes: IPhenotype[];
 }

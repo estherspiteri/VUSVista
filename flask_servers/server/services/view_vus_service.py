@@ -55,10 +55,7 @@ def retrieve_all_vus_summaries_from_db():
     return var_list
 
 
-def get_variant_samples(variant_id: int) -> Tuple[List, List]:
-    # retrieve samples that have this variant
-    variant_samples: List[VariantsSamples] = db.session.query(VariantsSamples).filter(
-        VariantsSamples.variant_id == variant_id).all()
+def get_variant_samples(variant_samples: List[VariantsSamples]) -> Tuple[List, List]:
     variant_samples_list = [
         {'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs, 'noOfVariants': len(vs.sample.variants_samples)} for vs in
         variant_samples]
@@ -70,6 +67,20 @@ def get_variant_samples(variant_id: int) -> Tuple[List, List]:
                                      not_variants_samples]
 
     return variant_samples_list, not_variant_samples_list
+
+
+def get_variant_phenotypes_from_db(samples: List[Samples]):
+    # retrieve all the unique phenotypes that these samples have
+    phenotypes = []
+    phenotype_ids = []
+
+    for s in samples:
+        for term in s.ontology_term:
+            if term.ontology_term_id not in phenotype_ids:
+                phenotype_ids.append(term.ontology_term_id)
+                phenotypes.append({'ontologyId': term.ontology_term_id, 'name': term.term_name})
+
+    return phenotypes
 
 
 def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
@@ -128,20 +139,12 @@ def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
     variant_data['numHeterozygous'] = num_heterozygous
     variant_data['numHomozygous'] = num_homozygous
 
-    variant_data['samples'], variant_data['notVusSamples'] = get_variant_samples(variant.id)
-
-    # retrieve all the unique phenotypes that these samples have
-    phenotypes = []
-    phenotype_ids = []
+    variant_data['samples'], variant_data['notVusSamples'] = get_variant_samples(variant_samples)
 
     samples: List[Samples] = [vs.sample for vs in variant_samples]
-    for s in samples:
-        for term in s.ontology_term:
-            if term.ontology_term_id not in phenotype_ids:
-                phenotype_ids.append(term.ontology_term_id)
-                phenotypes.append({'ontologyId': term.ontology_term_id, 'name': term.term_name})
 
-    variant_data['phenotypes'] = phenotypes
+    # retrieve all the unique phenotypes that these samples have
+    variant_data['phenotypes'] = get_variant_phenotypes_from_db(samples)
 
     return variant_data
 
@@ -215,10 +218,17 @@ def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalRes
         # Commit the session to persist changes to the database
         db.session.commit()
 
-        # get updated variant's samples
-        updated_samples, updated_not_variant_samples = get_variant_samples(variant_id)
+        # retrieve all samples related to that variant
+        variant_samples: List[VariantsSamples] = (db.session.query(VariantsSamples)
+                                                  .filter(VariantsSamples.variant_id == variant_id)).all()
 
-        return InternalResponse({'isSuccess': True, 'updatedSamples': updated_samples, "updatedNotVariantSamples": updated_not_variant_samples}, 200)
+        # get updated variant's samples
+        updated_samples, updated_not_variant_samples = get_variant_samples(variant_samples)
+
+        samples: List[Samples] = [vs.sample for vs in variant_samples]
+        updated_phenotypes = get_variant_phenotypes_from_db(samples)
+
+        return InternalResponse({'isSuccess': True, 'updatedSamples': updated_samples, "updatedNotVariantSamples": updated_not_variant_samples, "updatedPhenotypes": updated_phenotypes}, 200)
     except SQLAlchemyError as e:
         # Changes were rolled back due to an error
         db.session.rollback()
