@@ -15,6 +15,8 @@ import {
   IGetVusRequest,
   IGetVusResponse,
   ILoadAllVusResponse,
+  IRemoveSamplesRequest,
+  IRemoveSamplesResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
   IUploadVusRequest,
@@ -258,7 +260,9 @@ export class VusService {
     return result;
   }
 
-  async addNewSample(input: IAddNewSampleRequest): Promise<IAddNewSampleResponse> {
+  async addNewSample(
+    input: IAddNewSampleRequest
+  ): Promise<IAddNewSampleResponse> {
     let data = new FormData();
 
     // Append the JSON string as a blob to the FormData
@@ -266,6 +270,29 @@ export class VusService {
 
     const result: IAddNewSampleResponse = await fetch(
       `/vus/add-new-sample/${input.variantId}`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async removeSamples(
+    input: IRemoveSamplesRequest
+  ): Promise<IRemoveSamplesResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("sampleIdsToRemove", JSON.stringify(input.sampleIdsToRemove));
+
+    const result: IRemoveSamplesResponse = await fetch(
+      `/vus/remove-samples/${input.variantId}`,
       {
         method: "POST",
         body: data,

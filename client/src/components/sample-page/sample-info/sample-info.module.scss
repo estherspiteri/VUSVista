@@ -210,15 +210,16 @@
       }
 
       .remove-variant-button {
-        &:hover {
-          button {
-            background-color: #a51534;
-            color: #fff;
-            border-color: #a51534;
+        button {
+          background-color: #a51534;
+          color: #fff;
+          border-color: #a51534;
 
-            svg {
-              fill: #fff !important;
-            }
+          &:hover {
+            background-color: #fff;
+
+            color: #008080;
+            border-color: #008080;
           }
         }
       }

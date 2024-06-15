@@ -215,7 +215,7 @@ def commit_samples_update_to_variant(variant_id: int):
         db.session.rollback()
 
         current_app.logger.error(
-            f'Rollback carried out since addition of new samples to variant {variant_id} in DB failed due to error: {e}')
+            f'Rollback carried out since samples update for variant {variant_id} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
 
 
@@ -257,5 +257,22 @@ def add_new_sample_to_variant(variant_id: int, sample_to_add: Dict) -> InternalR
 
     # store the upload details related to this variant & sample
     store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id)
+
+    return commit_samples_update_to_variant(variant_id)
+
+
+def remove_sample_from_variant(variant_id: int, sample_ids_to_remove: List[str]):
+    db.session.query(VariantsSamples).filter(VariantsSamples.variant_id == variant_id,
+                                             VariantsSamples.sample_id.in_(
+                                                 sample_ids_to_remove)).delete()
+
+    # deleting any samples without variants_samples
+    db.session.query(Samples).filter(~Samples.variants_samples.any()).delete()
+
+    # deleting any file_uploads without variants_samples_uploads
+    db.session.query(FileUploads).filter(~FileUploads.variants_samples_uploads.any()).delete()
+
+    # deleting any phenotypes without samples
+    db.session.query(Phenotypes).filter(~Phenotypes.sample.any()).delete()
 
     return commit_samples_update_to_variant(variant_id)

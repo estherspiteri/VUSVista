@@ -3,7 +3,6 @@ import styles from "./sample-info.module.scss";
 import { Genotype, ISample } from "../../../models/view-samples.model";
 import { SampleService } from "../../../services/sample/sample.service";
 import VariantSummary from "../../shared/variant-summary/variant-summary";
-import SamplePhenotypeSelection from "../sample-phenotype-selection/sample-phenotype-selection";
 import Icon from "../../../atoms/icons/icon";
 import Text from "../../../atoms/text/text";
 import { openInNewWindow } from "../../../helpers/open-links";
@@ -12,6 +11,7 @@ import Button from "../../../atoms/button/button";
 import VusTable from "../../view-all-vus-page/vus-table/vus-table";
 import { IVariantToAddInfo } from "../../../models/variant-to-add-info.model";
 import Loader from "../../../atoms/loader/loader";
+import SamplePhenotypeSelection from "../../shared/sample-phenotype-selection/sample-phenotype-selection";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -193,7 +193,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
 
           {variantIdsToRemove.length > 0 && (
             <Button
-              text="Remove selected variants"
+              text="Remove selected variant/s"
               icon="bin"
               className={styles["remove-variant-button"]}
               onClick={() =>

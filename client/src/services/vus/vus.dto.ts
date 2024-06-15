@@ -133,3 +133,16 @@ export interface IAddNewSampleResponse {
   updatedNotVariantSamples?: INotVusSample[];
   updatedPhenotypes?: IPhenotype[];
 }
+
+export interface IRemoveSamplesRequest {
+  variantId: number;
+  sampleIdsToRemove: string[];
+}
+
+export interface IRemoveSamplesResponse {
+  isSuccess: boolean;
+  updatedSamples?: IVusSample[];
+  updatedNotVariantSamples?: INotVusSample[];
+  updatedPhenotypes?: IPhenotype[];
+}
+

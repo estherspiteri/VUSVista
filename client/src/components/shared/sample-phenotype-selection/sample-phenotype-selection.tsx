@@ -34,12 +34,7 @@ const SamplePhenotypeSelection: React.FunctionComponent<
           samplePhenotypesSelection.length > 0 &&
           samplePhenotypesSelection.map((term) => {
             return (
-              <p className={styles["phenotype"]}>
-                <Icon
-                  name="close"
-                  onClick={() => !props.isDisabled && removeSelection(term)}
-                  stroke="#008080"
-                />
+              <p className={styles.phenotype}>
                 <span
                   className={styles["phenotype-term"]}
                   onClick={() =>
@@ -51,6 +46,11 @@ const SamplePhenotypeSelection: React.FunctionComponent<
                 >
                   <b>{term.ontologyId}</b>: {term.name}
                 </span>
+                <Icon
+                  name="close"
+                  onClick={() => !props.isDisabled && removeSelection(term)}
+                  stroke="#008080"
+                />
               </p>
             );
           })}

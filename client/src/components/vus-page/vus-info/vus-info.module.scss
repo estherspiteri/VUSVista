@@ -237,19 +237,24 @@
       flex-direction: column;
       border: 2px solid #008080;
       border-radius: 4px;
-      padding: 16px;
-      gap: 16px;
       font-size: 14px;
-      max-height: 300px;
       overflow: auto;
+
+      > :not(:last-child) {
+        border-bottom: 1px solid #008080;
+      }
     }
 
     .sample,
     .phenotype-container {
-      width: fit-content;
       display: flex;
       flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
+      padding: 16px 8px 16px 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .sample-id,
@@ -260,6 +265,18 @@
     }
 
     .samples-container {
+      .description-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 22px;
+        align-items: end;
+
+        .delete-sample {
+          margin-right: 8px;
+        }
+      }
+
       .samples {
         .sample {
           align-items: center;
@@ -267,9 +284,15 @@
           .sample-id {
             cursor: pointer;
           }
+
+          .checkbox {
+            accent-color: #a51534;
+            cursor: pointer;
+          }
         }
       }
 
+      .remove-sample-button,
       .add-sample-button {
         width: 100%;
 
@@ -277,13 +300,24 @@
           width: 100%;
         }
       }
+
+      .remove-sample-button {
+        button {
+          background-color: #a51534;
+          color: #fff;
+          border-color: #a51534;
+
+          &:hover {
+            background-color: #fff;
+
+            color: #008080;
+            border-color: #008080;
+          }
+        }
+      }
     }
 
     .phenotypes-container {
-      .info-description {
-        margin-bottom: -8px;
-      }
-
       &.phenotypes-populated {
         cursor: pointer;
       }
@@ -291,6 +325,11 @@
 
     .info-description {
       font-size: 14px;
+    }
+
+    .info-description {
+      margin-bottom: -8px;
+      line-height: 28px;
     }
   }
 
@@ -345,14 +384,31 @@
     }
   }
 
+  .remove-samples-modal,
   .add-new-sample-modal,
   .add-samples-modal {
     &.show-sample-info {
       width: 90%;
+
+      .sample-to-add {
+        min-height: 150px;
+      }
     }
 
+    .remove-samples-modal-content,
     .add-new-sample-modal-content,
     .add-samples-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
+
       .not-variant-samples {
         display: flex;
         flex-direction: column;
@@ -388,6 +444,7 @@
 
               [class*="sample-phenotype-selection-container"] {
                 flex-grow: 1;
+                height: fit-content;
               }
             }
 
@@ -423,20 +480,6 @@
           }
         }
       }
-    }
-  }
-
-  .add-new-sample-modal-content,
-  .add-samples-modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-
-    .option-btns {
-      display: flex;
-      flex-direction: row;
-      gap: 32px;
-      justify-content: center;
     }
   }
 }

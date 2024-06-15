@@ -3,7 +3,6 @@ import styles from "./vus-upload-page.module.scss";
 import Text from "./../../atoms/text/text";
 import VusUploadField from "./vus-upload-field/vus-upload-field";
 import Button from "../../atoms/button/button";
-import SamplePhenotypeSelection from "../sample-page/sample-phenotype-selection/sample-phenotype-selection";
 import { IHPOTerm } from "../../services/sample/sample.dto";
 import { SampleService } from "../../services/sample/sample.service";
 import Icon from "../../atoms/icons/icon";
@@ -14,6 +13,7 @@ import AcmgRuleInfo from "../sample-page/acmg-rule-info/acmg-rule-info";
 import AcmgRulesEdit from "../sample-page/acmg-rules-edit/acmg-rules-edit";
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import Loader from "../../atoms/loader/loader";
+import SamplePhenotypeSelection from "../shared/sample-phenotype-selection/sample-phenotype-selection";
 
 type VusUploadPageProps = {
   acmgRules: IAcmgRule[];

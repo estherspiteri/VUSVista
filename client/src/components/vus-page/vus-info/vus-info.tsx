@@ -58,6 +58,11 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
   const [showSamplesInfoToAdd, setShowSamplesInfoToAdd] = useState(false);
   const [isAddingSamples, setIsAddingSamples] = useState(false);
 
+  const [sampleIdsToRemove, setSampleIdsToRemove] = useState<string[]>([]);
+  const [isRemovingSamplesModalVisible, setIsRemovingSamplesModalVisible] =
+    useState(false);
+  const [isRemovingSamples, setIsRemovingSamples] = useState(false);
+
   return (
     <div className={styles["vus-info-container"]}>
       <div className={styles["vus-info"]}>
@@ -316,26 +321,63 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         <div className={styles["samples-container"]}>
           <p className={styles["info-title"]}>Samples with this variant:</p>
           {samples.length > 0 ? (
-            <div className={styles.samples}>
-              {samples.map((s) => (
-                <div className={styles.sample}>
-                  <div className={styles.bullet}>{"\u25CF"}</div>
-                  <div>
-                    <span
-                      className={styles["sample-id"]}
-                      onClick={() => (window.location.href = `/sample/${s.id}`)}
-                    >
-                      {s.id}
-                    </span>
-                    <span>{` (${s.hgvs})`}</span>
-                  </div>
+            <>
+              <div className={styles["description-container"]}>
+                <p className={styles["info-description"]}>
+                  Click on the sample Ids to visit the respective sample page.
+                  In brackets you can find the HGVS assigned to the sample for
+                  this variant. To remove a sample from this variant, tick its
+                  checkbox and click on the "Remove sample/s button".
+                </p>
+                <div className={styles["delete-sample"]}>
+                  <Icon name="bin" fill="#008080" width={21} height={21} />
                 </div>
-              ))}
-            </div>
+              </div>
+              <div className={styles.samples}>
+                {samples.map((s) => (
+                  <div className={styles.sample}>
+                    <div>
+                      <span
+                        className={styles["sample-id"]}
+                        onClick={() =>
+                          (window.location.href = `/sample/${s.id}`)
+                        }
+                      >
+                        {s.id}
+                      </span>
+                      <span>{` (${s.hgvs})`}</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={sampleIdsToRemove.some((id) => id === s.id)}
+                      name={s.id.toString()}
+                      onChange={() => {
+                        if (sampleIdsToRemove.some((id) => id === s.id)) {
+                          setSampleIdsToRemove(
+                            sampleIdsToRemove.filter((id) => id !== s.id)
+                          );
+                        } else {
+                          setSampleIdsToRemove(sampleIdsToRemove.concat(s.id));
+                        }
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <p className={styles["info-description"]}>
               This variant has no associated samples.
             </p>
+          )}
+          {sampleIdsToRemove.length > 0 && (
+            <Button
+              text="Remove selected sample/s"
+              icon="bin"
+              className={styles["remove-sample-button"]}
+              onClick={() => setIsRemovingSamplesModalVisible(true)}
+            />
           )}
           {notVariantSamples.length > 0 && (
             <Button
@@ -366,13 +408,12 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             <>
               <p className={styles["info-description"]}>
                 Checkout if there are any publications for this variant in
-                relation the a phenotype by clicking on the book icon next to
-                the phenotype.
+                relation to a phenotype by clicking on the book icon next to the
+                phenotype.
               </p>
               <div className={styles.phenotypes}>
                 {phenotypes.map((p) => (
                   <div className={styles["phenotype-container"]}>
-                    <div className={styles.bullet}>{"\u25CF"}</div>
                     <div
                       className={styles.phenotype}
                       onClick={() =>
@@ -465,6 +506,37 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           ) : (
             <Loader />
           )}
+        </Modal>
+      )}
+
+      {isRemovingSamplesModalVisible && (
+        <Modal
+          title="Please Note"
+          isClosable={!isRemovingSamples}
+          modalContainerStyle={styles["remove-samples-modal"]}
+          onCloseIconClickCallback={closeSampleRemovalModal}
+        >
+          <div className={styles["remove-samples-modal-content"]}>
+            <p>
+              Samples are deleted if they no longer have any variants. Are you
+              sure you want to remove the sample/s with the following Ids:&nbsp;
+              <b>{sampleIdsToRemove.join(", ")}</b> from variant&nbsp;
+              <b>{props.vus.id}</b> ?
+            </p>
+            <div className={styles["option-btns"]}>
+              <Button
+                disabled={isRemovingSamples}
+                text={"Yes, remove sample/s"}
+                onClick={() => removeSamples()}
+              />
+              <Button
+                disabled={isRemovingSamples}
+                text="No, return to variant page"
+                onClick={closeSampleRemovalModal}
+              />
+            </div>
+          </div>
+          {isRemovingSamples && <Loader />}
         </Modal>
       )}
 
@@ -895,6 +967,31 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           closeAddNewSampleModal();
         }
         setIsAddingSamples(false);
+      });
+  }
+
+  function closeSampleRemovalModal() {
+    setIsRemovingSamples(false);
+    setIsRemovingSamplesModalVisible(false);
+    setSampleIdsToRemove([]);
+  }
+
+  function removeSamples() {
+    setIsRemovingSamples(true);
+
+    props.vusService
+      .removeSamples({
+        variantId: props.vus.id,
+        sampleIdsToRemove: sampleIdsToRemove,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          setSamples(res.updatedSamples);
+          setNotVariantSamples(res.updatedNotVariantSamples);
+          setPhenotypes(res.updatedPhenotypes);
+          closeSampleRemovalModal();
+        }
+        setIsRemovingSamples(false);
       });
   }
 };

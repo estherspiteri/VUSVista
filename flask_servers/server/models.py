@@ -518,7 +518,7 @@ class VariantsSamples(Base):
     variant_hgvs: Mapped['VariantHgvs'] = relationship('VariantHgvs', back_populates='variants_samples')
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
-                                                                                    back_populates='variants_samples')
+                                                                                    back_populates='variants_samples', passive_deletes=True)
 
 
 t_reviews_acmg_rules = Table(
