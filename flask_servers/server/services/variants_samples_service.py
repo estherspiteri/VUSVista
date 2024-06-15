@@ -3,7 +3,29 @@ from datetime import datetime
 from flask_login import current_user
 
 from server import db
-from server.models import VariantsSamplesUploads, FileUploads, ManualUploads
+from server.models import VariantsSamplesUploads, FileUploads, ManualUploads, VariantsSamples, VariantHgvs
+
+
+def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotype: str):
+    # check if variants_samples entry already exists
+    existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(
+        VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample_id).one_or_none()
+
+    # if variants_samples entry does not exist, add new entry
+    if existing_variants_samples is None:
+        # check if HGVS exists
+        variant_hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id,
+                                                                         VariantHgvs.hgvs == hgvs).one_or_none()
+
+        if variant_hgvs is None:
+            # create new HGVS entry
+            variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs, is_updated=False)
+            db.session.add(variant_hgvs)
+            db.session.flush()
+
+        new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id,
+                                               variant_hgvs_id=variant_hgvs.id, genotype=genotype.upper())
+        db.session.add(new_variants_samples)
 
 
 def store_upload_details_for_variant_sample(file_upload: FileUploads | None, is_file_upload: bool, sample_id: str,

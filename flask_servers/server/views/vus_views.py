@@ -12,7 +12,7 @@ from server.models import GeneAttributes
 from server.services.acmg_service import get_acmg_rules
 from server.services.clinvar_service import get_variant_clinvar_updates
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
-    retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant
+    retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant, add_new_sample_to_variant
 from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form
 from server.services.publications_service import add_publications_to_variant, \
     get_variant_publication_updates
@@ -152,5 +152,22 @@ def add_variant_existing_samples(variant_id: str):
     current_app.logger.info(f"Add samples {[s['sampleId'] for s in samples_to_add_list]} to variant {variant_id}")
 
     res = add_samples_to_variant(int(variant_id), samples_to_add_list)
+
+    return Response(json.dumps({'isSuccess': res.status == 200, 'updatedSamples': res.data['updatedSamples'], "updatedNotVariantSamples": res.data['updatedNotVariantSamples'], "updatedPhenotypes": res.data["updatedPhenotypes"]}), res.status)
+
+
+@vus_views.route('/add-new-sample/<string:variant_id>', methods=['POST'])
+def add_variant_new_sample(variant_id: str):
+    sample_to_add = request.form['sampleToAdd']
+
+    # Parse the JSON string into a Python object
+    if sample_to_add:
+        sample_to_add_dict = json.loads(sample_to_add)
+    else:
+        sample_to_add_dict = {}
+
+    current_app.logger.info(f"Add new sample {sample_to_add_dict['sampleId']} to variant {variant_id}")
+
+    res = add_new_sample_to_variant(int(variant_id), sample_to_add_dict)
 
     return Response(json.dumps({'isSuccess': res.status == 200, 'updatedSamples': res.data['updatedSamples'], "updatedNotVariantSamples": res.data['updatedNotVariantSamples'], "updatedPhenotypes": res.data["updatedPhenotypes"]}), res.status)

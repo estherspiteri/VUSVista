@@ -8,6 +8,7 @@ type DropdownProps = {
   isDisabled?: boolean;
   inputPlaceholder?: string;
   list?: { elt: {}; displayElt: JSX.Element }[];
+  showChev?: boolean;
   openOnClick?: boolean;
   borderRadius?: number;
   dropdownContentContainerClassname?: string;
@@ -47,8 +48,6 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
     setDropdownList(props.list);
   }, [props.list]);
 
-  console.log(inputValue, "pppp");
-
   return (
     <div className={styles["dropdown-container"]}>
       <div
@@ -85,16 +84,19 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
             if (props.openOnClick) setIsDropdownOpen(true);
           }}
         />
-        <Icon
-          name="chev-down"
-          fill="#fff"
-          className={styles.chev}
-          width={32}
-          height={32}
-          onClick={() => {
-            if (props.openOnClick && !props.isDisabled) setIsDropdownOpen(true);
-          }}
-        />
+        {props.showChev && (
+          <Icon
+            name="chev-down"
+            fill="#fff"
+            className={styles.chev}
+            width={32}
+            height={32}
+            onClick={() => {
+              if (props.openOnClick && !props.isDisabled)
+                setIsDropdownOpen(true);
+            }}
+          />
+        )}
       </div>
       {isDropdownOpen && (
         <div
@@ -129,6 +131,7 @@ const Dropdown: React.FunctionComponent<DropdownProps> = (
 
 Dropdown.defaultProps = {
   openOnClick: false,
+  showChev: true,
 };
 
 export default Dropdown;

@@ -21,7 +21,8 @@ from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
-from server.services.variants_samples_service import store_upload_details_for_variant_sample
+from server.services.samples_service import add_new_sample_to_db
+from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 from server.services.view_vus_service import get_last_saved_clinvar_update
 from server.services.publications_service import retrieve_and_store_variant_publications
 
@@ -507,22 +508,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
 
     # store each unique sample in the db & its phenotypes
     for unique_sample_id in unique_samples_phenotypes_dict.keys():
-        # check if sample already exists
-        sample: Samples = db.session.query(Samples).filter(Samples.id == unique_sample_id).one_or_none()
-
-        # if the sample is new, add it to database
-        if sample is None:
-            sample = Samples(id=unique_sample_id, genome_version='GRCh37')
-            db.session.add(sample)
-
-            db.session.flush()
-
-        sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
-
-        # append phenotypes to the respective sample, if the sample does not already have that phenotype
-        for phenotype_term in unique_samples_phenotypes_dict[sample.id]:
-            if phenotype_term['ontologyId'] not in sample_ontology_term_ids:
-                append_phenotype_to_sample(sample, phenotype_term)
+        add_new_sample_to_db(unique_sample_id, unique_samples_phenotypes_dict[unique_sample_id])
 
     db.session.flush()
 
@@ -607,23 +593,8 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
         samples = extract_sample_ids(str(row['Sample Ids']))
 
         for sample_id in samples:
-            # check if variants_samples entry already exists
-            existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(
-                VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample_id).one_or_none()
-
-            # if variants_samples entry does not exist, add new entry
-            if existing_variants_samples is None:
-                # check if HGVS exists
-                variant_hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == hgvs).one_or_none()
-
-                if variant_hgvs is None:
-                    # create new HGVS entry
-                    variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs, is_updated=False)
-                    db.session.add(variant_hgvs)
-                    db.session.flush()
-
-                new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id, variant_hgvs_id=variant_hgvs.id ,genotype=genotype)
-                db.session.add(new_variants_samples)
+            # store the variants sample
+            add_variant_sample_to_db(variant_id, sample_id, hgvs, genotype.value)
 
             # store the upload details related to this variant & sample
             store_upload_details_for_variant_sample(new_file_upload, is_file_upload, sample_id, variant_id)

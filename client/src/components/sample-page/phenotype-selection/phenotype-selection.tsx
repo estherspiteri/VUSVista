@@ -29,6 +29,7 @@ const PhenotypeSelection: React.FunctionComponent<PhenotypeSelectionProps> = (
           ),
         };
       })}
+      showChev={false}
       onInputFocusCallback={retrieveHPOTerms}
       onInputChangeCallback={retrieveHPOTerms}
       onEltClickCallback={(elt) => {

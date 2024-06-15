@@ -1,4 +1,6 @@
 import {
+  IAddNewSampleRequest,
+  IAddNewSampleResponse,
   IAddPublicationsRequest,
   IAddPublicationsResponse,
   IAddSamplesRequest,
@@ -243,6 +245,27 @@ export class VusService {
 
     const result: IAddSamplesResponse = await fetch(
       `/vus/add-existing-samples/${input.variantId}`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response: Response) => {
+        return response.json();
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async addNewSample(input: IAddNewSampleRequest): Promise<IAddNewSampleResponse> {
+    let data = new FormData();
+
+    // Append the JSON string as a blob to the FormData
+    data.append("sampleToAdd", JSON.stringify(input.sampleToAdd));
+
+    const result: IAddNewSampleResponse = await fetch(
+      `/vus/add-new-sample/${input.variantId}`,
       {
         method: "POST",
         body: data,

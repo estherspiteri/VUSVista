@@ -45,6 +45,10 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
     props.vus.notVusSamples
   );
 
+  const [isAddingNewSampleModalVisible, setIsAddingNewSampleModalVisible] =
+    useState(false);
+  const [showNewSampleIdError, setShowNewSampleIdError] = useState(false);
+
   const [isAddingSamplesModalVisible, setIsAddingSamplesModalVisible] =
     useState(false);
   const [sampleIdsToAdd, setSampleIdsToAdd] = useState<string[]>([]);
@@ -341,6 +345,12 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               onClick={() => setIsAddingSamplesModalVisible(true)}
             />
           )}
+          <Button
+            text="Add new sample"
+            icon="add"
+            className={styles["add-sample-button"]}
+            onClick={() => setIsAddingNewSampleModalVisible(true)}
+          />
         </div>
 
         {/** Phenotypes */}
@@ -492,7 +502,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       ) ?? null;
 
                     return (
-                      <div className={styles["variant-to-add"]}>
+                      <div className={styles["sample-to-add"]}>
                         <div className={styles.summary}>
                           <span>{s.id}</span>
                         </div>
@@ -596,6 +606,133 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <Button
                 text="Return to variant page"
                 onClick={closeAddSamplesModal}
+                disabled={isAddingSamples}
+              />
+            </div>
+          </div>
+          {isAddingSamples && <Loader />}
+        </Modal>
+      )}
+
+      {isAddingNewSampleModalVisible && (
+        <Modal
+          title={"Input Sample Info"}
+          isClosable={!isAddingSamples}
+          modalContainerStyle={`${styles["add-new-sample-modal"]} ${styles["show-sample-info"]}`}
+          onCloseIconClickCallback={closeAddNewSampleModal}
+        >
+          <div className={styles["add-new-sample-modal-content"]}>
+            <p>Input the sample Id, select its genotype and input its HGVS.</p>
+
+            <div className={styles["not-variant-samples"]}>
+              <div className={styles["sample-to-add"]}>
+                <div>
+                  <div className={styles.info}>
+                    <span className={styles["info-title"]}>Id:</span>
+                    <Text
+                      disabled={isAddingSamples}
+                      onChange={(e) => {
+                        setSampleInfoToAdd([
+                          {
+                            ...sampleInfoToAdd[0],
+                            sampleId: e.currentTarget.value,
+                          },
+                        ]);
+                        setShowNewSampleIdError(
+                          e.currentTarget.value.trim().length > 0 &&
+                            (samples
+                              .map((s) => s.id)
+                              .includes(e.currentTarget.value) ||
+                              notVariantSamples
+                                .map((s) => s.id)
+                                .includes(e.currentTarget.value))
+                        );
+                      }}
+                    />
+                  </div>
+                  {showNewSampleIdError && (
+                    <p className={styles.error}>This sample already exists!</p>
+                  )}
+                </div>
+                <div className={styles.info}>
+                  <span className={styles["info-title"]}>Genotype:</span>
+                  <div className={styles.pills}>
+                    {["Heterozygous", "Homozygous"].map((g) => {
+                      return (
+                        <div
+                          className={`${styles.pill} ${
+                            sampleInfoToAdd[0]?.genotype === g
+                              ? styles["selected-pill"]
+                              : ""
+                          }`}
+                          onClick={() => {
+                            if (!isAddingSamples) {
+                              setSampleInfoToAdd([
+                                {
+                                  ...sampleInfoToAdd[0],
+                                  genotype: g,
+                                },
+                              ]);
+                            }
+                          }}
+                        >
+                          {g}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className={styles.info}>
+                  <span className={styles["info-title"]}>HGVS:</span>
+                  <Text
+                    disabled={isAddingSamples}
+                    onChange={(e) =>
+                      setSampleInfoToAdd([
+                        {
+                          ...sampleInfoToAdd[0],
+                          hgvs: e.currentTarget.value,
+                        },
+                      ])
+                    }
+                  />
+                </div>
+                <div className={`${styles.info} ${styles.phenotypes}`}>
+                  <span className={styles["info-title"]}>Phenotypes:</span>
+                  <SamplePhenotypeSelection
+                    isDisabled={isAddingSamples}
+                    isSelectingPhenotypesForVariant={true}
+                    sampleService={props.sampleService}
+                    onPhenotypesUpdateCallback={(phenotypes) =>
+                      setSampleInfoToAdd([
+                        {
+                          ...sampleInfoToAdd[0],
+                          phenotypes: phenotypes,
+                        },
+                      ])
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles["option-btns"]}>
+              <Button
+                disabled={
+                  sampleInfoToAdd.length !== 1 ||
+                  sampleInfoToAdd.filter(
+                    (s) => !s.sampleId || !s.hgvs || !s.genotype
+                  ).length > 0 ||
+                  showNewSampleIdError ||
+                  isAddingSamples
+                }
+                text={"Add new sample"}
+                onClick={() => {
+                  addNewSample();
+                }}
+              />
+              <Button
+                text="Return to variant page"
+                onClick={closeAddNewSampleModal}
                 disabled={isAddingSamples}
               />
             </div>
@@ -718,6 +855,11 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
     setSampleInfoToAdd([]);
   }
 
+  function closeAddNewSampleModal() {
+    setIsAddingNewSampleModalVisible(false);
+    setSampleInfoToAdd([]);
+  }
+
   function addSamples() {
     setIsAddingSamples(true);
 
@@ -732,6 +874,25 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           setNotVariantSamples(res.updatedNotVariantSamples);
           setPhenotypes(res.updatedPhenotypes);
           closeAddSamplesModal();
+        }
+        setIsAddingSamples(false);
+      });
+  }
+
+  function addNewSample() {
+    setIsAddingSamples(true);
+
+    props.vusService
+      .addNewSample({
+        variantId: props.vus.id,
+        sampleToAdd: sampleInfoToAdd[0],
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          setSamples(res.updatedSamples);
+          setNotVariantSamples(res.updatedNotVariantSamples);
+          setPhenotypes(res.updatedPhenotypes);
+          closeAddNewSampleModal();
         }
         setIsAddingSamples(false);
       });

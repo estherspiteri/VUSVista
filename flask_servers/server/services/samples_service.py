@@ -8,6 +8,7 @@ from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
     Variants, FileUploads, VariantHgvs
 from server.responses.internal_response import InternalResponse
+from server.services.phenotype_service import append_phenotype_to_sample
 from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
 
@@ -202,3 +203,24 @@ def remove_variants_to_sample(sample_id: str, variant_ids_to_remove: List[str]) 
         current_app.logger.error(
             f'Rollback carried out since addition of new variants to sample {sample_id} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
+
+
+def add_new_sample_to_db(sample_id: str, phenotypes: List) -> Samples:
+    # check if sample already exists
+    sample: Samples = db.session.query(Samples).filter(Samples.id == sample_id).one_or_none()
+
+    # if the sample is new, add it to database
+    if sample is None:
+        sample = Samples(id=sample_id, genome_version='GRCh37')
+        db.session.add(sample)
+
+        db.session.flush()
+
+    sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
+
+    # append phenotypes to the respective sample, if the sample does not already have that phenotype
+    for phenotype_term in phenotypes:
+        if phenotype_term['ontologyId'] not in sample_ontology_term_ids:
+            append_phenotype_to_sample(sample, phenotype_term)
+
+    return sample

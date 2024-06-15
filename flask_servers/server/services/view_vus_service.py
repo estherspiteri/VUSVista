@@ -11,7 +11,8 @@ from server.models import ExternalReferences, Variants, DbSnp, Clinvar, Variants
 from server.responses.internal_response import InternalResponse
 from server.services.clinvar_service import get_last_saved_clinvar_update
 from server.services.phenotype_service import append_phenotype_to_sample
-from server.services.variants_samples_service import store_upload_details_for_variant_sample
+from server.services.samples_service import add_new_sample_to_db
+from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 
 
 def retrieve_all_vus_summaries_from_db():
@@ -193,27 +194,7 @@ def delete_variant_entry(variant_id: str) -> InternalResponse:
         return InternalResponse({'isSuccess': False}, 500)
 
 
-def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalResponse:
-    for s in samples_to_add:
-        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == s['hgvs']).one_or_none()
-
-        if hgvs is None:
-            hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
-            db.session.add(hgvs)
-            db.session.flush()
-
-        variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(), variant_hgvs_id=hgvs.id)
-        db.session.add(variant_sample)
-
-        store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
-
-        if 'phenotypes' in s.keys():
-            sample: Samples = db.session.query(Samples).filter(Samples.id == s['sampleId']).first()
-            sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
-            for p in s['phenotypes']:
-                if p['ontologyId'] not in sample_ontology_term_ids:
-                    append_phenotype_to_sample(sample, p)
-
+def commit_samples_update_to_variant(variant_id: int):
     try:
         # Commit the session to persist changes to the database
         db.session.commit()
@@ -236,3 +217,45 @@ def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalRes
         current_app.logger.error(
             f'Rollback carried out since addition of new samples to variant {variant_id} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
+
+
+def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalResponse:
+    for s in samples_to_add:
+        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == s['hgvs']).one_or_none()
+
+        if hgvs is None:
+            hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
+            db.session.add(hgvs)
+            db.session.flush()
+
+        variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(), variant_hgvs_id=hgvs.id)
+        db.session.add(variant_sample)
+
+        store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
+
+        if 'phenotypes' in s.keys():
+            sample: Samples = db.session.query(Samples).filter(Samples.id == s['sampleId']).first()
+            sample_ontology_term_ids = [o.ontology_term_id for o in sample.ontology_term]
+            for p in s['phenotypes']:
+                if p['ontologyId'] not in sample_ontology_term_ids:
+                    append_phenotype_to_sample(sample, p)
+
+    return commit_samples_update_to_variant(variant_id)
+
+
+def add_new_sample_to_variant(variant_id: int, sample_to_add: Dict) -> InternalResponse:
+    phenotypes = []
+    if "phenotypes" in sample_to_add.keys():
+        phenotypes = sample_to_add["phenotypes"]
+
+    new_sample = add_new_sample_to_db(sample_to_add["sampleId"], phenotypes)
+
+    db.session.flush()
+
+    # store the variants sample
+    add_variant_sample_to_db(variant_id, new_sample.id, sample_to_add["hgvs"], sample_to_add["genotype"])
+
+    # store the upload details related to this variant & sample
+    store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id)
+
+    return commit_samples_update_to_variant(variant_id)

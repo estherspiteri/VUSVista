@@ -121,3 +121,15 @@ export interface IAddSamplesResponse {
   updatedNotVariantSamples: INotVusSample[];
   updatedPhenotypes: IPhenotype[];
 }
+
+export interface IAddNewSampleRequest {
+  variantId: number;
+  sampleToAdd: ISampleToAddInfo;
+}
+
+export interface IAddNewSampleResponse {
+  isSuccess: boolean;
+  updatedSamples?: IVusSample[];
+  updatedNotVariantSamples?: INotVusSample[];
+  updatedPhenotypes?: IPhenotype[];
+}
