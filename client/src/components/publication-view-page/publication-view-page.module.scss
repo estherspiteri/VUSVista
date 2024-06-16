@@ -62,9 +62,8 @@
         color: #008080;
         font-size: 14px;
         margin-bottom: 8px;
-        width: 100%;
-        text-align: end;
         cursor: pointer;
+        align-self: flex-end;
 
         &:hover {
           text-decoration: underline;
