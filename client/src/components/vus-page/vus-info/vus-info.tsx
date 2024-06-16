@@ -325,27 +325,39 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <div className={styles["description-container"]}>
                 <p className={styles["info-description"]}>
                   Click on the sample Ids to visit the respective sample page.
-                  In brackets you can find the HGVS assigned to the sample for
-                  this variant. To remove a sample from this variant, tick its
-                  checkbox and click on the "Remove sample/s button".
+                  Consequences are affected by different transcripts, i.e. HGVS,
+                  according to:&nbsp;
+                  <a href="https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html">
+                    Ensembl
+                  </a>
+                  . To remove a sample from this variant, tick its checkbox and
+                  click on the "Remove sample/s button".
                 </p>
                 <div className={styles["delete-sample"]}>
                   <Icon name="bin" fill="#008080" width={21} height={21} />
                 </div>
               </div>
               <div className={styles.samples}>
+                <div className={styles["samples-header"]}>
+                  <span>Sample Id</span>
+                  <span>HGVS</span>
+                  <span>Consequence</span>
+                </div>
                 {samples.map((s) => (
                   <div className={styles.sample}>
-                    <div>
+                    <div className={styles["sample-info"]}>
                       <span
                         className={styles["sample-id"]}
                         onClick={() =>
                           (window.location.href = `/sample/${s.id}`)
                         }
                       >
-                        {s.id}
+                        <b>{s.id}</b>
                       </span>
-                      <span>{` (${s.hgvs})`}</span>
+                      <span>{s.hgvs}</span>
+                      <span>
+                        {s.consequence.replace("_", " ").replace("_", " ")}
+                      </span>
                     </div>
                     <input
                       type="checkbox"
@@ -576,7 +588,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     return (
                       <div className={styles["sample-to-add"]}>
                         <div className={styles.summary}>
-                          <span>{s.id}</span>
+                          <span>
+                            <b>{s.id}</b>
+                          </span>
                         </div>
                         <div className={styles.info}>
                           <span className={styles["info-title"]}>

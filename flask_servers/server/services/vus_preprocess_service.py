@@ -14,9 +14,10 @@ from server import db
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
-    Clinvar, ExternalReferences, FileUploads, Samples, VariantsSamples, Genotype, \
-    VariantsSamplesUploads, ManualUploads, AcmgRules, VariantsAcmgRules, VariantHgvs, Classification, Reviews
+    Clinvar, ExternalReferences, FileUploads, Genotype, \
+    AcmgRules, VariantsAcmgRules, Classification, Reviews
 from server.responses.internal_response import InternalResponse
+from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
@@ -275,7 +276,7 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
             vus_df.at[index, 'Variant Id'] = variant.id
             vus_df.at[index, 'Exists in DB'] = True
             vus_df.at[index, 'Classification'] = variant.classification.value
-            # vus_df.at[index, ''] = variant.consequences TODO: add consequence to variant info
+            vus_df.at[index, 'Consequence'] = variant.consequences
 
             existing_variant_ids.append(variant.id)
 
@@ -302,6 +303,8 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
     vus_df['RSID dbSNP errorMsgs'] = ""
 
     vus_df['Variant Id'] = ""
+
+    vus_df['Consequence'] = ""
 
     # create new column to determine whether the variant has already been stored in the db or not
     vus_df.insert(0, 'Exists in DB', False)
@@ -341,8 +344,9 @@ def preprocess_vus(vus_df: pd.DataFrame):
     # check for existing variants
     existing_vus_df, new_vus_df, existing_variant_ids = check_for_existing_variants(vus_df)
 
-    # get external references for new vus
+    # handle new vus
     if len(new_vus_df) > 0:
+        # get external references
         get_external_references_for_new_vus_res = get_external_references_for_new_vus(new_vus_df)
 
         if get_external_references_for_new_vus_res.status != 200:
@@ -354,6 +358,28 @@ def preprocess_vus(vus_df: pd.DataFrame):
                  'multiple_genes': None}, 500)
         else:
             new_vus_df = get_external_references_for_new_vus_res.data['new_vus_df']
+
+            hgvs = []
+            for var in new_vus_df.iterrows():
+                hgvs.append(var[1]["HGVS"])
+
+            # get variant consequences though HGVS
+            get_consequences_for_new_vus_res = get_consequences_for_new_vus(hgvs)
+
+            if get_consequences_for_new_vus_res.status != 200:
+                current_app.logger.error(
+                    f'Preprocessing of VUS and retrieval of variant consequences failed 500')
+                return InternalResponse(
+                    {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
+                     'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
+                     'multiple_genes': None}, 500)
+            else:
+                hgvs_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+
+                # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
+                vus_df_copy = new_vus_df.copy()
+                for index, row in vus_df_copy.iterrows():
+                    new_vus_df.at[index, 'Consequence'] = hgvs_dict.get(row['HGVS'], "")
 
     # get updated external references for existing vus
     if len(existing_vus_df) > 0:
@@ -594,7 +620,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
         for sample_id in samples:
             # store the variants sample
-            add_variant_sample_to_db(variant_id, sample_id, hgvs, genotype.value)
+            add_variant_sample_to_db(variant_id, sample_id, hgvs, genotype.value, row['Consequence'])
 
             # store the upload details related to this variant & sample
             store_upload_details_for_variant_sample(new_file_upload, is_file_upload, sample_id, variant_id)

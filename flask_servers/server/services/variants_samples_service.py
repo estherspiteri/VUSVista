@@ -6,7 +6,7 @@ from server import db
 from server.models import VariantsSamplesUploads, FileUploads, ManualUploads, VariantsSamples, VariantHgvs
 
 
-def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotype: str):
+def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotype: str, consequence: str):
     # check if variants_samples entry already exists
     existing_variants_samples: VariantsSamples = db.session.query(VariantsSamples).filter(
         VariantsSamples.variant_id == variant_id, VariantsSamples.sample_id == sample_id).one_or_none()
@@ -24,7 +24,7 @@ def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotyp
             db.session.flush()
 
         new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id,
-                                               variant_hgvs_id=variant_hgvs.id, genotype=genotype.upper())
+                                               variant_hgvs_id=variant_hgvs.id, genotype=genotype.upper(), consequence=consequence)
         db.session.add(new_variants_samples)
 
 

@@ -4,6 +4,7 @@ export interface IVusSample {
   id: string;
   hgvs: string;
   noOfVariants: number;
+  consequence: string;
 }
 
 export interface INotVusSample {

@@ -28,15 +28,6 @@ class VariantType(Enum):
     INDEL = 'INDEL'
 
 
-class Consequence(Enum):
-    MISSENSE = 'MISSENSE'
-    NONSENSE = 'NONSENSE'
-    INSERTION = 'INSERTION'
-    DELETION = 'DELETION'
-    FRAMESHIFT = 'FRAMESHIFT'
-    DUPLICATION = 'DUPLICATION'
-
-
 class Strand(Enum):
     POSITIVE = 'POSITIVE'
     NEGATIVE = 'NEGATIVE'
@@ -409,7 +400,6 @@ class Variants(Base):
     gene_id = mapped_column(Integer, nullable=False)
     gene_name = mapped_column(Text, nullable=False)
     alt = mapped_column(Text)
-    consequences = mapped_column(EnumSQL(Consequence, name='consequence'))
 
     variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
                                                                                back_populates='variant', passive_deletes=True)
@@ -512,6 +502,7 @@ class VariantsSamples(Base):
     sample_id = mapped_column(Integer, nullable=False)
     variant_hgvs_id = mapped_column(Integer, nullable=False)
     genotype = mapped_column(EnumSQL(Genotype, name='genotype'), nullable=False)
+    consequence = mapped_column(Text)
 
     sample: Mapped['Samples'] = relationship('Samples', back_populates='variants_samples')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variants_samples')

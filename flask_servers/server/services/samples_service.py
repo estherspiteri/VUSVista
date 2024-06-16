@@ -8,6 +8,7 @@ from server.helpers.data_helper import get_variant_summary
 from server.models import Samples, VariantsSamples, t_samples_phenotypes, Phenotypes, \
     Variants, FileUploads, VariantHgvs
 from server.responses.internal_response import InternalResponse
+from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.phenotype_service import append_phenotype_to_sample
 from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
@@ -153,7 +154,18 @@ def add_variants_to_sample(sample_id: str, variants_to_add: List) -> InternalRes
             db.session.add(hgvs)
             db.session.flush()
 
-        variant_sample = VariantsSamples(variant_id=v['variantId'], sample_id=sample_id, genotype=v['genotype'].upper(), variant_hgvs_id=hgvs.id)
+        hgvs_consequence_dict = {}
+
+        # get variant consequences though HGVS
+        get_consequences_for_new_vus_res = get_consequences_for_new_vus([hgvs.hgvs])
+
+        if get_consequences_for_new_vus_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of variant consequence failed 500')
+        else:
+            hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+
+        variant_sample = VariantsSamples(variant_id=v['variantId'], sample_id=sample_id, genotype=v['genotype'].upper(), variant_hgvs_id=hgvs.id, consequence=hgvs_consequence_dict.get(hgvs.hgvs, ""))
 
         db.session.add(variant_sample)
 

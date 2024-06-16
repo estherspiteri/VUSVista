@@ -12,7 +12,6 @@ IS_TEMPLATE = False;
 -- Create tables within the new database
 -- CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
 CREATE TYPE VARIANT_TYPE AS ENUM ('SNV', 'MNV', 'INDEL');
-CREATE TYPE CONSEQUENCE AS ENUM ('MISSENSE', 'NONSENSE', 'INSERTION', 'DELETION', 'FRAMESHIFT', 'DUPLICATION');
 CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
 CREATE TYPE GENOTYPE AS ENUM ('HOMOZYGOUS', 'HETEROZYGOUS');
 CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 'PS3', 'PP5', 'BP6', 'PVS1', 'PS1', 'BS3', 'PM1', 'BP3', 'PM2', 'PM4', 'PM5', 'PP2', 'BP1', 'PP3', 'BP4', 'BA1', 'BS1', 'BS2', 'BP7', 'PS4', 'BP5');
@@ -72,7 +71,6 @@ CREATE TABLE variants (
     variant_type VARIANT_TYPE NOT NULL,
     ref TEXT NOT NULL,
     alt TEXT,
-    consequences CONSEQUENCE,
     classification CLASSIFICATION NOT NULL,
     gene_id INT NOT NULL,
     gene_name TEXT NOT NULL,
@@ -189,6 +187,7 @@ CREATE TABLE variants_samples (
     sample_id TEXT NOT NULL,
 	variant_hgvs_id INT NOT NULL,
     genotype GENOTYPE NOT NULL,
+	consequence TEXT,
 	CONSTRAINT fk_variant_hgvs
         FOREIGN KEY (variant_hgvs_id) 
             REFERENCES variant_hgvs(id),
