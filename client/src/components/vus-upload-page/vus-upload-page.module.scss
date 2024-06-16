@@ -55,6 +55,10 @@
       flex-direction: column;
       gap: 8px;
 
+      [class*="phenotype-selection-container"] {
+        min-height: 200px;
+      }
+
       .alt-allele-description {
         text-wrap: nowrap;
       }
