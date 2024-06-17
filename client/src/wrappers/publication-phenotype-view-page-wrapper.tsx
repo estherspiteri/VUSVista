@@ -44,10 +44,11 @@ const PublicationPhenotypeViewPageWrapper: React.FunctionComponent = () => {
   } else {
     return (
       <PublicationViewPage
-        description={`<p>Below you can find the publications for <b>VUS with Id ${variantId}</b> in relation to the phenotype <b>${optionalText}</b>.</p><p>Click on a publication title to view a summary of the respective publication. You can view the publications in a new window by clicking on the button found on the right-side of each title.</p>`}
+        isPhenotypePublicationPage={true}
         variantId={variantId}
         publications={publications}
         variant={variant}
+        phenotype={optionalText}
       />
     );
   }

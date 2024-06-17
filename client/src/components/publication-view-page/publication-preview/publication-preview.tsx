@@ -50,12 +50,15 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
             <Icon name="profile" />
           </div>
         )}
-        <div className={styles["icon-wrapper"]}>
+        <div className={styles["external-link-icon-wrapper"]}>
           <div
             className={styles.icon}
             onClick={() => openInNewWindow(props.data.link)}
           >
-            <Icon name="external-link" />
+            <Icon
+              name="external-link"
+              className={styles["external-link-icon"]}
+            />
           </div>
         </div>
       </div>
@@ -69,7 +72,6 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
               <span>Supplementary material match</span>
             </div>
           )}
-
           {/** Publication Information */}
           <div className={styles.info}>
             <span className={styles["info-type"]}>DOI:</span>
@@ -108,9 +110,17 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
           {props.data.abstract && (
             <div className={styles.info}>
               <span className={styles["info-type"]}>Abstract:</span>
-              <p dangerouslySetInnerHTML={{__html: props.data?.abstract}}/>
+              <p dangerouslySetInnerHTML={{ __html: props.data?.abstract }} />
             </div>
           )}
+          <div className={styles["publication-url"]}>
+            {props.data.link && (
+              <div className={styles.info}>
+                <span className={styles["info-type"]}>URL:</span>
+                <a href={props.data?.link}>{props.data?.link}</a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

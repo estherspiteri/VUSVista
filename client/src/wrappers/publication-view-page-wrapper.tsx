@@ -38,7 +38,6 @@ const PublicationViewPageWrapper: React.FunctionComponent = () => {
   } else {
     return (
       <PublicationViewPage
-        description={`<p>Below you can find the publications for VUS with <b>Id ${variantId}</b>.</p><p>Click on a publication title to view a summary of the respective publication. You can view the publications in a new window by clicking on the button found on the right-side of each title.</p>`}
         variantId={variantId}
         publications={publications}
         variant={variant}

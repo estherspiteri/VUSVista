@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import styles from "./publication-view-page.module.scss";
 import PublicationPreview from "./publication-preview/publication-preview";
 import { IPublicationPreview } from "../../models/publication-view.model";
@@ -15,11 +15,13 @@ import Button from "../../atoms/button/button";
 import Text from "../../atoms/text/text";
 import Icon from "../../atoms/icons/icon";
 import { convertPubDates } from "../../helpers/date-helper";
+import { useReactToPrint } from "react-to-print";
 
 type PublicationViewPageProps = {
-  description?: string;
   variantId: string;
   variant: IVUSSummary;
+  isPhenotypePublicationPage?: boolean;
+  phenotype?: string;
   publications?: IPublicationPreview[];
   vusService?: VusService;
 };
@@ -43,24 +45,66 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
   const [addedUrls, setAddedUrls] = useState<string[]>([]);
   const [isAddingPublications, setIsAddingPublications] = useState(false);
 
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+  });
+
   return (
-    <div className={styles["publication-view-container"]}>
+    <div className={styles["publication-view-container"]} ref={printRef}>
       <div className={styles["title-container"]}>
         <div className={styles["title-section"]}>
           <div className={styles.title}>Publications</div>
-          <Button
-            text="Add Publications"
-            icon="add"
-            onClick={() => setShowAddPublicationModal(true)}
-          />
+          <div className={styles["title-btns"]}>
+            <Button
+              text="Add Publications"
+              icon="add"
+              className={styles["add-publications-header-btn"]}
+              onClick={() => setShowAddPublicationModal(true)}
+            />
+            {props.publications.length > 0 && (
+              <Button
+                text={"Save as PDF"}
+                onClick={handlePrint}
+                icon="save"
+                className={styles["download-btn"]}
+              />
+            )}
+          </div>
         </div>
 
-        {props.description && (
-          <div
-            className={styles.description}
-            dangerouslySetInnerHTML={{ __html: props.description }}
-          />
-        )}
+        <div className={styles.description}>
+          {props.isPhenotypePublicationPage ? (
+            <>
+              <p>
+                Below you can find the publications for&nbsp;
+                <b>VUS with Id {props.variantId}</b> in relation to the
+                phenotype&nbsp;
+                <b>{props.phenotype}</b>.
+              </p>
+              <p className={styles.instructions}>
+                Click on a publication title to view a summary of the respective
+                publication. You can view the publications in a new window by
+                clicking on the button found on the right-side of each title.
+              </p>
+            </>
+          ) : (
+            <>
+              <p>
+                Below you can find the publications for VUS with&nbsp;
+                <b>Id {props.variantId}</b>. Publications with the head icon
+                next to their title were inputted manually by a scientific
+                member of staff.
+              </p>
+              <p className={styles.instructions}>
+                Click on a publication title to view a summary of the respective
+                publication. You can view the publications in a new window by
+                clicking on the button found on the right-side of each title.
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
       {publications && (
@@ -75,12 +119,14 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
             <VariantSummary variant={props.variant} />
           </div>
           <div className={styles["publication-previews"]}>
-            <div
-              className={styles["publication-archive-link"]}
-              onClick={getPublicationUpdates}
-            >
-              Click here to view Publication updates
-            </div>
+            {!props.isPhenotypePublicationPage && (
+              <div
+                className={styles["publication-archive-link"]}
+                onClick={getPublicationUpdates}
+              >
+                Click here to view Publication updates
+              </div>
+            )}
             <div className={styles.header}>
               <span className={styles["header-title"]}>Publication Titles</span>
               <DebouncedInput

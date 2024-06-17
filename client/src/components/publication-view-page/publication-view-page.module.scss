@@ -19,6 +19,12 @@
         font-size: 48px;
         margin-bottom: 16px;
       }
+
+      .title-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+      }
     }
 
     .description {
@@ -256,6 +262,37 @@
       margin-top: 8px;
       display: flex;
       justify-content: center;
+    }
+  }
+
+  @page {
+    size: auto;
+    margin: 50px !important;
+  }
+
+  @media print {
+    width: 80%;
+
+    .download-btn,
+    .add-publications-header-btn,
+    .header,
+    .description > .instructions,
+    .publication-archive-link {
+      display: none !important;
+    }
+
+    .variant-summary {
+      width: 100% !important;
+    }
+
+    .publication-preview-contents {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .publication-previews {
+      border: none !important;
     }
   }
 }
