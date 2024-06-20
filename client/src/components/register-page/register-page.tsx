@@ -160,7 +160,7 @@ const RegisterPage: React.FunctionComponent<RegisterPageProps> = (
               "A user with the inputted email already exists."
             );
           } else {
-            window.location.href = "/login";
+            window.location.href = "/";
           }
         });
     }
