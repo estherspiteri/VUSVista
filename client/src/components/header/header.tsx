@@ -50,7 +50,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                 <Button text="Log out" icon="logout" />
               </Link>
               <Link className={styles.profile} to="/profile">
-                <Icon name="profile" />
+                <Icon name="profile" fill="#fff"/>
               </Link>
             </div>
           </>

@@ -47,7 +47,7 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
         <div className={styles.title}>{props.data?.title}</div>
         {props.data.isAddedManually && (
           <div className={styles["profile-icon-wrapper"]}>
-            <Icon name="profile" />
+            <Icon name="profile" fill="#008080" />
           </div>
         )}
         <div className={styles["external-link-icon-wrapper"]}>
