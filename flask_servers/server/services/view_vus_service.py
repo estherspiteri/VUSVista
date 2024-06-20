@@ -33,6 +33,9 @@ def retrieve_all_vus_summaries_from_db():
     vus_df['rsid'] = ""
     vus_df['rsidDbsnpVerified'] = False
 
+    # insert column for clinvar flag
+    vus_df['isFoundInClinvar'] = False
+
     vus_df_copy = vus_df.copy()
 
     # iterate through the dataframe
@@ -49,8 +52,13 @@ def retrieve_all_vus_summaries_from_db():
                     DbSnp.external_db_snp_id == ref.id
                 ).one_or_none()
 
-                vus_df.at[index, 'rsid'] = dbsnp.rsid
-                vus_df.at[index, 'rsidDbsnpVerified'] = len(ref.error_msg) == 0
+                # only return RSID if it is valid for the respective variant
+                if len(ref.error_msg) == 0:
+                    vus_df.at[index, 'rsid'] = dbsnp.rsid
+
+            # only return True Clinvar flag if it is valid for the respective variant
+            elif ref.db_type == 'clinvar' and len(ref.error_msg) == 0:
+                vus_df.at[index, 'isFoundInClinvar'] = len(ref.error_msg) == 0
 
     var_list = convert_df_to_list(vus_df)
 
@@ -59,14 +67,15 @@ def retrieve_all_vus_summaries_from_db():
 
 def get_variant_samples(variant_samples: List[VariantsSamples]) -> Tuple[List, List]:
     variant_samples_list = [
-        {'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs, 'noOfVariants': len(vs.sample.variants_samples), 'consequence': vs.consequence} for vs in
+        {'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs, 'noOfVariants': len(vs.sample.variants_samples),
+         'consequence': vs.consequence} for vs in
         variant_samples]
 
     # retrieve samples that do not have this variant
     samples_ids = [vs.sample_id for vs in variant_samples]
     not_variants_samples: List[Samples] = db.session.query(Samples).filter(Samples.id.not_in(samples_ids)).all()
     not_variant_samples_list = [{'id': s.id, 'noOfVariants': len(s.variants_samples)} for s in
-                                     not_variants_samples]
+                                not_variants_samples]
 
     return variant_samples_list, not_variant_samples_list
 
@@ -95,7 +104,8 @@ def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
                     'chromosomePosition': variant.chromosome_position, 'gene': variant.gene_name,
                     'type': variant.variant_type.value, 'refAllele': variant.ref, 'altAllele': variant.alt,
                     'classification': variant.classification.value,
-                    'acmgRuleIds': [r.acmg_rule_id for r in variant.variants_acmg_rules], 'numOfPublications': len(variant.variants_publications)}
+                    'acmgRuleIds': [r.acmg_rule_id for r in variant.variants_acmg_rules],
+                    'numOfPublications': len(variant.variants_publications)}
 
     # retrieve all external references related to that variant
     external_references: List[ExternalReferences] = db.session.query(ExternalReferences).filter(
@@ -120,7 +130,8 @@ def retrieve_vus_from_db(vus_id: int) -> (Dict | None):
             ).one_or_none()
 
             if clinvar is not None:
-                auto_clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(clinvar.id)
+                auto_clinvar_update_id, review_status, classification, last_evaluated = get_last_saved_clinvar_update(
+                    clinvar.id)
 
                 # populate the clinvar fields
                 variant_data['clinvarId'] = clinvar.id
@@ -167,7 +178,8 @@ def delete_variant_entry(variant_id: str) -> InternalResponse:
     publications_query.delete()
 
     # deleting any auto_clinvar_updates without auto_clinvar_eval_dates
-    auto_clinvar_updates_query = db.session.query(AutoClinvarUpdates).filter(AutoClinvarUpdates.auto_clinvar_eval_dates == None)
+    auto_clinvar_updates_query = db.session.query(AutoClinvarUpdates).filter(
+        AutoClinvarUpdates.auto_clinvar_eval_dates == None)
     auto_clinvar_updates_query.delete()
 
     # deleting any samples without variants_samples
@@ -210,7 +222,9 @@ def commit_samples_update_to_variant(variant_id: int):
         samples: List[Samples] = [vs.sample for vs in variant_samples]
         updated_phenotypes = get_variant_phenotypes_from_db(samples)
 
-        return InternalResponse({'isSuccess': True, 'updatedSamples': updated_samples, "updatedNotVariantSamples": updated_not_variant_samples, "updatedPhenotypes": updated_phenotypes}, 200)
+        return InternalResponse({'isSuccess': True, 'updatedSamples': updated_samples,
+                                 "updatedNotVariantSamples": updated_not_variant_samples,
+                                 "updatedPhenotypes": updated_phenotypes}, 200)
     except SQLAlchemyError as e:
         # Changes were rolled back due to an error
         db.session.rollback()
@@ -222,7 +236,8 @@ def commit_samples_update_to_variant(variant_id: int):
 
 def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalResponse:
     for s in samples_to_add:
-        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id, VariantHgvs.hgvs == s['hgvs']).one_or_none()
+        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id,
+                                                                 VariantHgvs.hgvs == s['hgvs']).one_or_none()
 
         if hgvs is None:
             hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
@@ -240,7 +255,8 @@ def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalRes
         else:
             hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
 
-        variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(), variant_hgvs_id=hgvs.id, consequence=hgvs_consequence_dict.get(hgvs.hgvs, ""))
+        variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(),
+                                         variant_hgvs_id=hgvs.id, consequence=hgvs_consequence_dict.get(hgvs.hgvs, ""))
         db.session.add(variant_sample)
 
         store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
@@ -276,7 +292,8 @@ def add_new_sample_to_variant(variant_id: int, sample_to_add: Dict) -> InternalR
         hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
 
     # store the variants sample
-    add_variant_sample_to_db(variant_id, new_sample.id, sample_to_add["hgvs"], sample_to_add["genotype"], hgvs_consequence_dict.get(sample_to_add["hgvs"], ""))
+    add_variant_sample_to_db(variant_id, new_sample.id, sample_to_add["hgvs"], sample_to_add["genotype"],
+                             hgvs_consequence_dict.get(sample_to_add["hgvs"], ""))
 
     # store the upload details related to this variant & sample
     store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id)

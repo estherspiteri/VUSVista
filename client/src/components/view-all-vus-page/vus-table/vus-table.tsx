@@ -79,6 +79,27 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
         header: () => <span>RSID</span>,
         sortingFn: rsidSortFn,
       },
+      {
+        accessorKey: "isFoundInClinvar",
+        cell: (info) => {
+          const val = info.getValue() as boolean;
+          if (val === true || val === false) {
+            return (
+              <div className={styles.checkmark}>
+                <Icon
+                  name={val ? "checkmark" : "close"}
+                  fill="#008080"
+                  stroke={!val ? "#008080" : undefined}
+                />
+              </div>
+            );
+          }
+        },
+        header: () => <span>Clinvar</span>,
+        meta: {
+          filterVariant: "boolean",
+        },
+      },
     ],
     []
   );
@@ -143,9 +164,7 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
                           </div>
                         </div>
                         {header.column.getCanFilter() ? (
-                          <div>
-                            <Filter column={header.column} id={header.id} />
-                          </div>
+                          <Filter column={header.column} id={header.id} />
                         ) : null}
                       </>
                     )}

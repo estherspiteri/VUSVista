@@ -8,4 +8,5 @@ export interface IVUSSummary {
   rsid?: string;
   rsidDbsnpVerified?: boolean;
   classification?: string;
+  isFoundInClinvar?: boolean;
 }
