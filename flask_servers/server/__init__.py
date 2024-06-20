@@ -6,7 +6,7 @@ from logging.config import dictConfig
 
 from flask_login import LoginManager
 
-from server.config import SQLALCHEMY_DATABASE_URI, db
+from server.config import *
 from server.models import Base, ScientificMembers
 from server.services.clinvar_service import scheduled_clinvar_updates
 from server.services.publications_service import check_for_new_litvar_publications
@@ -43,6 +43,9 @@ def create_app():
 
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
+
+    # Initialize Flask-Mail
+    mail.init_app(app)
 
     # Initialize SQLAlchemy with the Flask app
     db.init_app(app)

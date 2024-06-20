@@ -2,19 +2,21 @@ from datetime import datetime
 
 import requests
 import xmltodict
-from flask import current_app, Response
+from flask import current_app, Response, render_template
 import pandas as pd
 import time
 import json
 from Bio import Entrez
+from flask_mail import Message
 from requests import RequestException
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
+from server.config import mail
 from server.models import Variants, ExternalReferences, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates
 from server.responses.internal_response import InternalResponse
 
@@ -258,8 +260,10 @@ def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
     return auto_clinvar_update.id, auto_clinvar_update.review_status, auto_clinvar_update.classification, clinvar_last_evaluated
 
 
-def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool):
+def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool) -> Tuple[bool, str]:
     clinvar_last_evaluated = None
+    last_saved_classification = None
+
     if len(last_eval):
         clinvar_last_evaluated = datetime.strptime(last_eval, '%Y/%m/%d %H:%M')
 
@@ -287,10 +291,15 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
                                              auto_clinvar_update_id=new_clinvar_update_id)
     db.session.add(new_clinvar_eval_date)
 
+    return create_new_clinvar_update, last_saved_classification
+
 
 # checks for the latest Clinvar updates
 def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFrame) -> InternalResponse:
     vus_df_copy = existing_vus_df.copy()
+
+    # store the variants whose clinvar was updated
+    updated_clinvar = []
 
     # load Clinvar variation ids
     for index, row in vus_df_copy.iterrows():
@@ -315,13 +324,17 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
                 clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict)
                 latest_germline_classification = clinvar_germline_classification.get('description')
 
-                store_clinvar_info(clinvar.id, latest_germline_classification,
+                is_clinvar_update_created, last_saved_classification = store_clinvar_info(clinvar.id, latest_germline_classification,
                                    clinvar_germline_classification.get('review_status'), clinvar_germline_classification.get('last_evaluated'),
                                    False)
 
+                if is_clinvar_update_created:
+                    updated_clinvar.append({'variant_id': variant_id, 'prev_classification': last_saved_classification, 'new_classification': latest_germline_classification})
+
+                # TODO: check if this is needed
                 # existing_vus_df.at[index, 'Clinvar classification'] = latest_germline_classification
 
-    return InternalResponse({'existing_vus_df': existing_vus_df}, 200)
+    return InternalResponse({'existing_vus_df': existing_vus_df, 'clinvar_updates': updated_clinvar}, 200)
 
 
 def scheduled_clinvar_updates():
@@ -331,19 +344,37 @@ def scheduled_clinvar_updates():
 
     vus_df = pd.DataFrame({'Variant Id': variant_ids})
 
-    get_updated_external_references_for_existing_vus(vus_df)
+    get_updated_external_references_for_existing_vus_res = get_updated_external_references_for_existing_vus(vus_df)
 
-    try:
-        # Commit the session to persist changes to the database
-        db.session.commit()
-        return InternalResponse({'isSuccess': True}, 200)
-    except SQLAlchemyError as e:
-        # Changes were rolled back due to an error
-        db.session.rollback()
-
-        current_app.logger.error(
-            f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
+    if get_updated_external_references_for_existing_vus_res.status != 200:
+        current_app.logger.error(f'Failed to get Clinvar info')
         return InternalResponse({'isSuccess': False}, 500)
+    else:
+        clinvar_updates = get_updated_external_references_for_existing_vus_res.data['clinvar_updates']
+
+        if len(clinvar_updates) > 0:
+            mail_message = Message(
+                subject='Clinvar Classification Updates',
+                recipients=['estherspiteri1902@gmail.com'],
+                html=render_template('clinvar_update_email_template.html', updates=clinvar_updates),
+                )
+
+            try:
+                mail.send(mail_message)
+            except Exception as e:
+                current_app.logger.error(f'Clinvar updates email was not sent successfully: {e}')
+
+        try:
+            # Commit the session to persist changes to the database
+            db.session.commit()
+            return InternalResponse({'isSuccess': True}, 200)
+        except SQLAlchemyError as e:
+            # Changes were rolled back due to an error
+            db.session.rollback()
+
+            current_app.logger.error(
+                f'Rollback carried out since insertion of VariantsAcmgRules entry in DB failed due to error: {e}')
+            return InternalResponse({'isSuccess': False}, 500)
 
 
 def get_variant_clinvar_updates(clinvar_id: str):

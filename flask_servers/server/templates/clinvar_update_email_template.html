@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clinvar update email</title>
+</head>
+<body>
+  <h1>Clinvar Classification Updates</h1>
+  <h4>The following variants' Clinvar classifications have been updated. Click on the variant Ids to access the respective variant pages.</h4>
+  <table style="width:100%; border-spacing: 0; padding: 0; border: 0">
+    <tr>
+      <td>
+        <table style="width: 600px; border-spacing: 0; padding: 0; text-align:center; margin: 0 auto; border-left: 1px solid #008080; border-right: 1px solid #008080; border-radius: 4px">
+          <tr style="background-color: #008080; color: #ffffff">
+            <th style="padding: 16px">
+              Variant ID
+            </th>
+            <th style="padding: 16px">
+              Previous Clinvar Classification
+            </th>
+            <th style="padding: 16px">
+              New Clinvar Classification
+            </th>
+          </tr>
+          {% for update in updates %}
+          <tr>
+            <td style="border-bottom: 1px solid #008080">
+              <a href="http://localhost:3000/vus/{{update.variant_id}}">{{update.variant_id}}</a>
+            </td>
+            <td style="border-bottom: 1px solid #008080">
+              <p>{{update.prev_classification}}</p>
+            </td>
+            <td style="border-bottom: 1px solid #008080">
+              <p>{{update.new_classification}}</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
