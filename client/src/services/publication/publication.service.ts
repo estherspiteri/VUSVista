@@ -1,3 +1,4 @@
+import customFetch from "../api/api.service";
 import {
   IGetPublicationsByRsidAndWithOptionalTextRequest,
   IGetPublicationsByRsidAndWithOptionalTextResponse,
@@ -9,7 +10,7 @@ export class PublicationService {
   async getPublicationsByVariantId(
     input: IGetPublicationsByVariantIdRequest
   ): Promise<IGetPublicationsByVariantIdResponse> {
-    const result: IGetPublicationsByVariantIdResponse = await fetch(
+    const result: IGetPublicationsByVariantIdResponse = await customFetch(
       `/publication/getByVariantId/${input.variantId}`,
       {
         method: "GET",
@@ -18,8 +19,8 @@ export class PublicationService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -29,7 +30,7 @@ export class PublicationService {
   async getPublicationsByRsidAndWithOptionalText(
     input: IGetPublicationsByRsidAndWithOptionalTextRequest
   ): Promise<IGetPublicationsByRsidAndWithOptionalTextResponse> {
-    const result: IGetPublicationsByVariantIdResponse = await fetch(
+    const result: IGetPublicationsByVariantIdResponse = await customFetch(
       `/publication/getWithOptionalText/${input.variantId}/${input.rsid}/${input.optionalText}`,
       {
         method: "GET",
@@ -38,8 +39,8 @@ export class PublicationService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

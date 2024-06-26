@@ -16,6 +16,7 @@ export type IconName =
   | "external-link"
   | "file-upload"
   | "file-process"
+  | "home"
   | "left-arrow-circle"
   | "logout"
   | "options"
@@ -224,6 +225,28 @@ const Icon: React.FunctionComponent<IconProps> = (props: IconProps) => {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+          </svg>
+        );
+      }
+      case "home": {
+        return (
+          <svg
+            viewBox="0 0 24 24"
+            data-name="Layer 1"
+            xmlns="http://www.w3.org/2000/svg"
+            {...props}
+          >
+            <g stroke-width="0" />
+            <g stroke-linecap="round" stroke-linejoin="round" />
+            <g
+              fill="none"
+              stroke={props.fill ?? "black"}
+              stroke-miterlimit="10"
+              stroke-width="2"
+            >
+              <path d="M20 8.5v14H4v-14" />
+              <path d="m23 10.5-11-9-11 9" />
+            </g>
           </svg>
         );
       }

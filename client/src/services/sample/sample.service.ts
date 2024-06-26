@@ -1,3 +1,4 @@
+import customFetch from "../api/api.service";
 import {
   IAddPhenotypeRequest,
   IAddPhenotypeResponse,
@@ -20,14 +21,14 @@ import {
 
 export class SampleService {
   async loadAllSamples(): Promise<ILoadAllSamplesResponse> {
-    const result: ILoadAllSamplesResponse = await fetch(`/sample/view`, {
+    const result: ILoadAllSamplesResponse = await customFetch(`/sample/view`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
       },
     })
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -35,7 +36,7 @@ export class SampleService {
   }
 
   async getSample(input: IGetSampleRequest): Promise<IGetSampleResponse> {
-    const result: IGetSampleResponse = await fetch(
+    const result: IGetSampleResponse = await customFetch(
       `/sample/view/${input.sampleId}`,
       {
         method: "GET",
@@ -45,8 +46,8 @@ export class SampleService {
         cache: "no-cache",
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -54,7 +55,7 @@ export class SampleService {
   }
 
   async getHPOTerms(input: IGetHPOTermsRequest): Promise<IGetHPOTermsResponse> {
-    const result: IGetHPOTermsResponse = await fetch(
+    const result: IGetHPOTermsResponse = await customFetch(
       `/sample/phenotype/${input.phenotype}`,
       {
         method: "GET",
@@ -63,8 +64,8 @@ export class SampleService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -80,12 +81,15 @@ export class SampleService {
     data.append("sampleId", input.sampleId);
     data.append("phenotype", JSON.stringify(input.phenotype));
 
-    const result: IGetHPOTermsResponse = await fetch(`/sample/add-phenotype`, {
-      method: "POST",
-      body: data,
-    })
-      .then((response: Response) => {
-        return response.json();
+    const result: IGetHPOTermsResponse = await customFetch(
+      `/sample/add-phenotype`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -101,15 +105,15 @@ export class SampleService {
     data.append("sampleId", input.sampleId);
     data.append("phenotype", JSON.stringify(input.phenotype));
 
-    const result: IGetHPOTermsResponse = await fetch(
+    const result: IGetHPOTermsResponse = await customFetch(
       `/sample/remove-phenotype`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -119,7 +123,7 @@ export class SampleService {
   async deleteSample(
     input: IDeleteSampleRequest
   ): Promise<IDeleteSampleResponse> {
-    const result: IGetHPOTermsResponse = await fetch(
+    const result: IGetHPOTermsResponse = await customFetch(
       `/sample/delete/${input.sampleId}`,
       {
         method: "DELETE",
@@ -128,8 +132,8 @@ export class SampleService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -137,7 +141,7 @@ export class SampleService {
   }
 
   async updateHgvs(input: IUpdateHgvsRequest): Promise<IUpdateHgvsResponse> {
-    const result: IUpdateHgvsResponse = await fetch(
+    const result: IUpdateHgvsResponse = await customFetch(
       `/sample/edit-hgvs/${input.sampleId}/${input.variantId}/${input.updatedHgvs}`,
       {
         method: "POST",
@@ -146,8 +150,8 @@ export class SampleService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -160,15 +164,15 @@ export class SampleService {
     // Append the JSON string as a blob to the FormData
     data.append("variantsToAdd", JSON.stringify(input.variantsToAdd));
 
-    const result: IAddVariantsResponse = await fetch(
+    const result: IAddVariantsResponse = await customFetch(
       `/sample/add-variants/${input.sampleId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -184,15 +188,15 @@ export class SampleService {
     data.append("deleteSample", JSON.stringify(input.isDeleteSample));
     data.append("variantIdsToRemove", JSON.stringify(input.variantIdsToRemove));
 
-    const result: IRemoveVariantsResponse = await fetch(
+    const result: IRemoveVariantsResponse = await customFetch(
       `/sample/remove-variants/${input.sampleId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

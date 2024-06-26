@@ -1,3 +1,4 @@
+import customFetch from "../api/api.service";
 import {
   IAddNewSampleRequest,
   IAddNewSampleResponse,
@@ -34,18 +35,15 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("vus", vusJsonData);
 
-    const result: IUploadVusResponse = await fetch(`/vus/upload`, {
+    const result: IUploadVusResponse = await customFetch(`/vus/upload`, {
       method: "POST",
       body: data,
-      // headers: {
-      // "Content-Type": "multipart/form-data",
-      // },
-      cache: "no-store", //TODO: is it needed?
+      cache: "no-store",
     })
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
-      .catch((error) => console.error("error============:", error)); //TODO: handle error
+      .catch((error) => console.error("error============:", error));
 
     return result;
   }
@@ -63,16 +61,16 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("multipleGenesSelection", multipleGenesSelectionJsonData);
 
-    const result: IStoreAndVerifyVusFileResponse = await fetch(`/vus/file`, {
-      method: "POST",
-      body: data,
-      // headers: {
-      // "Content-Type": "multipart/form-data",
-      // },
-      cache: "no-store", //TODO: is it needed?
-    })
-      .then((response: Response) => {
-        return response.json();
+    const result: IStoreAndVerifyVusFileResponse = await customFetch(
+      `/vus/file`,
+      {
+        method: "POST",
+        body: data,
+        cache: "no-store", //TODO: is it needed?
+      }
+    )
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -80,14 +78,14 @@ export class VusService {
   }
 
   async loadAllVus(): Promise<ILoadAllVusResponse> {
-    const result: ILoadAllVusResponse = await fetch(`/vus/view`, {
+    const result: ILoadAllVusResponse = await customFetch(`/vus/view`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
       },
     })
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -95,15 +93,18 @@ export class VusService {
   }
 
   async getVus(input: IGetVusRequest): Promise<IGetVusResponse> {
-    const result: IGetVusResponse = await fetch(`/vus/view/${input.vusId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-      },
-      cache: "no-cache",
-    })
-      .then((response: Response) => {
-        return response.json();
+    const result: IGetVusResponse = await customFetch(
+      `/vus/view/${input.vusId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        cache: "no-cache",
+      }
+    )
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -111,7 +112,7 @@ export class VusService {
   }
 
   async verifyGene(input: IVerifyGeneRequest): Promise<IVerifyGeneResponse> {
-    const result: IVerifyGeneResponse = await fetch(
+    const result: IVerifyGeneResponse = await customFetch(
       `/vus/gene/${input.geneName}`,
       {
         method: "GET",
@@ -120,8 +121,8 @@ export class VusService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -129,7 +130,7 @@ export class VusService {
   }
 
   async getAllAcmgRules(): Promise<IGetAllAcmgRulesResponse> {
-    const result: IGetAllAcmgRulesResponse = await fetch(
+    const result: IGetAllAcmgRulesResponse = await customFetch(
       `/vus/all-acmg-rules`,
       {
         method: "GET",
@@ -138,8 +139,8 @@ export class VusService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -149,7 +150,7 @@ export class VusService {
   async getClinvarUpdates(
     input: IGetClinvarUpdatesRequest
   ): Promise<IGetClinvarUpdatesResponse> {
-    const result: IGetClinvarUpdatesResponse = await fetch(
+    const result: IGetClinvarUpdatesResponse = await customFetch(
       `/vus/get_clinvar_updates/${input.clinvarId}`,
       {
         method: "GET",
@@ -159,8 +160,8 @@ export class VusService {
         cache: "no-cache",
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -170,7 +171,7 @@ export class VusService {
   async getPublicationUpdates(
     input: IGetPublicationUpdatesRequest
   ): Promise<IGetPublicationUpdatesResponse> {
-    const result: IGetPublicationUpdatesResponse = await fetch(
+    const result: IGetPublicationUpdatesResponse = await customFetch(
       `/vus/get_publication_updates/${input.variantId}`,
       {
         method: "GET",
@@ -180,8 +181,8 @@ export class VusService {
         cache: "no-cache",
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -200,19 +201,16 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("publicationUrls", publicationsJsonData);
 
-    const result: IStoreAndVerifyVusFileResponse = await fetch(
+    const result: IStoreAndVerifyVusFileResponse = await customFetch(
       `/vus/add_publications/${input.variantId}`,
       {
         method: "POST",
         body: data,
-        // headers: {
-        // "Content-Type": "multipart/form-data",
-        // },
-        cache: "no-store", //TODO: is it needed?
+        cache: "no-store",
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -222,7 +220,7 @@ export class VusService {
   async deleteVariant(
     input: IDeleteVariantRequest
   ): Promise<IDeleteVariantResponse> {
-    const result: IDeleteVariantResponse = await fetch(
+    const result: IDeleteVariantResponse = await customFetch(
       `/vus/delete/${input.variantId}`,
       {
         method: "DELETE",
@@ -231,8 +229,8 @@ export class VusService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -245,15 +243,15 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("samplesToAdd", JSON.stringify(input.samplesToAdd));
 
-    const result: IAddSamplesResponse = await fetch(
+    const result: IAddSamplesResponse = await customFetch(
       `/vus/add-existing-samples/${input.variantId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -268,15 +266,15 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("sampleToAdd", JSON.stringify(input.sampleToAdd));
 
-    const result: IAddNewSampleResponse = await fetch(
+    const result: IAddNewSampleResponse = await customFetch(
       `/vus/add-new-sample/${input.variantId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -291,15 +289,15 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("sampleIdsToRemove", JSON.stringify(input.sampleIdsToRemove));
 
-    const result: IRemoveSamplesResponse = await fetch(
+    const result: IRemoveSamplesResponse = await customFetch(
       `/vus/remove-samples/${input.variantId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

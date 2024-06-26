@@ -18,6 +18,8 @@ import PublicationPhenotypeViewPageWrapper from "./wrappers/publication-phenotyp
 import VusUploadPageWrapper from "./wrappers/vus-upload-page-wrapper";
 import ReviewPageWrapper from "./wrappers/review-page-wrapper";
 import ReviewHistoryPageWrapper from "./wrappers/review-history-page-wrapper";
+import ErrorPage from "./components/error-page/error-page";
+import HomePage from "./components/home-page/home-page";
 
 type AppProps = {};
 //TODO: add session cookie Id
@@ -28,20 +30,24 @@ const App: React.FunctionComponent<AppProps> = () => {
 
   //TODO: is this correct location?
   useEffect(() => {
-    authService.isUserLoggedIn().then((res) => {
-      setIsUserLoggedIn(res.isUserLoggedIn);
+    if (location.pathname !== "/error") {
+      authService.isUserLoggedIn().then((res) => {
+        setIsUserLoggedIn(res.isUserLoggedIn);
 
-      if (!res.isUserLoggedIn && location.pathname !== "/register") {
-        navigate("/login");
-      } else if (location.pathname !== "/login") {
-        //TODO: redirect to profile page
-      }
-    });
+        if (!res.isUserLoggedIn && location.pathname !== "/register") {
+          navigate("/login");
+        } else if (location.pathname !== "/login") {
+          //TODO: redirect to profile page
+        }
+      });
+    }
   }, [location.pathname]);
 
   return (
     //TODO: lazy loading
     //routing: https://hygraph.com/blog/routing-in-react
+
+    //TODO: add home page
     <div className={styles.container}>
       <Header isUserLoggedIn={isUserLoggedIn} authService={authService} />
       <Routes>
@@ -82,8 +88,8 @@ const App: React.FunctionComponent<AppProps> = () => {
           path="/review-history/*"
           element={<ReviewHistoryPageWrapper />}
         />
-        {/*TODO: handle no route match*/}
-        {/* <Route path="*" element={<NoMatch />} /> */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </div>
   );

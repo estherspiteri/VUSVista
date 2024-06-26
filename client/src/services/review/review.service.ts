@@ -1,3 +1,4 @@
+import customFetch from "../api/api.service";
 import {
   IGetAllClassificationReviewsRequest,
   IGetAllClassificationReviewsResponse,
@@ -11,7 +12,7 @@ export class ReviewService {
   async loadReviewPage(
     input: ILoadReviewPageRequest
   ): Promise<ILoadReviewPageResponse> {
-    const result: ILoadReviewPageResponse = await fetch(
+    const result: ILoadReviewPageResponse = await customFetch(
       `/review/load/${input.vusId}`,
       {
         method: "GET",
@@ -20,8 +21,8 @@ export class ReviewService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -56,15 +57,15 @@ export class ReviewService {
       input.isExistingAcmgRemoved.toString()
     );
 
-    const result: ISaveClassificationReviewResponse = await fetch(
+    const result: ISaveClassificationReviewResponse = await customFetch(
       `/review/save/${input.vusId}`,
       {
         method: "POST",
         body: data,
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -74,7 +75,7 @@ export class ReviewService {
   async getAllClassificationReviews(
     input: IGetAllClassificationReviewsRequest
   ): Promise<IGetAllClassificationReviewsResponse> {
-    const result: IGetAllClassificationReviewsResponse = await fetch(
+    const result: IGetAllClassificationReviewsResponse = await customFetch(
       `/review/view/${input.vusId}`,
       {
         method: "GET",
@@ -83,8 +84,8 @@ export class ReviewService {
         },
       }
     )
-      .then((response: Response) => {
-        return response.json();
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

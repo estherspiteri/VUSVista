@@ -94,25 +94,27 @@
           }
         }
       }
+    }
 
-      .profile {
-        cursor: pointer;
-        border-radius: 2px;
-        height: 38.5px;
-        display: flex;
-        align-items: center;
-        padding: 8px;
-        box-sizing: border-box;
+    .icon {
+      cursor: pointer;
+      border-radius: 2px;
+      height: 38.5px;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      box-sizing: border-box;
 
-        svg {
-          stroke: #fff !important;
+      &:hover {
+        background-color: #fff;
+
+        * {
+          stroke: #008080 !important;
         }
 
-        &:hover {
-          background-color: #fff;
-
-          svg {
-            stroke: #008080 !important;
+        &:not(.home) {
+          * {
+            fill: #008080 !important;
           }
         }
       }

@@ -11,10 +11,14 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
   return (
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>
-        {props.isUserLoggedIn && (
-          <>
-            <div className={styles.btns}>
-              {/** VUS */}
+        <div className={styles.btns}>
+          <Link className={`${styles.icon} ${styles.home}`} to="/">
+            <Icon name="home" fill="#fff" />
+          </Link>
+
+          {/** VUS */}
+          {props.isUserLoggedIn && (
+            <>
               <div className={styles["option-container"]}>
                 <div className={styles["option-btn"]}>VUS</div>
                 <div className={styles.options}>
@@ -39,21 +43,23 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                   </Link>
                 </div>
               </div>
-            </div>
+            </>
+          )}
+        </div>
 
-            <div className={styles["side-btns"]}>
-              <Link
-                to="/login"
-                className={styles["logout-btn"]}
-                onClick={() => props.authService.logout()}
-              >
-                <Button text="Log out" icon="logout" />
-              </Link>
-              <Link className={styles.profile} to="/profile">
-                <Icon name="profile" fill="#fff"/>
-              </Link>
-            </div>
-          </>
+        {props.isUserLoggedIn && (
+          <div className={styles["side-btns"]}>
+            <Link
+              to="/login"
+              className={styles["logout-btn"]}
+              onClick={() => props.authService.logout()}
+            >
+              <Button text="Log out" icon="logout" />
+            </Link>
+            <Link className={styles.icon} to="/profile">
+              <Icon name="profile" fill="#fff" />
+            </Link>
+          </div>
         )}
       </div>
     </div>

@@ -2,12 +2,14 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://127.0.0.1:5000",
+  "proxy": "https://seahorse-app-3ech9.ondigitalocean.app",
   "dependencies": {
     "@tanstack/react-table": "^8.15.3",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
     "react": "^18.2.0",
     "react-calendar": "^5.0.0",
     "react-dom": "^18.2.0",
@@ -19,8 +21,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "cross-env NODE_ENV=development node loadEnv.js && react-scripts start",
+    "build": "cross-env NODE_ENV=development node loadEnv.js && react-scripts build",
+    "start-prod": "cross-env NODE_ENV=production node loadEnv.js && react-scripts start",
+    "build-prod": "cross-env NODE_ENV=production node loadEnv.js && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
