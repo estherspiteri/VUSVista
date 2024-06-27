@@ -6,8 +6,9 @@ const customFetch = async (url, options) => {
       // Handle HTTP errors by navigating to the error page
       window.location.href = "/error";
     }
-
-    return response.json();
+    
+    const resJson = response.json();
+    return resJson;
   } catch (error) {
     // Handle fetch errors (e.g., network issues)
     console.error("Fetch Error:", error);
