@@ -1,0 +1,88 @@
+[2024-06-26 21:50:59,567] ERROR in error_handlers: Server Error: (psycopg2.errors.ForeignKeyViolation) insert or update on table "variants" violates foreign key constraint "fk_gene_annotations"
+DETAIL:  Key (gene_id)=(48639) is not present in table "gene_annotations".
+
+[SQL: INSERT INTO variants (chromosome, chromosome_position, variant_type, ref, classification, gene_id, gene_name, alt) VALUES (%(chromosome)s, %(chromosome_position)s, %(variant_type)s, %(ref)s, %(classification)s, %(gene_id)s, %(gene_name)s, %(alt)s) RETURNING variants.id]
+[parameters: {'chromosome': '14', 'chromosome_position': '1', 'variant_type': 'SNV', 'ref': 'G', 'classification': 'VUS', 'gene_id': 48639, 'gene_name': 'BRCA1', 'alt': 'A'}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2024-06-26 21:50:59,572] INFO in _internal: 127.0.0.1 - - [26/Jun/2024 21:50:59] "[35m[1mPOST /vus/upload HTTP/1.1[0m" 0 -
+[2024-06-26 21:53:15,951] INFO in vus_views: User storing new VUS
+[2024-06-26 21:53:18,540] ERROR in clinvar_service: ClinVar clinical significance pipeline cannot run for variant without RSID!
+[2024-06-26 21:53:18,859] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 21:53:18,860] INFO in litvar_service: Retrieving LitVar ID for HGVS dsafasg and RSID None
+[2024-06-26 21:53:19,469] INFO in litvar_service: LitVar Search Variant query - no LitVar id found for dsafasg!
+[2024-06-26 21:53:19,473] ERROR in litvar_service: No Litvar info found for HGVS dsafasg
+[2024-06-26 21:53:19,474] ERROR in litvar_service: LitVar Search Variant query failed 500
+[2024-06-26 21:53:19,474] ERROR in publications_service: Retrieval of information for the user provided literature link failed 500
+[2024-06-26 21:53:19,474] ERROR in vus_preprocess_service: Get publications for new variants failed 500
+[2024-06-26 21:53:19,474] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 21:53:19,497] ERROR in error_handlers: Server Error: 'AnonymousUserMixin' object has no attribute 'id'
+[2024-06-26 21:53:19,501] INFO in _internal: 127.0.0.1 - - [26/Jun/2024 21:53:19] "[35m[1mPOST /vus/upload HTTP/1.1[0m" 500 -
+[2024-06-26 21:56:55,770] INFO in base: Scheduler has been shut down
+[2024-06-26 21:57:51,832] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 21:57:51,833] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 21:57:51,833] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 21:57:51,833] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 21:57:51,834] INFO in base: Added job "create_app.<locals>.scheduled_clinvar_updates_" to job store "default"
+[2024-06-26 21:57:51,834] INFO in base: Added job "create_app.<locals>.scheduled_clinvar_updates_" to job store "default"
+[2024-06-26 21:57:51,834] INFO in base: Added job "create_app.<locals>.scheduled_litvar_updates_" to job store "default"
+[2024-06-26 21:57:51,834] INFO in base: Added job "create_app.<locals>.scheduled_litvar_updates_" to job store "default"
+[2024-06-26 21:57:51,834] INFO in base: Scheduler started
+[2024-06-26 21:57:51,834] INFO in base: Running job "create_app.<locals>.scheduled_litvar_updates_ (trigger: date[2024-06-26 21:57:51 CEST], next run at: 2024-06-26 21:57:51 CEST)" (scheduled at 2024-06-26 21:57:51.827152+02:00)
+[2024-06-26 21:57:51,834] INFO in base: Removed job d2723821adad4f249e1d1be01e4f3150
+[2024-06-26 21:57:51,835] INFO in base: Running job "create_app.<locals>.scheduled_clinvar_updates_ (trigger: date[2024-06-26 21:57:51 CEST], next run at: 2024-06-26 21:57:51 CEST)" (scheduled at 2024-06-26 21:57:51.827152+02:00)
+[2024-06-26 21:57:51,835] INFO in base: Removed job e2a819e00f074941b0db42ba65cb2812
+[2024-06-26 21:57:51,840] INFO in _internal: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2024-06-26 21:57:51,841] INFO in _internal: [33mPress CTRL+C to quit[0m
+[2024-06-26 21:57:51,842] INFO in base: Job "create_app.<locals>.scheduled_litvar_updates_ (trigger: date[2024-06-26 21:57:51 CEST], next run at: 2024-06-26 21:57:51 CEST)" executed successfully
+[2024-06-26 21:57:51,868] INFO in base: Job "create_app.<locals>.scheduled_clinvar_updates_ (trigger: date[2024-06-26 21:57:51 CEST], next run at: 2024-06-26 21:57:51 CEST)" executed successfully
+[2024-06-26 22:03:08,812] INFO in base: Scheduler has been shut down
+[2024-06-26 22:16:03,168] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 22:16:03,170] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 22:16:03,170] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 22:16:03,170] INFO in base: Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[2024-06-26 22:16:03,171] INFO in base: Added job "create_app.<locals>.scheduled_clinvar_updates_" to job store "default"
+[2024-06-26 22:16:03,171] INFO in base: Added job "create_app.<locals>.scheduled_clinvar_updates_" to job store "default"
+[2024-06-26 22:16:03,171] INFO in base: Added job "create_app.<locals>.scheduled_litvar_updates_" to job store "default"
+[2024-06-26 22:16:03,171] INFO in base: Added job "create_app.<locals>.scheduled_litvar_updates_" to job store "default"
+[2024-06-26 22:16:03,171] INFO in base: Scheduler started
+[2024-06-26 22:16:03,171] INFO in base: Running job "create_app.<locals>.scheduled_litvar_updates_ (trigger: date[2024-06-26 22:16:03 CEST], next run at: 2024-06-26 22:16:03 CEST)" (scheduled at 2024-06-26 22:16:03.161823+02:00)
+[2024-06-26 22:16:03,171] INFO in base: Removed job 13060355192f4cf1bbfa57568ccea46b
+[2024-06-26 22:16:03,172] INFO in base: Running job "create_app.<locals>.scheduled_clinvar_updates_ (trigger: date[2024-06-26 22:16:03 CEST], next run at: 2024-06-26 22:16:03 CEST)" (scheduled at 2024-06-26 22:16:03.161823+02:00)
+[2024-06-26 22:16:03,172] INFO in base: Removed job c282f987a43744fa9b68bf76bef6d8d3
+[2024-06-26 22:16:03,180] INFO in _internal: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+[2024-06-26 22:16:03,180] INFO in _internal: [33mPress CTRL+C to quit[0m
+[2024-06-26 22:16:03,182] INFO in base: Job "create_app.<locals>.scheduled_litvar_updates_ (trigger: date[2024-06-26 22:16:03 CEST], next run at: 2024-06-26 22:16:03 CEST)" executed successfully
+[2024-06-26 22:16:03,204] INFO in base: Job "create_app.<locals>.scheduled_clinvar_updates_ (trigger: date[2024-06-26 22:16:03 CEST], next run at: 2024-06-26 22:16:03 CEST)" executed successfully
+[2024-06-26 22:22:13,876] INFO in vus_views: User storing new VUS
+[2024-06-26 22:22:17,105] ERROR in clinvar_service: ClinVar clinical significance pipeline cannot run for variant without RSID!
+[2024-06-26 22:22:17,458] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 22:22:17,459] INFO in litvar_service: Retrieving LitVar ID for HGVS dsafasg and RSID None
+[2024-06-26 22:22:17,966] INFO in litvar_service: LitVar Search Variant query - no LitVar id found for dsafasg!
+[2024-06-26 22:22:17,969] ERROR in litvar_service: No Litvar info found for HGVS dsafasg
+[2024-06-26 22:22:17,969] ERROR in litvar_service: LitVar Search Variant query failed 500
+[2024-06-26 22:22:17,969] ERROR in publications_service: Retrieval of information for the user provided literature link failed 500
+[2024-06-26 22:22:17,969] ERROR in vus_preprocess_service: Get publications for new variants failed 500
+[2024-06-26 22:22:17,969] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 22:22:17,983] ERROR in error_handlers: Server Error: (raised as a result of Query-invoked autoflush; consider using a session.no_autoflush block if this flush is occurring prematurely)
+(psycopg2.errors.ForeignKeyViolation) insert or update on table "variants_acmg_rules" violates foreign key constraint "fk_acmg_rules"
+DETAIL:  Key (acmg_rule_id)=(8) is not present in table "acmg_rules".
+
+[SQL: INSERT INTO variants_acmg_rules (variant_id, acmg_rule_id, rule_name) VALUES (%(variant_id)s, %(acmg_rule_id)s, %(rule_name)s)]
+[parameters: {'variant_id': 1, 'acmg_rule_id': 8, 'rule_name': 'PS3'}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2024-06-26 22:22:17,986] INFO in _internal: 127.0.0.1 - - [26/Jun/2024 22:22:17] "[35m[1mPOST /vus/upload HTTP/1.1[0m" 0 -
+[2024-06-26 22:22:42,699] INFO in vus_views: User storing new VUS
+[2024-06-26 22:22:45,194] ERROR in clinvar_service: ClinVar clinical significance pipeline cannot run for variant without RSID!
+[2024-06-26 22:22:46,611] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 22:22:46,612] INFO in litvar_service: Retrieving LitVar ID for HGVS dsafasg and RSID None
+[2024-06-26 22:22:47,118] INFO in litvar_service: LitVar Search Variant query - no LitVar id found for dsafasg!
+[2024-06-26 22:22:47,121] ERROR in litvar_service: No Litvar info found for HGVS dsafasg
+[2024-06-26 22:22:47,122] ERROR in litvar_service: LitVar Search Variant query failed 500
+[2024-06-26 22:22:47,122] ERROR in publications_service: Retrieval of information for the user provided literature link failed 500
+[2024-06-26 22:22:47,123] ERROR in vus_preprocess_service: Get publications for new variants failed 500
+[2024-06-26 22:22:47,123] INFO in publications_service: Retrieving publications for variants
+[2024-06-26 22:22:47,131] ERROR in error_handlers: Server Error: 'AnonymousUserMixin' object has no attribute 'id'
+[2024-06-26 22:22:47,133] INFO in _internal: 127.0.0.1 - - [26/Jun/2024 22:22:47] "[35m[1mPOST /vus/upload HTTP/1.1[0m" 500 -
+[2024-06-26 22:33:22,765] ERROR in error_handlers: Server Error: 405 Method Not Allowed: The method is not allowed for the requested URL.

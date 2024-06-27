@@ -207,13 +207,13 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
             ).one()
 
             if gene_attributes.attribute_value not in row['Gene']:
-                print(f'The following row:\n {row} \nhas  a gene which does not match the gene found in our database '
+                current_app.logger.error(f'The following row:\n {row} \nhas  a gene which does not match the gene found in our database '
                       f'with id:{gene_id} and name:{gene_attributes.attribute_value}')
 
         if len(gene_ids) > 1:
-            print(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
+            current_app.logger.error(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
         elif len(gene_ids) == 0:
-            print(f'The following row:\n {row} \nhas no gene ids')
+            current_app.logger.error(f'The following row:\n {row} \nhas no gene ids')
         else:
             # TODO: handle multiple genes
             # TODO: handle mismatch genes

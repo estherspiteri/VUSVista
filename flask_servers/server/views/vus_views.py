@@ -1,11 +1,6 @@
-from datetime import datetime
-from typing import List
-
 import pandas as pd
 from flask import Blueprint, Response, current_app, request
 import json
-
-from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.models import GeneAttributes

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytz
 from flask import Flask
 from flask_cors import CORS
 from logging.config import dictConfig
@@ -7,7 +8,9 @@ from logging.config import dictConfig
 from flask_login import LoginManager
 
 from server.config import *
-from server.models import Base, ScientificMembers
+from server.db_setup.populate_gene_annotations_table import store_gtf_file_in_db
+from server.error_handlers import register_error_handlers
+from server.models import Base, ScientificMembers, GeneAnnotations
 from server.services.clinvar_service import scheduled_clinvar_updates
 from server.services.publications_service import check_for_new_litvar_publications
 from server.views.auth_views import auth_views
@@ -23,22 +26,35 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def create_app():
-    # TODO: write logging to file
     # logging configuration
     dictConfig({
         'version': 1,
-        'formatters': {'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        }},
-        'handlers': {'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://flask.logging.wsgi_errors_stream',
-            'formatter': 'default'
-        }},
+        'formatters': {
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+            },
+            'file_formatter': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+            },
+        },
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default',
+            },
+            'file': {
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': 'app.log',
+                'maxBytes': 10240,
+                'backupCount': 10,
+                'formatter': 'file_formatter',
+            },
+        },
         'root': {
             'level': 'INFO',
-            'handlers': ['wsgi']
-        }
+            'handlers': ['wsgi', 'file'],
+        },
     })
 
     app = Flask(__name__)
@@ -50,14 +66,22 @@ def create_app():
     # Initialize SQLAlchemy with the Flask app
     db.init_app(app)
 
+    with app.app_context():
+        if len(db.session.query(GeneAnnotations).all()) == 0:
+            # Populate gene annotations table
+            store_gtf_file_in_db()
+
     CORS(app)
 
     app.register_blueprint(publication_views, url_prefix='/publication')
     app.register_blueprint(vus_views, url_prefix='/vus')
     app.register_blueprint(sample_views, url_prefix='/sample')
     app.register_blueprint(auth_views, url_prefix='/auth')
-    app.register_blueprint(profile_views)
+    app.register_blueprint(profile_views, url_prefix='/user')
     app.register_blueprint(review_views, url_prefix='/review')
+
+    # Register error handlers
+    register_error_handlers(app)
 
     # specify user loader: tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
     login_manager = LoginManager()
@@ -79,17 +103,23 @@ def create_app():
         with app.app_context():
             check_for_new_litvar_publications()
 
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=scheduled_clinvar_updates_, run_date=datetime.now())
-    # 1 week
-    scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
+    with app.app_context():
+        scheduler = BackgroundScheduler()
 
-    scheduler.add_job(func=scheduled_litvar_updates_, run_date=datetime.now())
-    # 10 days
-    scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
-    scheduler.start()
+        # Get the current time with timezone information
+        timezone = pytz.timezone('Europe/Amsterdam')
+        run_date = datetime.now(timezone)
 
-    # Shut down the scheduler when exiting the app
-    atexit.register(lambda: scheduler.shutdown())
+        scheduler.add_job(func=scheduled_clinvar_updates_, run_date=run_date)
+        # 1 week
+        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
+
+        scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
+        # 10 days
+        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
+        scheduler.start()
+
+        # Shut down the scheduler when exiting the app
+        atexit.register(lambda: scheduler.shutdown())
 
     return app

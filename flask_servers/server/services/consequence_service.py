@@ -21,6 +21,10 @@ def get_consequences_for_new_vus(hgvs: List[str]) -> InternalResponse:
         # send service unavailable status code
         return InternalResponse(None, 503, e.response)
 
+   # could not parse the HGVS notation
+    if res.status_code == 400:
+        # TODO: show error msg on front-end to re-enter hgvs
+        return InternalResponse({'consequences_dict': {}}, 200)
     if res.status_code != 200:
         current_app.logger.error(f'Ensembl Service failed: {res.reason}')
         return InternalResponse(None, res.status_code, res.reason)
