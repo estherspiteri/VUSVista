@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "/",
-  "proxy": "https://seahorse-app-3ech9.ondigitalocean.app",
   "dependencies": {
     "@tanstack/react-table": "^8.15.3",
     "@testing-library/jest-dom": "^5.17.0",

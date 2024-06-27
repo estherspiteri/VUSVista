@@ -1,6 +1,6 @@
 const customFetch = async (url, options) => {
   try {
-    const response = await fetch(url, options);
+    const response = await fetch(`https://seahorse-app-3ech9.ondigitalocean.app${url}`, options);
     console.log("response", response);
     if (!response.ok) {
       // Handle HTTP errors by navigating to the error page
