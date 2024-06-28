@@ -17,7 +17,7 @@ export class AuthService {
       cache: "no-store",
     })
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -38,7 +38,7 @@ export class AuthService {
       cache: "no-store",
     })
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -60,7 +60,7 @@ export class AuthService {
       cache: "no-store",
     })
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -75,7 +75,7 @@ export class AuthService {
       },
     })
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

@@ -1,7 +1,9 @@
 const customFetch = async (url, options) => {
+  const prod = process.env.NODE_ENV === "production";
+
   try {
-    const response = await fetch(`/api${url}`, options);
-    console.log("response", response);
+    const response = await fetch(prod ? `/api${url}` : url, options);
+
     if (!response.ok) {
       // Handle HTTP errors by navigating to the error page
       window.location.href = "/error";

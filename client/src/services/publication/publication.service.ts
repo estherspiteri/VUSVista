@@ -20,7 +20,7 @@ export class PublicationService {
       }
     )
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -40,7 +40,7 @@ export class PublicationService {
       }
     )
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
