@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./view-samples-page.module.scss";
 import Loader from "../../atoms/loader/loader";
 import SampleTable from "./sample-table/sample-table";
-import { ISample, ISampleSummary } from "../../models/view-samples.model";
+import { ISampleSummary } from "../../models/view-samples.model";
 import { SampleService } from "../../services/sample/sample.service";
 
 type ViewAllSamplesProps = { sampleService: SampleService };
@@ -20,7 +20,7 @@ const ViewAllSamples: React.FunctionComponent<ViewAllSamplesProps> = (
         //TODO: Handle error
       }
     });
-  }, []);
+  }, [props.sampleService]);
 
   return (
     <div className={styles["view-all-samples-container"]}>

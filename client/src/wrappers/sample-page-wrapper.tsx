@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { ISample } from "../models/view-samples.model";
 import { samplesService } from "../services/sample/sample.service";
 import SamplePage from "../components/sample-page/sample-page";
-import { IAcmgRule } from "../models/acmg-rule.model";
 
 const SamplePageWrapper: React.FunctionComponent = () => {
   const [isLoading, setIsLoading] = useState(true);

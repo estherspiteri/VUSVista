@@ -37,7 +37,7 @@ const PublicationPhenotypeViewPageWrapper: React.FunctionComponent = () => {
           }
         });
     }
-  }, [isLoading, rsid, optionalText]);
+  }, [isLoading, rsid, optionalText, variantId]);
 
   if (isLoading) {
     return <Loader />;

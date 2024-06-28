@@ -256,10 +256,8 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
             }
             list={
               props.publications
-                ?.filter((p) => {
-                  const t = `${p.doi}: ${p.title}`;
-
-                  return (
+                ?.filter(
+                  (p) =>
                     !selectedPublications?.includes(p) &&
                     (p.title
                       ?.toLowerCase()
@@ -267,10 +265,8 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
                       p.doi
                         ?.toLowerCase()
                         ?.includes(typedPublication?.toLowerCase()))
-                  );
-                })
+                )
                 .map((p) => {
-                  const t = `${p.doi}: ${p.title}`;
                   return {
                     elt: p,
                     displayElt: (

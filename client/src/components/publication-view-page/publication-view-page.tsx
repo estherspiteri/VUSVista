@@ -187,7 +187,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                       return {
                         date: date,
                         update:
-                          datesWithUpdates?.find((d) => d == date) ?? false,
+                          datesWithUpdates?.find((d) => d === date) ?? false,
                       };
                     })
                   )}

@@ -318,7 +318,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                   .map((v) => {
                     const variantInfo =
                       variantInfoToAdd.find(
-                        (variant) => variant.variantId == v.variantId
+                        (variant) => variant.variantId === v.variantId
                       ) ?? null;
 
                     return (
@@ -396,7 +396,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                       : "Input variants' info"
                   }
                   onClick={() => {
-                    if (variantInfoToAdd.length == 0) {
+                    if (variantInfoToAdd.length === 0) {
                       setShowVariantInfoToAdd(true);
                     } else {
                       addVariants();

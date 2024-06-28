@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "./icon.module.scss";
 
 export type IconName =
   | "add"

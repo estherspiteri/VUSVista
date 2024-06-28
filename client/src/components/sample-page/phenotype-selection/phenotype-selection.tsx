@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { IHPOTerm } from "../../../services/sample/sample.dto";
 import { SampleService } from "../../../services/sample/sample.service";
 import Dropdown from "../../../atoms/dropdown/dropdown";

@@ -485,7 +485,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       return {
                         date: date,
                         update:
-                          datesWithUpdates?.find((d) => d == date) ?? false,
+                          datesWithUpdates?.find((d) => d === date) ?? false,
                       };
                     })
                   )}
@@ -582,7 +582,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   .map((s) => {
                     const sampleInfo =
                       sampleInfoToAdd.find(
-                        (sample) => sample.sampleId == s.id
+                        (sample) => sample.sampleId === s.id
                       ) ?? null;
 
                     return (
@@ -681,7 +681,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     showSamplesInfoToAdd ? "Add samples" : "Input samples' info"
                   }
                   onClick={() => {
-                    if (sampleInfoToAdd.length == 0) {
+                    if (sampleInfoToAdd.length === 0) {
                       setShowSamplesInfoToAdd(true);
                     } else {
                       addSamples();

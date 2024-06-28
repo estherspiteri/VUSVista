@@ -2,8 +2,6 @@ import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import styles from "./dropdown.module.scss";
 import Icon from "../icons/icon";
 
-type DropdownElt = { elt: {}; displayElt: JSX.Element };
-
 type DropdownProps = {
   isDisabled?: boolean;
   inputPlaceholder?: string;

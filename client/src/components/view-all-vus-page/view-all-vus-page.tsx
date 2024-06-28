@@ -20,7 +20,7 @@ const ViewAllVus: React.FunctionComponent<ViewAllVusProps> = (
         //TODO: Handle error
       }
     });
-  }, []);
+  }, [props.vusService]);
 
   return (
     <div className={styles["view-all-vus-container"]}>

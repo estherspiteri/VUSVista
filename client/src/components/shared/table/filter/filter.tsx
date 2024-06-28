@@ -30,7 +30,7 @@ const Filter: React.FunctionComponent<FilterProps> = (props: FilterProps) => {
     } else {
       props.column.setFilterValue(false);
     }
-  }, [checkboxState]);
+  }, [checkboxState, props.column]);
 
   return filterVariant === "number" ? (
     <DebouncedInput
