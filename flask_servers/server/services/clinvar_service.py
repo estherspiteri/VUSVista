@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import requests
@@ -17,7 +18,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.config import mail
-from server.models import Variants, ExternalReferences, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates
+from server.helpers.data_helper import get_variant_summary
+from server.models import Variants, ExternalReferences, Clinvar, AutoClinvarEvalDates, AutoClinvarUpdates, \
+    ScientificMembers
 from server.responses.internal_response import InternalResponse
 
 
@@ -62,7 +65,7 @@ def retrieve_clinvar_dict(clinvar_variation_id: str):
         return InternalResponse(clinvar_res_dict, 200)
 
 
-def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]): # TODO: use this to replace retrieve_clinvar_dict
+def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]):  # TODO: use this to replace retrieve_clinvar_dict
     # retrieve clinvar info for multiple variants
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={','.join(clinvar_ids)}&from_esearch=true"
 
@@ -87,7 +90,6 @@ def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]): # TODO: use this to 
 # - The genotype is compared when the Variant Validator request is made (not in the below fn).
 def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved_var_clinvar_dict, gene: str,
                                                   chr: str, chr_pos: str) -> tuple[bool, str]:
-
     clinvar_allele = (retrieved_var_clinvar_dict.get('ClinVarResult-Set').get('VariationArchive')
                       .get('ClassifiedRecord').get('SimpleAllele'))
 
@@ -115,7 +117,7 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
                 return False, (f"Chromosome start position {loc.get('@start')} does not match the expected chromosome "
                                f"position {chr_pos}!")
             break
-        #TODO compare ref & alt alleles
+        # TODO compare ref & alt alleles
 
     return True, ''
 
@@ -123,7 +125,7 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved
 # Retrieve the ClinVar variant's clinical significance.
 def extract_clinvar_germline_classification(clinvar_dict: Dict):
     germline_classification = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
-                      .get('Classifications').get('GermlineClassification'))
+                               .get('Classifications').get('GermlineClassification'))
 
     last_eval = ""
     if germline_classification.get('@DateLastEvaluated') != "1/01/01 00:00":
@@ -136,7 +138,7 @@ def extract_clinvar_germline_classification(clinvar_dict: Dict):
 # Retrieve the ClinVar variant's canonical SPDI.
 def extract_clinvar_canonical_spdi(clinvar_dict: Dict):
     canonical_spdi = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
-                         .get('SimpleAllele').get('CanonicalSPDI'))
+                      .get('SimpleAllele').get('CanonicalSPDI'))
 
     return canonical_spdi
 
@@ -220,7 +222,8 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
 
             # TODO: add fix for when multiple rsids are found
             clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
-                                                                                                row['RSID'], row['Gene'],
+                                                                                                row['RSID'],
+                                                                                                row['Gene'],
                                                                                                 row['Chr'],
                                                                                                 row['Position'])
 
@@ -247,7 +250,8 @@ def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalRe
 
 def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
     clinvar_eval_date: AutoClinvarEvalDates = db.session.query(AutoClinvarEvalDates).filter(
-        AutoClinvarEvalDates.clinvar_id == clinvar_id, AutoClinvarEvalDates.auto_clinvar_update_id.is_not(None)).order_by(
+        AutoClinvarEvalDates.clinvar_id == clinvar_id,
+        AutoClinvarEvalDates.auto_clinvar_update_id.is_not(None)).order_by(
         desc(AutoClinvarEvalDates.eval_date)).first()
 
     auto_clinvar_update = clinvar_eval_date.auto_clinvar_update
@@ -260,7 +264,8 @@ def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
     return auto_clinvar_update.id, auto_clinvar_update.review_status, auto_clinvar_update.classification, clinvar_last_evaluated
 
 
-def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool) -> Tuple[bool, str]:
+def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool) -> \
+Tuple[bool, str]:
     clinvar_last_evaluated = None
     last_saved_classification = None
 
@@ -271,7 +276,8 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
     new_clinvar_update_id = None
 
     if not is_new_vus:
-        auto_clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(clinvar_id)
+        auto_clinvar_update_id, last_saved_review_status, last_saved_classification, last_saved_eval_date = get_last_saved_clinvar_update(
+            clinvar_id)
 
         # compare it to current clinvar info
         if last_eval == last_saved_eval_date and classification == last_saved_classification and review_status == last_saved_review_status:
@@ -280,15 +286,15 @@ def store_clinvar_info(clinvar_id: int, classification: str, review_status: str,
     # create new clinvar update
     if is_new_vus or create_new_clinvar_update:
         new_clinvar_update = AutoClinvarUpdates(classification=classification,
-                                            review_status=review_status,
-                                            last_evaluated=clinvar_last_evaluated)
+                                                review_status=review_status,
+                                                last_evaluated=clinvar_last_evaluated)
         db.session.add(new_clinvar_update)
         db.session.flush()
 
         new_clinvar_update_id = new_clinvar_update.id
 
     new_clinvar_eval_date = AutoClinvarEvalDates(eval_date=datetime.now(), clinvar_id=clinvar_id,
-                                             auto_clinvar_update_id=new_clinvar_update_id)
+                                                 auto_clinvar_update_id=new_clinvar_update_id)
     db.session.add(new_clinvar_eval_date)
 
     return create_new_clinvar_update, last_saved_classification
@@ -303,9 +309,15 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
 
     # load Clinvar variation ids
     for index, row in vus_df_copy.iterrows():
-        variant_id = row['Variant Id']
+        is_variant_upload = 'Variant Id' in row.keys()
 
-        external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(ExternalReferences.variant_id == variant_id, ExternalReferences.db_type == 'clinvar').one_or_none()
+        if is_variant_upload:
+            variant_id = row['Variant Id']
+        else:
+            variant_id = row['id']
+
+        external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(
+            ExternalReferences.variant_id == variant_id, ExternalReferences.db_type == 'clinvar').one_or_none()
 
         # if variant has clinvar entry
         if external_ref is not None:
@@ -324,15 +336,37 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
                 clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict)
                 latest_germline_classification = clinvar_germline_classification.get('description')
 
-                is_clinvar_update_created, last_saved_classification = store_clinvar_info(clinvar.id, latest_germline_classification,
-                                   clinvar_germline_classification.get('review_status'), clinvar_germline_classification.get('last_evaluated'),
-                                   False)
+                is_clinvar_update_created, last_saved_classification = store_clinvar_info(clinvar.id,
+                                                                                          latest_germline_classification,
+                                                                                          clinvar_germline_classification.get(
+                                                                                              'review_status'),
+                                                                                          clinvar_germline_classification.get(
+                                                                                              'last_evaluated'),
+                                                                                          False)
 
                 if is_clinvar_update_created:
-                    updated_clinvar.append({'variant_id': variant_id, 'prev_classification': last_saved_classification, 'new_classification': latest_germline_classification})
+                    if is_variant_upload:
+                        chr = row['Chr']
+                        pos = row['Position']
+                        gene = row['Gene']
+                        alt = row['Alt']
+                        ref = row['Reference']
+                    else:
+                        chr = row['chromosome']
+                        pos = row['chromosomePosition']
+                        gene = row['gene']
+                        alt = row['altAllele']
+                        ref = row['refAllele']
 
-                # TODO: check if this is needed
-                # existing_vus_df.at[index, 'Clinvar classification'] = latest_germline_classification
+                    updated_clinvar.append({'variant_id': variant_id, 'chromosome': chr,
+                                            'chromosome_position': pos,
+                                            'gene': gene, 'alt_allele': alt,
+                                            'ref_allele': ref,
+                                            'prev_classification': last_saved_classification,
+                                            'new_classification': latest_germline_classification})
+
+                # update Clinvar classification
+                existing_vus_df.at[index, 'Clinvar classification'] = latest_germline_classification
 
     return InternalResponse({'existing_vus_df': existing_vus_df, 'clinvar_updates': updated_clinvar}, 200)
 
@@ -340,9 +374,9 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
 def scheduled_clinvar_updates():
     variants: List[Variants] = db.session.query(Variants).all()
 
-    variant_ids = [str(v.id) for v in variants]
+    variant_summary = [get_variant_summary(v) for v in variants]
 
-    vus_df = pd.DataFrame({'Variant Id': variant_ids})
+    vus_df = pd.DataFrame(variant_summary)
 
     get_updated_external_references_for_existing_vus_res = get_updated_external_references_for_existing_vus(vus_df)
 
@@ -353,13 +387,18 @@ def scheduled_clinvar_updates():
         clinvar_updates = get_updated_external_references_for_existing_vus_res.data['clinvar_updates']
 
         if len(clinvar_updates) > 0:
+            # get all scientific members of staff
+            recipients: List[ScientificMembers] = db.session.query(ScientificMembers).all()
+            recipient_emails = [r.email for r in recipients]
+
             mail_message = Message(
                 subject='Clinvar Classification Updates',
-                recipients=['estherspiteri1902@gmail.com'],
-                html=render_template('clinvar_update_email_template.html', updates=clinvar_updates),
-                )
+                bcc=recipient_emails,
+                html=render_template('clinvar_update_email_template.html', updates=clinvar_updates, domain=os.environ.get('FRONT_URL')),
+            )
 
             try:
+                current_app.logger.info('Sending email with Clinvar updates.')
                 mail.send(mail_message)
             except Exception as e:
                 current_app.logger.error(f'Clinvar updates email was not sent successfully: {e}')

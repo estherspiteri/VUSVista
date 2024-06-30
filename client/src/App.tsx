@@ -22,7 +22,6 @@ import ErrorPage from "./components/error-page/error-page";
 import HomePage from "./components/home-page/home-page";
 
 type AppProps = {};
-//TODO: add session cookie Id
 const App: React.FunctionComponent<AppProps> = () => {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const navigate = useNavigate();

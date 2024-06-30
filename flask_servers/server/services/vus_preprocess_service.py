@@ -276,7 +276,6 @@ def check_for_existing_variants(vus_df: pd.DataFrame) -> (pd.DataFrame, pd.DataF
             vus_df.at[index, 'Variant Id'] = variant.id
             vus_df.at[index, 'Exists in DB'] = True
             vus_df.at[index, 'Classification'] = variant.classification.value
-            vus_df.at[index, 'Consequence'] = variant.consequences
 
             existing_variant_ids.append(variant.id)
 

@@ -9,7 +9,6 @@ COPY requirements.txt .
 
 # Install the dependencies
 RUN pip install -r requirements.txt
-#RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code to the working directory
 COPY . .
@@ -25,5 +24,5 @@ EXPOSE 5001
 ENV FLASK_APP=main.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "main:app"]
+# Command to run the application - 5 min timeout
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--timeout", "300", "main:app"]
