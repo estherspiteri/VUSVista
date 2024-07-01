@@ -4,7 +4,6 @@ import { IPhenotype } from "../../models/phenotype.model";
 import { IPublicationPreview } from "../../models/publication-view.model";
 import { ISampleToAddInfo } from "../../models/sample-to-add-info.model";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
-import { ISampleSummary } from "../../models/view-samples.model";
 import { INotVusSample, IVus, IVusSample } from "../../models/view-vus.model";
 import {
   ISamplePhenotypeSelected,
@@ -23,6 +22,15 @@ export interface IUploadVusResponse {
   vusList: IVus[];
 }
 
+export interface ICheckFileForMultipleGenesRequest {
+  vusFile: File;
+}
+
+export interface ICheckFileForMultipleGenesResponse {
+  isSuccess: boolean;
+  multipleGenes?: IVusGene[] | null;
+}
+
 export interface IStoreAndVerifyVusFileRequest {
   vusFile: File;
   multipleGenesSelection?: IVusGeneSelected[];
@@ -36,11 +44,23 @@ export interface INoHPOTermPhenotype {
 
 export interface IStoreAndVerifyVusFileResponse {
   isSuccess: boolean;
-  areRsidsRetrieved: boolean;
-  isClinvarAccessed: boolean;
-  vusList: IVus[];
-  multipleGenes?: IVusGene[] | null;
-  noHpoTermPhenotypes: INoHPOTermPhenotype[];
+  taskId: number;
+}
+
+export interface ICheckFileUploadStatusesRequest {
+  taskIds: string[];
+}
+
+export interface ICheckFileUploadStatusesResponse {
+  statuses: {
+    taskId: number;
+    isSuccess?: boolean | null;
+    filename?: string | null;
+    areRsidsRetrieved?: boolean | null;
+    isClinvarAccessed?: boolean | null;
+    vusList?: IVus[] | null;
+    noHpoTermPhenotypes?: INoHPOTermPhenotype[] | null;
+  }[];
 }
 
 export interface ILoadAllVusResponse {
@@ -145,4 +165,3 @@ export interface IRemoveSamplesResponse {
   updatedNotVariantSamples?: INotVusSample[];
   updatedPhenotypes?: IPhenotype[];
 }
-

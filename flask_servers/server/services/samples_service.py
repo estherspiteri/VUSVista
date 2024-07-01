@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple
 
 from flask import current_app
+from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
@@ -169,7 +170,7 @@ def add_variants_to_sample(sample_id: str, variants_to_add: List) -> InternalRes
 
         db.session.add(variant_sample)
 
-        store_upload_details_for_variant_sample(None, False, sample_id, v['variantId'])
+        store_upload_details_for_variant_sample(None, False, sample_id, v['variantId'], current_user.id)
 
     try:
         # Commit the session to persist changes to the database

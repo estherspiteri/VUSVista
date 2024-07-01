@@ -1,15 +1,22 @@
+import threading
+from datetime import datetime
+from io import BytesIO
+
 import pandas as pd
 from flask import Blueprint, Response, current_app, request
 import json
 
-from server import db
-from server.models import GeneAttributes
+from flask_login import current_user
+from sqlalchemy.exc import SQLAlchemyError
+
+from server import db, file_upload_tasks
+from server.models import GeneAttributes, FileUploadEvents
 from server.services.acmg_service import get_acmg_rules
 from server.services.clinvar_service import get_variant_clinvar_updates
 from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
     retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant, add_new_sample_to_variant, \
     remove_sample_from_variant
-from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form
+from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes
 from server.services.publications_service import add_publications_to_variant, \
     get_variant_publication_updates
 
@@ -37,6 +44,19 @@ def store_vus():
     return handle_vus_from_form(vus_df)
 
 
+@vus_views.route('/file/multiple-genes-check', methods=['POST'])
+def check_file_multiple_genes():
+    current_app.logger.info(f"User checking for multiple genes in new VUS file")
+
+    file = request.files['file']
+
+    vus_df = pd.read_excel(file, header=0)
+
+    multiple_genes = check_for_multiple_genes(vus_df)
+
+    return Response(json.dumps({'isSuccess': True, 'multipleGenes': multiple_genes}), 200, mimetype='application/json')
+
+
 @vus_views.route('/file', methods=['POST'])
 def store_and_verify_vus_file():
     current_app.logger.info(f"User storing new VUS file")
@@ -48,11 +68,62 @@ def store_and_verify_vus_file():
 
     # Parse the JSON string into a Python object
     if multiple_genes_selection:
-        multiple_genes_selection_object = json.loads(multiple_genes_selection)
+        multiple_genes_selection_arr = json.loads(multiple_genes_selection)
     else:
-        multiple_genes_selection_object = []
+        multiple_genes_selection_arr = []
 
-    return handle_vus_file(file, multiple_genes_selection_object)
+    # handle multiple genes selection
+    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
+    current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
+
+    if len(multiple_genes_selection_arr) > 0:
+        for selection in multiple_genes_selection_arr:
+            vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
+
+    # Create a BytesIO object
+    output = BytesIO()
+
+    # Write the DataFrame to the BytesIO object as an Excel file
+    vus_df.to_excel(output, index=False, engine='openpyxl')
+
+    # Get the binary content
+    file_data = output.getvalue()
+
+    file_upload_event: FileUploadEvents = FileUploadEvents(file_name=file.filename, file_data=file_data, date_created=datetime.now(), date_processed=None, user_id=current_user.id)
+    db.session.add(file_upload_event)
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        task_id = file_upload_event.id
+
+        file_upload_tasks[task_id] = 'in progress'
+
+        # handle_vus_file(task_id, file, multiple_genes_selection_object)
+
+        return Response(json.dumps({'isSuccess': True, 'taskId': task_id}), 200, mimetype='application/json')
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since storing file {file.filename}\'s upload event in DB failed due to error: {e}')
+        return Response(json.dumps({'isSuccess': False, 'taskId': None}), 200, mimetype='application/json')
+
+
+@vus_views.route('file/check-status/<string:task_ids>', methods=['GET'])
+def check_file_upload_status(task_ids: str):
+    current_app.logger.info(f"Checking upload status of files with task ids {task_ids}")
+
+    task_ids_arr = [int(task_id) for task_id in task_ids.split(',')]
+
+    statuses = []
+
+    for task_id in task_ids_arr:
+        statuses.append(file_upload_tasks.get(task_id, {'taskId': task_id, 'isSuccess': None}))
+
+    return Response(json.dumps({'statuses': statuses}), 200, mimetype='application/json')
 
 
 @vus_views.route('/view', methods=['GET'])

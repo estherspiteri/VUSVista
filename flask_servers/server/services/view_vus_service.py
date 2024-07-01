@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple
 
 import pandas as pd
 from flask import current_app
+from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
@@ -259,7 +260,7 @@ def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalRes
                                          variant_hgvs_id=hgvs.id, consequence=hgvs_consequence_dict.get(hgvs.hgvs, ""))
         db.session.add(variant_sample)
 
-        store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id)
+        store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id, current_user.id)
 
         if 'phenotypes' in s.keys():
             sample: Samples = db.session.query(Samples).filter(Samples.id == s['sampleId']).first()
@@ -296,7 +297,7 @@ def add_new_sample_to_variant(variant_id: int, sample_to_add: Dict) -> InternalR
                              hgvs_consequence_dict.get(sample_to_add["hgvs"], ""))
 
     # store the upload details related to this variant & sample
-    store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id)
+    store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id, current_user.id)
 
     return commit_samples_update_to_variant(variant_id)
 

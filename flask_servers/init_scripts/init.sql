@@ -1,4 +1,13 @@
--- Once db is created, change connection to new db and run this:
+-- First run this:
+-- Create a new database
+CREATE DATABASE "vus-app-db"
+WITH
+OWNER = postgres
+ENCODING = 'UTF8'
+CONNECTION LIMIT = -1
+IS_TEMPLATE = False;
+
+-- Once db is created/ ON PRODUCTION, change connection to new db and run this:
 -- Create tables within the new database
 -- CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
 CREATE TYPE VARIANT_TYPE AS ENUM ('SNV', 'MNV', 'INDEL');
@@ -9,6 +18,15 @@ CREATE TYPE ACMG_STRENGTH AS ENUM ('SUPPORTING', 'MODERATE', 'STRONG', 'VERY_STR
 CREATE TYPE CLASSIFICATION AS ENUM ('PATHOGENIC', 'LIKELY_PATHOGENIC', 'VUS', 'LIKELY_BENIGN', 'BENIGN');
 CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
 
+-- FILE UPLOAD EVENTS
+CREATE TABLE file_upload_events (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    file_name TEXT,
+    file_data BYTEA,
+    date_created TIMESTAMP,
+    date_processed TIMESTAMP,
+	user_id INT
+);
 
 -- GENE ANNOTATIONS
 CREATE TABLE gene_annotations (

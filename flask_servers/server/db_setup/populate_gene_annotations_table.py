@@ -49,37 +49,39 @@ def store_gtf_file_in_db():
                     else:
                         score = "0"
 
-                    try:
-                        # Insert gene annotation
-                        gene_annotation = GeneAnnotations(
-                            seq_name=updated_split_annotation_line[0],
-                            source=updated_split_annotation_line[1],
-                            feature=updated_split_annotation_line[2],
-                            start_location=int(updated_split_annotation_line[3]),
-                            end_location=int(updated_split_annotation_line[4]),
-                            score=float(score),
-                            strand=updated_split_annotation_line[6],
-                            frame=updated_split_annotation_line[7]
+                    # Insert gene annotation
+                    gene_annotation = GeneAnnotations(
+                        seq_name=updated_split_annotation_line[0],
+                        source=updated_split_annotation_line[1],
+                        feature=updated_split_annotation_line[2],
+                        start_location=int(updated_split_annotation_line[3]),
+                        end_location=int(updated_split_annotation_line[4]),
+                        score=float(score),
+                        strand=updated_split_annotation_line[6],
+                        frame=updated_split_annotation_line[7]
+                    )
+                    db.session.add(gene_annotation)
+                    db.session.flush()  # Ensure the object is written to the database and obtain its id
+
+                    gene_id = gene_annotation.id
+
+                    # Parse and insert gene attributes
+                    parsed_attributes = parse_attributes(gene_id, updated_split_annotation_line[8])
+                    for attribute in parsed_attributes:
+                        gene_attribute = GeneAttributes(
+                            gene_id=attribute[0],
+                            attribute_name=attribute[1],
+                            attribute_value=attribute[2]
                         )
-                        db.session.add(gene_annotation)
-                        db.session.flush()  # Ensure the object is written to the database and obtain its id
+                        db.session.add(gene_attribute)
 
-                        gene_id = gene_annotation.id
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
 
-                        # Parse and insert gene attributes
-                        parsed_attributes = parse_attributes(gene_id, updated_split_annotation_line[8])
-                        for attribute in parsed_attributes:
-                            gene_attribute = GeneAttributes(
-                                gene_id=attribute[0],
-                                attribute_name=attribute[1],
-                                attribute_value=attribute[2]
-                            )
-                            db.session.add(gene_attribute)
-
-                        db.session.commit()
-
-                    except SQLAlchemyError as e:
-                        current_app.logger.error(f'Error {e}: on line {updated_split_annotation_line}')
-                        db.session.rollback()
-
+        current_app.logger.error(
+            f'Rollback carried out since population of GeneAnnotations in DB failed due to error: {e}')
 

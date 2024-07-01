@@ -29,7 +29,7 @@ def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotyp
 
 
 def store_upload_details_for_variant_sample(file_upload: FileUploads | None, is_file_upload: bool, sample_id: str,
-                                            variant_id: int):
+                                            variant_id: int, user_id: int):
     # create sample upload entry
     if is_file_upload:
         upload_type = 'file'
@@ -37,7 +37,7 @@ def store_upload_details_for_variant_sample(file_upload: FileUploads | None, is_
         upload_type = 'manual'
 
     new_variants_sample_upload = VariantsSamplesUploads(date_uploaded=datetime.now(),
-                                                        scientific_member_id=current_user.id,
+                                                        scientific_member_id=user_id,
                                                         upload_type=upload_type, sample_id=sample_id,
                                                         variant_id=variant_id)
 

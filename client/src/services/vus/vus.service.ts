@@ -6,6 +6,10 @@ import {
   IAddPublicationsResponse,
   IAddSamplesRequest,
   IAddSamplesResponse,
+  ICheckFileForMultipleGenesRequest,
+  ICheckFileForMultipleGenesResponse,
+  ICheckFileUploadStatusesRequest,
+  ICheckFileUploadStatusesResponse,
   IDeleteVariantRequest,
   IDeleteVariantResponse,
   IGetAllAcmgRulesResponse,
@@ -48,6 +52,27 @@ export class VusService {
     return result;
   }
 
+  async checkFileForMultipleGenes(
+    input: ICheckFileForMultipleGenesRequest
+  ): Promise<ICheckFileForMultipleGenesResponse> {
+    let data = new FormData();
+    data.append("file", input.vusFile);
+
+    const result: ICheckFileForMultipleGenesResponse = await customFetch(
+      `/vus/file/multiple-genes-check`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
   async storeAndVerifyVusFile(
     input: IStoreAndVerifyVusFileRequest
   ): Promise<IStoreAndVerifyVusFileResponse> {
@@ -66,7 +91,28 @@ export class VusService {
       {
         method: "POST",
         body: data,
-        cache: "no-store", //TODO: is it needed?
+        cache: "no-store",
+      }
+    )
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async checkFileUploadStatuses(
+    input: ICheckFileUploadStatusesRequest
+  ): Promise<ICheckFileUploadStatusesResponse> {
+    const result: ICheckFileUploadStatusesResponse = await customFetch(
+      `/vus/file/check-status/${input.taskIds.join(',')}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+        cache: "no-store",
       }
     )
       .then((response) => {

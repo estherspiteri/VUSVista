@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styles from "./vus-file-upload-page.module.scss";
 import { VusService } from "../../services/vus/vus.service";
 import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
@@ -13,6 +19,7 @@ import Icon from "../../atoms/icons/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
 import { INoHPOTermPhenotype } from "../../services/vus/vus.dto";
 import { Link } from "react-router-dom";
+import { AppContext } from "../../app-context";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
@@ -25,8 +32,10 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   // const [isClinvarAccessed, setIsClinvarAccessed] = useState(false);
 
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [isCheckingForMultipleGenes, setIsCheckingForMultipleGenes] =
+    useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isFileProcessed, setIsFileUploaded] = useState(false);
+  const [isFileProcessed, setIsFileProcessed] = useState(false);
   const [vusList, setVusList] = useState<IVus[]>(undefined);
   const [noHpoTermPhenotypes, setNoHpoTermPhenootypes] =
     useState<INoHPOTermPhenotype[]>(undefined);
@@ -37,6 +46,8 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   >(undefined);
   const [multipleGenesSelectionErrorMsg, setMultipleGenesSelectionErrorMsg] =
     useState("");
+
+  const { taskIds, setTaskIds } = useContext(AppContext);
 
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -145,6 +156,12 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 </div>
               </div>
             </div>
+            {isFileProcessed && (
+              <p style={{ color: "#008080" }}>
+                Your file is currently being processed. You will be notified
+                when it has been uploaded.
+              </p>
+            )}
             <Button
               text={
                 isFileProcessed
@@ -333,7 +350,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     const areAllGenesSelected = !multipleGenesSelection.includes(undefined);
 
     if (areAllGenesSelected) {
-      processFile();
+      storeAndVerifyFile();
       modalRef.current.closeModal();
     } else {
       setMultipleGenesSelectionErrorMsg(
@@ -349,7 +366,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     setFile(undefined);
 
     setIsProcessing(false);
-    setIsFileUploaded(false);
+    setIsFileProcessed(false);
     setVusList(undefined);
     setNoHpoTermPhenootypes(undefined);
     setMultipleGenes(undefined);
@@ -358,10 +375,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     setErrorMsg("");
   }
 
-  function processFile() {
-    setIsProcessing(true);
-    setErrorMsg("");
-
+  function storeAndVerifyFile() {
     props.vusService
       ?.storeAndVerifyVusFile({
         vusFile: file,
@@ -370,31 +384,52 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         }),
       })
       .then((res) => {
-        setIsFileUploaded(res.isSuccess);
+        setIsFileProcessed(true);
+        setIsProcessing(false);
 
         if (!res.isSuccess) {
-          setIsProcessing(false);
           setErrorMsg("Failed to succesfully process file. Please try again!");
         } else {
+          setMultipleGenes(undefined);
+          setMultipleGenesSelection(undefined);
+          setTaskIds(taskIds.concat(res.taskId));
+
+          // setVusList(res.vusList);
+          // setNoHpoTermPhenootypes(res.noHpoTermPhenotypes);
+        }
+
+        // setAreRsidsRetrieved(res.areRsidsRetrieved);
+        // setIsClinvarAccessed(res.isClinvarAccessed);
+      });
+  }
+
+  function processFile() {
+    setIsProcessing(true);
+    setErrorMsg("");
+
+    if (!multipleGenes) {
+      props.vusService
+        .checkFileForMultipleGenes({
+          vusFile: file,
+        })
+        .then((res) => {
           if (res.multipleGenes && res.multipleGenes.length > 0) {
+            setIsFileProcessed(true);
+
             // populate gene selection array with undefined
             setMultipleGenesSelection(
               Array.apply(undefined, Array(res.multipleGenes.length))
             );
 
             setMultipleGenes(res.multipleGenes);
+            return;
           } else {
-            setIsProcessing(false);
-            setMultipleGenes(undefined);
-            setMultipleGenesSelection(undefined);
-            setVusList(res.vusList);
-            setNoHpoTermPhenootypes(res.noHpoTermPhenotypes);
+            storeAndVerifyFile();
           }
-        }
-
-        // setAreRsidsRetrieved(res.areRsidsRetrieved);
-        // setIsClinvarAccessed(res.isClinvarAccessed);
-      });
+        });
+    } else {
+      storeAndVerifyFile();
+    }
   }
 };
 

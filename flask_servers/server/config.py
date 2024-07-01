@@ -9,6 +9,9 @@ load_dotenv()
 # Create an instance of SQLAlchemy
 db = SQLAlchemy()
 
+# Store the status of tasks
+file_upload_tasks = {}
+
 DEBUG = True
 SECRET_KEY = os.getenv('SECRET_KEY')
 CORS_HEADERS = 'Content-Type'

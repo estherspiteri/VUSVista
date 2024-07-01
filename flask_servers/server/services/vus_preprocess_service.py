@@ -1,4 +1,5 @@
 from datetime import datetime
+from io import BytesIO
 from typing import List, Hashable, Dict
 
 from flask import current_app, Response
@@ -10,12 +11,12 @@ from werkzeug.datastructures import FileStorage
 import json
 import re
 
-from server import db
+from server import db, file_upload_tasks
 from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Genotype, \
-    AcmgRules, VariantsAcmgRules, Classification, Reviews
+    AcmgRules, VariantsAcmgRules, Classification, Reviews, FileUploadEvents
 from server.responses.internal_response import InternalResponse
 from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.dbsnp_service import get_rsids_from_dbsnp
@@ -122,16 +123,23 @@ def extract_chr_and_position(vus_df: pd.DataFrame):
     return vus_df
 
 
+def get_filtered_genes(gene_row: str):
+    # get the gene name
+    gene_string = gene_row
+    genes = gene_string.replace(' ', '').split(',')
+
+    # exclude AS1 and LOC from genes
+    filtered_genes = [g for g in genes if 'AS1' not in g and 'LOC' not in g]
+
+    return filtered_genes
+
+
 def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     multiple_genes = []
 
     for index, row in vus_df.iterrows():
-        # get the gene name
-        gene_string = row['Gene']
-        genes = gene_string.replace(' ', '').split(',')
-
         # exclude AS1 and LOC from genes
-        filtered_genes = [g for g in genes if 'AS1' not in g and 'LOC' not in g]
+        filtered_genes = get_filtered_genes(row['Gene'])
 
         # note if variant has multiple genes
         if len(filtered_genes) > 1:
@@ -145,14 +153,7 @@ def extract_sample_ids(sample_ids: str) -> List:
     return re.split(',|;', sample_ids.replace(' ', ''))
 
 
-def filter_vus(vus_df: pd.DataFrame, one_time_filter_flag: bool) -> InternalResponse:
-    if one_time_filter_flag:
-        multiple_genes = check_for_multiple_genes(vus_df)
-        # TODO: remove other function for multiple genes
-
-        if len(multiple_genes) > 0:
-            return InternalResponse({'multiple_genes': multiple_genes}, 200)
-
+def filter_vus(vus_df: pd.DataFrame) -> InternalResponse:
     # exclude technical artifacts and CNVs
     vus_df = vus_df[vus_df['Classification'].str.contains('TECHNICAL_ARTIFACT', case=False, regex=True) == False]
     vus_df = vus_df[vus_df['Type'].str.contains('CNV|LONGDEL', case=False, regex=True) == False]
@@ -192,6 +193,9 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
 
     # iterate through the dataframe
     for index, row in new_vus_df.iterrows():
+        filtered_genes = get_filtered_genes(row['Gene'])
+        is_matching_gene_found = False
+
         # Retrieving gene ids from Gene Annotations table where the VUS is located
         gene_ids: List[GeneAnnotations.gene_id] = db.session.query(GeneAnnotations.id).filter(
             GeneAnnotations.seq_name == row['Chr'],
@@ -206,19 +210,24 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
                 GeneAttributes.attribute_name == 'gene_name'
             ).one()
 
-            if gene_attributes.attribute_value not in row['Gene']:
-                current_app.logger.error(f'The following row:\n {row} \nhas  a gene which does not match the gene found in our database '
-                      f'with id:{gene_id} and name:{gene_attributes.attribute_value}')
+            if gene_attributes.attribute_value in filtered_genes:
+                is_matching_gene_found = True
+                vus_df.at[index, 'Gene Id'] = gene_ids[0][0]
+                vus_df.at[index, 'Gene'] = gene_attributes.attribute_value
+                break
 
-        if len(gene_ids) > 1:
-            current_app.logger.error(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
-        elif len(gene_ids) == 0:
-            current_app.logger.error(f'The following row:\n {row} \nhas no gene ids')
-        else:
-            # TODO: handle multiple genes
-            # TODO: handle mismatch genes
-            # for now select the first gene
-            vus_df.at[index, 'Gene Id'] = gene_ids[0][0]
+        if not is_matching_gene_found:
+            current_app.logger.error(f'The following row:\n {row} \nhas  a gene which does not match the genes found in our database '
+                  f'with ids:{gene_ids}')
+
+        # if len(gene_ids) > 1:
+        #     current_app.logger.error(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
+        # elif len(gene_ids) == 0:
+        #     current_app.logger.error(f'The following row:\n {row} \nhas no gene ids')
+        # TODO: handle multiple genes
+        # TODO: handle mismatch genes
+        # for now select the first gene
+
 
     return vus_df
 
@@ -398,17 +407,12 @@ def preprocess_vus(vus_df: pd.DataFrame):
                              'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
 
 
-def preprocess_vus_from_file(vus_df: pd.DataFrame, check_for_multiple_genes_flag: bool) -> InternalResponse:
-    filter_vus_res = filter_vus(vus_df, check_for_multiple_genes_flag)
+def preprocess_vus_from_file(vus_df: pd.DataFrame) -> InternalResponse:
+    filter_vus_res = filter_vus(vus_df)
 
-    if filter_vus_res.data['multiple_genes'] is not None and len(filter_vus_res.data['multiple_genes']) > 0:
-        current_app.logger.info(f'Some VUS contain multiple genes!')
-        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False,
-                                 'multiple_genes': filter_vus_res.data['multiple_genes']}, 200)
-    else:
-        vus_df = filter_vus_res.data['filtered_df']
+    vus_df = filter_vus_res.data['filtered_df']
 
-        return preprocess_vus(vus_df)
+    return preprocess_vus(vus_df)
 
 
 def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
@@ -542,7 +546,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
     return InternalResponse({'no_hpo_term_phenotypes': no_hpo_term_phenotypes}, 200)
 
 
-def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame, variant_ids: List[int]):
+def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame, variant_ids: List[int], user_id: int):
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         variant_id = variant_ids[int(index)]
@@ -582,18 +586,18 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
             classification = 'VUS'
 
         # create review to record variant creation
-        new_review: Reviews = Reviews(variant_id=variant_id, scientific_member_id=current_user.id,
+        new_review: Reviews = Reviews(variant_id=variant_id, scientific_member_id=user_id,
                                       date_added=datetime.now(),
                                       classification=classification, classification_reason=None)
         new_review.acmg_rules = db.session.query(AcmgRules).filter(AcmgRules.id.in_(new_added_acmg_rule_ids)).all()
         db.session.add(new_review)
 
 
-def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], file: FileStorage | None,
-                                         is_file_upload: bool):
+def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], filename: str,
+                                         is_file_upload: bool, user_id: int):
     if is_file_upload:
         # create entry for file in the db
-        new_file_upload = FileUploads(filename=file.filename)
+        new_file_upload = FileUploads(filename=filename)
         db.session.add(new_file_upload)
 
         db.session.flush()
@@ -622,11 +626,11 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
             add_variant_sample_to_db(variant_id, sample_id, hgvs, genotype.value, row['Consequence'])
 
             # store the upload details related to this variant & sample
-            store_upload_details_for_variant_sample(new_file_upload, is_file_upload, sample_id, variant_id)
+            store_upload_details_for_variant_sample(new_file_upload, is_file_upload, sample_id, variant_id, user_id)
 
 
 def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame,
-                         file: FileStorage | None, is_file_upload: bool) -> Response:
+                         filename: str, is_file_upload: bool, user_id: int) -> InternalResponse:
     # join existing vus_df with the new vus
     all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
@@ -661,10 +665,10 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     all_variant_ids = existing_variant_ids + variant_ids
 
     # store the acmg rules related to this variant
-    store_acmg_rules_for_variant('ACMG Rules With Ids' in all_vus_df.keys(), all_vus_df, all_variant_ids)
+    store_acmg_rules_for_variant('ACMG Rules With Ids' in all_vus_df.keys(), all_vus_df, all_variant_ids, user_id)
 
     # store variants-samples entries in db
-    store_variant_sample_relations_in_db(all_vus_df, all_variant_ids, file, is_file_upload)
+    store_variant_sample_relations_in_db(all_vus_df, all_variant_ids, filename, is_file_upload, user_id)
 
     try:
         # Commit the session to persist changes to the database
@@ -675,50 +679,33 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
 
         current_app.logger.error(
             f'Rollback carried out since insertion of entries in DB failed due to error: {e}')
-
-        response = {'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}
-        return Response(json.dumps(response), 200)
+        return InternalResponse({'isSuccess': False, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True}, 500)
 
     # update column names to camelCase format
     new_vus_df = prep_vus_df_for_react(all_vus_df)
 
     # convert df to list
     vus_list = convert_df_to_list(new_vus_df)
-
-    return Response(
-        json.dumps({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
-                    'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}), 200)
+    return InternalResponse({'isSuccess': True, 'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+                    'vusList': vus_list, 'noHpoTermPhenotypes': no_hpo_term_phenotypes}, 200)
 
 
-def handle_vus_file(file: FileStorage, multiple_genes_selection: List) -> Response:
-    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
-    current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
-
-    # handle multiple genes selection
-    if len(multiple_genes_selection) > 0:
-        for selection in multiple_genes_selection:
-            vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
-
-    # flag indicating that check is required for multiple genes for a single variant
-    one_time_filter_flag = len(multiple_genes_selection) == 0
-
-    preprocess_vus_res = preprocess_vus_from_file(vus_df, one_time_filter_flag)
+def handle_vus_file(task_id: int, vus_df: pd.DataFrame, filename: str, user_id: int):
+    preprocess_vus_res = preprocess_vus_from_file(vus_df)
 
     if preprocess_vus_res.status != 200:
-        response = preprocess_vus_res.data
-        response['isSuccess'] = False
-        return Response(json.dumps(response), 200)
-    elif (one_time_filter_flag and preprocess_vus_res.data['multiple_genes'] is not None
-          and len(preprocess_vus_res.data['multiple_genes']) > 0):
-        return Response(json.dumps({'isSuccess': True, 'multipleGenes': preprocess_vus_res.data['multiple_genes']}),
-                        200, mimetype='application/json')
+        file_upload_tasks[task_id] = {'taskId': task_id, 'isSuccess': False, 'filename': filename}
     else:
         existing_vus_df = preprocess_vus_res.data['existing_vus_df']
         existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
 
         vus_df = preprocess_vus_res.data['vus_df']
 
-        return store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, file, True)
+        store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, filename, True, user_id)
+
+        file_upload_tasks[task_id] = store_vus_info_in_db_res.data
+        file_upload_tasks[task_id]['filename'] = filename
+        file_upload_tasks[task_id]['taskId'] = task_id
 
 
 def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
@@ -743,4 +730,31 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
         vus_df = preprocess_vus_res.data['vus_df']
         vus_df['Classification'] = 'VUS'
 
-        return store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, None, False)
+        store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, None, False, current_user.id)
+
+        return Response(json.dumps(store_vus_info_in_db_res), 200)
+
+
+def scheduled_file_upload_events():
+    file_upload_events: List[FileUploadEvents] = db.session.query(FileUploadEvents).filter(FileUploadEvents.date_processed.is_(None)).all()
+
+    if file_upload_events:
+        for e in file_upload_events:
+            # Use BytesIO to read the binary content
+            byte_stream = BytesIO(e.file_data)
+
+            # Read the Excel content into a DataFrame
+            vus_df = pd.read_excel(byte_stream, engine='openpyxl')
+
+            handle_vus_file(e.id, vus_df, e.file_name, e.user_id)
+
+            e.date_processed = datetime.now()
+        try:
+            # Commit the session to persist changes to the database
+            db.session.commit()
+        except SQLAlchemyError as e:
+            # Changes were rolled back due to an error
+            db.session.rollback()
+
+            current_app.logger.error(
+                f'Rollback carried out since storing updated file upload events for ids {[e.id for e in file_upload_events]} in DB failed due to error: {e}')

@@ -5,7 +5,7 @@ from typing import List
 from enum import Enum
 
 from sqlalchemy import Boolean, CHAR, Column, Date, DateTime, Double, Enum as EnumSQL, ForeignKeyConstraint, Identity, \
-    Integer, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint
+    Integer, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, LargeBinary
 from sqlalchemy.orm import declarative_base, mapped_column, relationship
 from sqlalchemy.orm.base import Mapped, Optional
 from flask_login import UserMixin
@@ -88,6 +88,20 @@ class Classification(Enum):
 class ReviewStatus(Enum):
     IN_PROGRESS = 'IN_PROGRESS'
     COMPLETE = 'COMPLETE'
+
+
+class FileUploadEvents(Base):
+    __tablename__ = 'file_upload_events'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='file_upload_events_pkey'),
+    )
+
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    file_name = mapped_column(Text)
+    file_data = mapped_column(LargeBinary)
+    date_created = mapped_column(DateTime)
+    date_processed = mapped_column(DateTime)
+    user_id = mapped_column(Integer)
 
 
 class AcmgRules(Base):

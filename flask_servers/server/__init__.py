@@ -13,6 +13,7 @@ from server.error_handlers import register_error_handlers
 from server.models import Base, ScientificMembers, GeneAnnotations
 from server.services.clinvar_service import scheduled_clinvar_updates
 from server.services.publications_service import check_for_new_litvar_publications
+from server.services.vus_preprocess_service import scheduled_file_upload_events
 from server.views.auth_views import auth_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views
@@ -67,7 +68,8 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        if len(db.session.query(GeneAnnotations).all()) == 0:
+        gene_annotations = db.session.query(GeneAnnotations).all()
+        if len(gene_annotations) == 0:
             # Populate gene annotations table
             store_gtf_file_in_db()
 
@@ -103,6 +105,11 @@ def create_app():
         with app.app_context():
             check_for_new_litvar_publications()
 
+    # schedule file upload event check
+    def scheduled_file_upload_events_():
+        with app.app_context():
+            scheduled_file_upload_events()
+
     with app.app_context():
         scheduler = BackgroundScheduler()
 
@@ -117,6 +124,11 @@ def create_app():
         scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
         # 10 days
         scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
+
+        scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
+        # 1 min
+        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=60)
+
         scheduler.start()
 
         # Shut down the scheduler when exiting the app
