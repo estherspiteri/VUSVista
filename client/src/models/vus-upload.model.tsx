@@ -10,8 +10,8 @@ export interface IVusUpload {
   chromosomePosition: string;
   gene: string;
   geneId: number;
-  altAllele: string;
-  refAllele: string;
+  altAllele?: string | null;
+  refAllele?: string | null;
   genotype: string;
   type: string; //TODO: change to enum?
   samples: string[];

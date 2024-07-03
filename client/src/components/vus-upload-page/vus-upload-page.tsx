@@ -557,8 +557,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     let vus: IVusUpload = {
       chromosome: chromosome,
       chromosomePosition: chromosomePosition.toString(),
-      refAllele: refAllele.toUpperCase(),
-      altAllele: altAllele.toUpperCase(),
+      refAllele: refAllele === "/" ? null : refAllele.toUpperCase(),
+      altAllele: altAllele === "/" ? null : altAllele.toUpperCase(),
       genotype: genotype,
       type: type,
       gene: geneInput.toUpperCase(),
