@@ -559,10 +559,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       chromosomePosition: chromosomePosition.toString(),
       refAllele: refAllele.toUpperCase(),
       altAllele: altAllele.toUpperCase(),
-      genotype:
-        genotype === "Heterozygous"
-          ? `${refAllele.toUpperCase()}/${altAllele.toUpperCase()}`
-          : `${altAllele.toUpperCase()}/${altAllele.toUpperCase()}`,
+      genotype: genotype,
       type: type,
       gene: geneInput.toUpperCase(),
       geneId: geneId,

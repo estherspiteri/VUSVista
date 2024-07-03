@@ -56,7 +56,7 @@ CREATE TABLE variants (
     chromosome VARCHAR(2) NOT NULL,
     chromosome_position TEXT NOT NULL,
     variant_type TEXT NOT NULL,
-    ref TEXT NOT NULL,
+    ref TEXT,
     alt TEXT,
     classification CLASSIFICATION NOT NULL,
     gene_id INT NOT NULL,
