@@ -118,20 +118,29 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        padding-right: 24px;
 
         .external-link {
+          padding: 4px;
+
           &.disabled {
             opacity: 0.4;
             background-color: #8f8e94 !important;
+            pointer-events: none;
           }
 
           &.unverified-rsid {
             opacity: 0.8;
-            background-color: #a51534 !important;
 
             svg {
-              fill: #fff;
+              fill: #a51534;
+            }
+
+            &:hover {
+              background-color: #a51534;
+      
+              svg {
+                fill: #fff;
+              }
             }
           }
         }
@@ -265,26 +274,19 @@
     }
 
     .samples-container {
-      .description-container {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        gap: 22px;
-        align-items: end;
-
-        .delete-sample {
-          margin-right: 8px;
-        }
-      }
-
       .samples {
         .samples-header {
           display: flex;
           flex-direction: row;
+          justify-content: center;
+          align-items: center;
           color: #008080;
           font-weight: bold;
           border-width: 4px;
-          padding-right: 45px;
+
+          .delete-sample {
+            margin: 0 8px 0 16px;
+          }
 
           span {
             width: calc(100% / 3);

@@ -181,8 +181,10 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           {/**TODO: check on attempt to submit if allele consists of just GACT*/}
           <VusUploadField title="Alleles" showCheckMark={areAllelesValid}>
             <div className={styles["allele-wrapper"]}>
-              <div className={styles["field-content"]}>
-                <span>Reference allele:</span>
+              <div className={`${styles["field-content"]} ${styles.alleles}`}>
+                <span>
+                  Reference allele (Input '/' if there is no reference):
+                </span>
                 <Text
                   value={refAllele}
                   onChange={(e) => setRefAllele(e.currentTarget.value)}
@@ -190,9 +192,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   errorMsg={refAlleleErrorMsg}
                 />
               </div>
-              <div className={styles["field-content"]}>
-                <span className={styles["alt-allele-description"]}>
-                  Alternate allele ('Input '/' if there is no alternate'):
+              <div className={`${styles["field-content"]} ${styles.alleles}`}>
+                <span>
+                  Alternate allele (Input '/' if there is no alternate):
                 </span>
                 <Text
                   value={altAllele}
@@ -230,7 +232,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles["field-content"]}>
               {geneId === undefined ? (
                 <>
-                  <span>Type the gene and wait for it to be validated:</span>
+                  <span>Input the gene and wait for it to be validated:</span>
                   <Text
                     value={geneInput}
                     disabled={isValidatingGeneInput}
@@ -258,7 +260,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           {/** HGVS */}
           <VusUploadField title="HGVS" showCheckMark={isHgvsValid}>
             <div className={styles["field-content"]}>
-              <span>Type the HGVS:</span>
+              <span>Input the HGVS:</span>
               <Text
                 value={hgvs}
                 onChange={(e) => setHgvs(e.currentTarget.value)}
@@ -270,21 +272,12 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           {/** Type */}
           <VusUploadField title="Type" showCheckMark={isTypeValid}>
             <div className={styles["field-content"]}>
-              <span>Select the type:</span>
-              <div className={styles.pills}>
-                {["SNV", "MNV", "INDEL"].map((c) => {
-                  return (
-                    <div
-                      className={`${styles.pill} ${
-                        type === c ? styles["selected-pill"] : ""
-                      }`}
-                      onClick={() => setType(c)}
-                    >
-                      {c}
-                    </div>
-                  );
-                })}
-              </div>
+              <span>Input the type:</span>
+              <Text
+                value={type}
+                onChange={(e) => setType(e.currentTarget.value)}
+                errorMsg={typeErrorMsg}
+              />
             </div>
           </VusUploadField>
 
@@ -302,7 +295,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                     id="sample-input"
                     className={styles["sample-input"]}
                     type="text"
-                    placeholder="Type in a sample id . . ."
+                    placeholder="Input a sample id . . ."
                     onKeyDown={(e) => {
                       if (e.key === "Enter") addSample(e.currentTarget.value);
                     }}
@@ -498,28 +491,18 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   }
 
   function checkAlleleValidity(val: string, isRef: boolean) {
-    let isValid = /^[G|A|C|T]+$/gim.test(val);
-
-    if (!isValid && !isRef) {
-      isValid = val === "/";
-    }
+    let isValid = /^[G|A|C|T|/]+$/gim.test(val);
+    let errorMsg = "";
 
     if (!isValid) {
-      if (isRef) {
-        setRefAlleleErrorMsg(
-          "Invalid allele. Must contain only 'G', 'A', 'C' and 'T'!"
-        );
-      } else {
-        setAltAlleleErrorMsg(
-          "Invalid allele. Must contain only 'G', 'A', 'C' and 'T'! If there is no reference allele input '/'."
-        );
-      }
+      errorMsg =
+        "Invalid allele. Must contain only 'G', 'A', 'C' and 'T'! If there is no reference allele input '/'.";
+    }
+
+    if (isRef) {
+      setRefAlleleErrorMsg(errorMsg);
     } else {
-      if (isRef) {
-        setRefAlleleErrorMsg("");
-      } else {
-        setAltAlleleErrorMsg("");
-      }
+      setAltAlleleErrorMsg(errorMsg);
     }
 
     return isValid;

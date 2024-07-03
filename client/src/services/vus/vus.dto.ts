@@ -51,16 +51,18 @@ export interface ICheckFileUploadStatusesRequest {
   taskIds: string[];
 }
 
+export interface IStatus {
+  taskId: number;
+  isSuccess?: boolean | null;
+  filename?: string | null;
+  areRsidsRetrieved?: boolean | null;
+  isClinvarAccessed?: boolean | null;
+  vusList?: IVus[] | null;
+  noHpoTermPhenotypes?: INoHPOTermPhenotype[] | null;
+}
+
 export interface ICheckFileUploadStatusesResponse {
-  statuses: {
-    taskId: number;
-    isSuccess?: boolean | null;
-    filename?: string | null;
-    areRsidsRetrieved?: boolean | null;
-    isClinvarAccessed?: boolean | null;
-    vusList?: IVus[] | null;
-    noHpoTermPhenotypes?: INoHPOTermPhenotype[] | null;
-  }[];
+  statuses: IStatus[];
 }
 
 export interface ILoadAllVusResponse {

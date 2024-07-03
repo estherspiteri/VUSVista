@@ -22,12 +22,6 @@ metadata = Base.metadata
 #     CLINVAR = 'CLINVAR'
 
 
-class VariantType(Enum):
-    SNV = 'SNV'
-    MNV = 'MNV'
-    INDEL = 'INDEL'
-
-
 class Strand(Enum):
     POSITIVE = 'POSITIVE'
     NEGATIVE = 'NEGATIVE'
@@ -408,8 +402,8 @@ class Variants(Base):
                                 cache=1))
     chromosome = mapped_column(String(2), nullable=False)
     chromosome_position = mapped_column(Text, nullable=False)
-    variant_type = mapped_column(EnumSQL(VariantType, name='variant_type'), nullable=False)
-    ref = mapped_column(Text, nullable=False)
+    variant_type = mapped_column(Text, nullable=False)
+    ref = mapped_column(Text)
     classification = mapped_column(EnumSQL(Classification, name='classification'), nullable=False)
     gene_id = mapped_column(Integer, nullable=False)
     gene_name = mapped_column(Text, nullable=False)

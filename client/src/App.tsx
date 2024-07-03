@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styles from "./App.module.scss";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { vusService } from "./services/vus/vus.service";
 import Header from "./components/header/header";
 import ViewVusPage from "./components/view-all-vus-page/view-all-vus-page";
@@ -20,35 +26,89 @@ import ReviewPageWrapper from "./wrappers/review-page-wrapper";
 import ReviewHistoryPageWrapper from "./wrappers/review-history-page-wrapper";
 import ErrorPage from "./components/error-page/error-page";
 import HomePage from "./components/home-page/home-page";
+import { AppContext } from "./app-context";
+import Banner from "./atoms/banner/banner";
+import { IStatus } from "./services/vus/vus.dto";
+import Modal from "./atoms/modal/modal";
+import VusTable from "./components/view-all-vus-page/vus-table/vus-table";
+import Icon from "./atoms/icons/icon";
 
 type AppProps = {};
 const App: React.FunctionComponent<AppProps> = () => {
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   const navigate = useNavigate();
   let location = useLocation();
 
-  //TODO: is this correct location?
-  useEffect(() => {
-    if (location.pathname !== "/error") {
-      authService.isUserLoggedIn().then((res) => {
-        setIsUserLoggedIn(res.isUserLoggedIn);
+  const [isFileUploadModalVisible, setIsFileUploadModalVisible] =
+    useState(false);
+  const [fileUploadTaskOnDisplay, setFileUploadTaskOnDisplay] =
+    useState<IStatus>(undefined);
 
-        if (!res.isUserLoggedIn && location.pathname !== "/register") {
-          navigate("/login");
-        } else if (location.pathname !== "/login") {
-          //TODO: redirect to profile page
-        }
-      });
-    }
+  const {
+    isUserLoggedIn,
+    setIsUserLoggedIn,
+    completedTasks,
+    setCompletedTasks,
+  } = useContext(AppContext);
+
+  useEffect(() => {
+    authService.isUserLoggedIn().then((res) => {
+      setIsUserLoggedIn(res.isUserLoggedIn);
+
+      if (!res.isUserLoggedIn && location.pathname !== "/register") {
+        navigate("/login");
+      }
+    });
   }, [location.pathname]);
 
   return (
     //TODO: lazy loading
     //routing: https://hygraph.com/blog/routing-in-react
 
-    //TODO: add home page
     <div className={styles.container}>
+      {completedTasks.length > 0 && (
+        <div className={styles["completed-task-ids"]}>
+          <div className={styles.banners}>
+            {completedTasks.map((t: IStatus) => (
+              <div className={styles.banner}>
+                <Banner
+                  isClosable={true}
+                  isGreen={t.isSuccess}
+                  onCloseCallback={() =>
+                    setCompletedTasks(
+                      completedTasks.filter((task) => task.taskId !== t.taskId)
+                    )
+                  }
+                >
+                  {t.isSuccess ? (
+                    <p>
+                      File <b>{t.filename}</b> has been uploaded
+                      successfully.&nbsp;
+                      <span
+                        style={{
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                        onClick={() => {
+                          setIsFileUploadModalVisible(true);
+                          setFileUploadTaskOnDisplay(t);
+                        }}
+                      >
+                        Click here
+                      </span>
+                      &nbsp; to view upload information.
+                    </p>
+                  ) : (
+                    <p>File {t.filename} failed to upload.</p>
+                  )}
+                </Banner>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Header isUserLoggedIn={isUserLoggedIn} authService={authService} />
+
       <Routes>
         <Route
           path="/file-upload"
@@ -90,6 +150,102 @@ const App: React.FunctionComponent<AppProps> = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
+
+      {isFileUploadModalVisible && fileUploadTaskOnDisplay && (
+        <Modal
+          modalContainerStyle={styles["file-upload-modal"]}
+          title={`File Upload Summary`}
+          isClosable={true}
+          onCloseIconClickCallback={() => setIsFileUploadModalVisible(false)}
+        >
+          <div className={styles["file-upload-modal-content"]}>
+            <p>
+              Below you can find a summary of the VUS found in the successfully
+              uploaded file&nbsp;
+              <b style={{ color: "#008080" }}>
+                {fileUploadTaskOnDisplay.filename}
+              </b>
+              .
+            </p>
+            {fileUploadTaskOnDisplay.noHpoTermPhenotypes?.length > 0 && (
+              <div className={styles["no-hpo-terms-phenotypes-container"]}>
+                <div
+                  className={styles["no-hpo-terms-phenotypes-title-container"]}
+                >
+                  <p className={styles["no-hpo-terms-phenotypes-title"]}>
+                    <Icon name="warning" fill="#008080" /> Phenotypes warning!
+                  </p>
+                  <p>
+                    No exact match was found with an HPO term for the below
+                    phenotypes. Kindly access the sample pages to add existing
+                    HPO terms that can replace the inputted phenotypes.
+                  </p>
+                </div>
+                <div className={styles["no-hpo-terms-phenotypes"]}>
+                  {fileUploadTaskOnDisplay.noHpoTermPhenotypes.map(
+                    (noHpoTermPhenotype) => (
+                      <div className={styles["no-hpo-terms-phenotype"]}>
+                        <p>
+                          <span className={styles.phenotype}>
+                            {noHpoTermPhenotype.phenotype}
+                          </span>
+                          &nbsp;was observed in the following samples:
+                        </p>
+                        <div
+                          className={styles["no-hpo-terms-phenotypes-samples"]}
+                        >
+                          {noHpoTermPhenotype.samples.map((s) => (
+                            // open in new window the sample page
+                            <Link
+                              to={`/sample/${s}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {s}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+            {fileUploadTaskOnDisplay.vusList && (
+              <div className={styles["file-content"]}>
+                <div className={styles["file-summary"]}>
+                  <div className={styles.summary}>
+                    <p>RSIDs</p>
+                    <p>
+                      {
+                        fileUploadTaskOnDisplay.vusList.filter(
+                          (vus) =>
+                            vus.rsid !== "NORSID" && vus.rsidDbsnpVerified
+                        ).length
+                      }
+                    </p>
+                  </div>
+                  <div className={`${styles.summary} ${styles["num-vus"]}`}>
+                    <p>VUS</p> <p>{fileUploadTaskOnDisplay.vusList.length}</p>
+                  </div>
+                  <div className={styles.summary}>
+                    <p>ClinVar</p>
+                    <p>
+                      {
+                        fileUploadTaskOnDisplay.vusList.filter(
+                          (vus) => vus.clinvarErrorMsg.length === 0
+                        ).length
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <VusTable vusList={fileUploadTaskOnDisplay.vusList} />
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

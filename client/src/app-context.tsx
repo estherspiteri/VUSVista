@@ -1,45 +1,55 @@
 import React, { createContext, useEffect, useState } from "react";
 import { vusService } from "./services/vus/vus.service";
+import { IStatus } from "./services/vus/vus.dto";
 
 // Initial context value
 const initialContext = {
   taskIds: [],
   setTaskIds: (updatedIds: number[]) => {},
+  completedTasks: [],
+  setCompletedTasks: (updatedStatuses: IStatus[]) => {},
+  isUserLoggedIn: false,
+  setIsUserLoggedIn: (isLoggedIn: boolean) => {},
 };
 
 export const AppContext = createContext(initialContext);
 
 export const AppProvider = ({ children }) => {
-  const [taskIds, setTaskIds] = useState(initialContext.taskIds);
-  const [pollingInterval, setPollingInterval] = useState(null);
-
+  const [taskIds, setTaskIds] = useState<number[]>(initialContext.taskIds);
+  const [completedTasks, setCompletedTasks] = useState<IStatus[]>(
+    initialContext.completedTasks
+  );
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(
+    initialContext.isUserLoggedIn
+  );
+  console.log(taskIds);
+  // poll to check if any file upload tasks have completed
   useEffect(() => {
-    if (taskIds.length === 0) return;
-
     const pollTaskStatus = () => {
       const interval = setInterval(async () => {
-        vusService.checkFileUploadStatuses({ taskIds: taskIds }).then((res) => {
-          let updatedTaskIds = taskIds;
+        if (taskIds.length === 0) return;
 
-          res.statuses?.forEach((status) => {
-            if (status.isSuccess !== null) {
-              updatedTaskIds = updatedTaskIds.filter(
-                (id) => id !== status.taskId
-              );
+        vusService
+          .checkFileUploadStatuses({
+            taskIds: taskIds.map((i) => i.toString()),
+          })
+          .then((res) => {
+            const completedStatuses = res.statuses?.filter(
+              (s) => s.isSuccess !== null
+            );
 
-              if (status.isSuccess) {
-                console.log("SUCCESS");
-              } else {
-                console.log("FAILLLL");
-              }
+            setCompletedTasks(completedTasks.concat(completedStatuses));
+
+            let updatedTaskIds = taskIds.filter(
+              (id) => !completedStatuses.map((s) => s.taskId).includes(id)
+            );
+
+            setTaskIds(updatedTaskIds);
+
+            if (updatedTaskIds.length === 0) {
+              clearInterval(interval);
             }
           });
-          setTaskIds(updatedTaskIds);
-
-          if (updatedTaskIds.length === 0) {
-            clearInterval(interval);
-          }
-        });
       }, 30000);
 
       return () => clearInterval(interval);
@@ -55,7 +65,16 @@ export const AppProvider = ({ children }) => {
   }, [taskIds]);
 
   return (
-    <AppContext.Provider value={{ taskIds, setTaskIds }}>
+    <AppContext.Provider
+      value={{
+        taskIds,
+        setTaskIds,
+        isUserLoggedIn,
+        setIsUserLoggedIn,
+        completedTasks,
+        setCompletedTasks,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );

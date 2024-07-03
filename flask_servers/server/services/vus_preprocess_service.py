@@ -1,11 +1,15 @@
+import math
 from datetime import datetime
 from io import BytesIO
 from typing import List, Hashable, Dict
 
+import requests
 from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
 from flask_login import current_user
+from requests import RequestException
+from sqlalchemy import and_
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 import json
@@ -115,7 +119,9 @@ def extract_chr_and_position(vus_df: pd.DataFrame):
         locus_arr = locus.split(':')
 
         vus_df.at[index, 'Chr'] = locus_arr[0].split('chr')[1]
-        vus_df.at[index, 'Position'] = locus_arr[1]
+
+        # to handle e.g. chr10:88439188 A⇒G
+        vus_df.at[index, 'Position'] = locus_arr[1].split(' ')[0].split('_')[0]
 
     # remove locus column
     vus_df = vus_df.drop(columns=['Locus'])
@@ -205,20 +211,50 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
 
         for gene_id in gene_ids:
             # Retrieving gene name from Gene Attributes table where the VUS is located
-            gene_attributes: GeneAttributes = db.session.query(GeneAttributes).filter(
+            gene_attributes: List[GeneAttributes] = db.session.query(GeneAttributes).filter(
                 GeneAttributes.gene_id == gene_id[0],
-                GeneAttributes.attribute_name == 'gene_name'
-            ).one()
+                (GeneAttributes.attribute_name == 'gene_name') |
+                (GeneAttributes.attribute_name == 'gene_id')
+            ).all()
 
-            if gene_attributes.attribute_value in filtered_genes:
-                is_matching_gene_found = True
-                vus_df.at[index, 'Gene Id'] = gene_ids[0][0]
-                vus_df.at[index, 'Gene'] = gene_attributes.attribute_value
-                break
+            for a in gene_attributes:
+                if a.attribute_value in filtered_genes:
+                    is_matching_gene_found = True
+                    vus_df.at[index, 'Gene Id'] = gene_ids[0][0]
+                    vus_df.at[index, 'Gene'] = a.attribute_value
+                    break
 
+        # ignore variant location and get gene id of inputted gene
         if not is_matching_gene_found:
-            current_app.logger.error(f'The following row:\n {row} \nhas  a gene which does not match the genes found in our database '
-                  f'with ids:{gene_ids}')
+            current_app.logger.error(f'The following row:\n {row} \nhas a gene which does not match the genes found in our database '
+                  f'with ids:{gene_ids} that match to the variant\'s coordinates. Checking for gene\'s with an exact gene name match.')
+            gene_attributes: List[GeneAttributes] = db.session.query(GeneAttributes).filter(
+                (and_(GeneAttributes.attribute_name == 'gene_name', GeneAttributes.attribute_value.in_(filtered_genes))) |
+                (and_(GeneAttributes.attribute_name == 'gene_id', GeneAttributes.attribute_value.in_(filtered_genes)))
+            ).all()
+
+            for a in gene_attributes:
+                if a.attribute_value in filtered_genes:
+                    is_matching_gene_found = True
+                    vus_df.at[index, 'Gene Id'] = a.gene_id
+                    vus_df.at[index, 'Gene'] = a.attribute_value
+                    break
+
+            # attempt to get gene id of gene with similar name to inputted gene (e.g. inputted gene = MRE11 & existing gene is MRE11A)
+            if not is_matching_gene_found:
+                current_app.logger.error(
+                    f'The following row:\n {row} \nhas a gene which does not match the gene names found in our database '
+                    f'with ids:{gene_ids}. Checking for gene names which are similar to the inputted gene\'s name')
+                gene_attributes: GeneAttributes = db.session.query(GeneAttributes).filter(
+                    (and_(GeneAttributes.attribute_name == 'gene_name',
+                          *[GeneAttributes.attribute_value.like(f'%{value}%') for value in filtered_genes])) |
+                    (and_(GeneAttributes.attribute_name == 'gene_id',
+                          *[GeneAttributes.attribute_value.like(f'%{value}%') for value in filtered_genes]))
+                ).first()
+
+                if gene_attributes:
+                    vus_df.at[index, 'Gene Id'] = gene_attributes.gene_id
+                    # vus_df.at[index, 'Gene'] = gene_attributes.attribute_value
 
         # if len(gene_ids) > 1:
         #     current_app.logger.error(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
@@ -484,15 +520,28 @@ def update_sample_dict_with_unique_values(sample_id: str, unique_samples_values_
     return unique_samples_values_dict
 
 
-def convert_dataframe_row_into_array(df_row: pd.Series) -> List:
-    array_row = []
+def convert_phenotypes_dataframe_row_into_array(phenotypes: pd.Series) -> List:
+    phenotypes_arr = []
 
-    string_row = str(df_row)
-    if string_row != 'nan' and len(string_row) > 0:
-        array_row = re.split(',', string_row)
-        array_row = [p.strip() for p in array_row]
+    phenotypes_str = str(phenotypes)
+    if phenotypes_str != 'nan' and len(phenotypes_str) > 0:
+        phenotypes_arr = re.split(',', phenotypes_str)
+        phenotypes_arr = [p.strip() for p in phenotypes_arr]
 
-    return array_row
+    return phenotypes_arr
+
+
+def convert_acmg_rules_dataframe_row_into_array(acmg_rules: pd.Series) -> List:
+    acmg_rules_arr = []
+
+    acmg_rules_str = str(acmg_rules).replace(' ', '')
+    if acmg_rules_str != 'nan' and len(acmg_rules_str) > 0:
+        acmg_rules_arr = re.split(',', acmg_rules_str)
+
+        # TODO: stop ignoring weight given to each rule
+        acmg_rules_arr = [r.split('_')[0] for r in acmg_rules_arr]
+
+    return acmg_rules_arr
 
 
 def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
@@ -514,7 +563,7 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
             phenotype_terms = row['Sample Phenotypes With Ids']
         # extract phenotypes without ids
         else:
-            phenotypes = convert_dataframe_row_into_array(row['Sample Phenotypes'])
+            phenotypes = convert_phenotypes_dataframe_row_into_array(row['Sample Phenotypes'])
 
             # get phenotype terms (aka ontology ids & their names)
             # retrieve HPO term for each phenotype
@@ -557,7 +606,7 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
         # extract acmg rules without ids
         else:
             acmg_rules = []
-            acmg_rules_input = list(set(convert_dataframe_row_into_array(row['ACMG Rules'])))
+            acmg_rules_input = list(set(convert_acmg_rules_dataframe_row_into_array(row['ACMG Rules'])))
             for rule in acmg_rules_input:
                 acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.rule_name == rule).first()
                 acmg_rules.append({'id': acmg_rule.id, 'name': acmg_rule.rule_name})
@@ -608,18 +657,15 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
     for index, row in vus_df.iterrows():
         variant_id = variant_ids[int(index)]
 
-        alt = row['Alt']
         vus_genotype = row['Genotype']
-        hgvs = row['HGVS']
-
-        genotype_split = vus_genotype.split('/')
-
         genotype = Genotype.HETEROZYGOUS
 
-        if genotype_split[0] == alt and genotype_split[1] == alt:
+        if 'homozygous' in vus_genotype.lower():
             genotype = Genotype.HOMOZYGOUS
 
         samples = extract_sample_ids(str(row['Sample Ids']))
+
+        hgvs = row['HGVS']
 
         for sample_id in samples:
             # store the variants sample
@@ -691,6 +737,18 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
 
 
 def handle_vus_file(task_id: int, vus_df: pd.DataFrame, filename: str, user_id: int):
+    vus_df_copy = vus_df.copy()
+
+    # handle empty ref & alt alleles
+    for index, row in vus_df_copy.iterrows():
+        ref = row['Reference']
+        if isinstance(ref, float) and math.isnan(ref):
+            vus_df.at[index, 'Reference'] = None
+
+        alt = row['Alt']
+        if isinstance(alt, float) and math.isnan(alt):
+            vus_df.at[index, 'Alt'] = None
+
     preprocess_vus_res = preprocess_vus_from_file(vus_df)
 
     if preprocess_vus_res.status != 200:
@@ -732,7 +790,7 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
 
         store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, None, False, current_user.id)
 
-        return Response(json.dumps(store_vus_info_in_db_res), 200)
+        return Response(json.dumps(store_vus_info_in_db_res.data), 200)
 
 
 def scheduled_file_upload_events():

@@ -3,8 +3,8 @@ import { IHPOTerm } from "../services/sample/sample.dto";
 export interface IUnprocessedVus {
   locus: string;
   type: string;
-  refAllele: string;
-  altAllele: string;
+  refAllele?: string | null;
+  altAllele?: string | null;
 }
 
 export interface IVusGene {

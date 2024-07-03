@@ -11,14 +11,10 @@ import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
 import uploadGif from "./upload.gif";
 import { Banner } from "../../atoms/banner/banner";
 import Loader from "../../atoms/loader/loader";
-import { IVus } from "../../models/view-vus.model";
-import VusTable from "../view-all-vus-page/vus-table/vus-table";
 import { IVusGene } from "../../models/vus-file-upload.model";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icons/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
-import { INoHPOTermPhenotype } from "../../services/vus/vus.dto";
-import { Link } from "react-router-dom";
 import { AppContext } from "../../app-context";
 
 type VusFileUploadPageProps = {
@@ -28,17 +24,9 @@ type VusFileUploadPageProps = {
 const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   props: VusFileUploadPageProps
 ) => {
-  // const [areRsidsRetrieved, setAreRsidsRetrieved] = useState(false);
-  // const [isClinvarAccessed, setIsClinvarAccessed] = useState(false);
-
   const [file, setFile] = useState<File | undefined>(undefined);
-  const [isCheckingForMultipleGenes, setIsCheckingForMultipleGenes] =
-    useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isFileProcessed, setIsFileProcessed] = useState(false);
-  const [vusList, setVusList] = useState<IVus[]>(undefined);
-  const [noHpoTermPhenotypes, setNoHpoTermPhenootypes] =
-    useState<INoHPOTermPhenotype[]>(undefined);
 
   const [multipleGenes, setMultipleGenes] = useState<IVusGene[]>(undefined);
   const [multipleGenesSelection, setMultipleGenesSelection] = useState<
@@ -176,90 +164,6 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 isFileProcessed ? newFileUpload() : processFile()
               }
             />
-            {isFileProcessed && (
-              <>
-                {noHpoTermPhenotypes?.length > 0 && (
-                  <div className={styles["no-hpo-terms-phenotypes-container"]}>
-                    <div
-                      className={
-                        styles["no-hpo-terms-phenotypes-title-container"]
-                      }
-                    >
-                      <p className={styles["no-hpo-terms-phenotypes-title"]}>
-                        <Icon name="warning" fill="#008080" /> Phenotypes
-                        warning!
-                      </p>
-                      <p>
-                        No exact match was found with an HPO term for the below
-                        phenotypes. Kindly access the sample pages to add
-                        existing HPO terms that can replace the inputted
-                        phenotypes.
-                      </p>
-                    </div>
-                    <div className={styles["no-hpo-terms-phenotypes"]}>
-                      {noHpoTermPhenotypes.map((noHpoTermPhenotype) => (
-                        <div className={styles["no-hpo-terms-phenotype"]}>
-                          <p>
-                            <span className={styles.phenotype}>
-                              {noHpoTermPhenotype.phenotype}
-                            </span>
-                            &nbsp;was observed in the following samples:
-                          </p>
-                          <div
-                            className={
-                              styles["no-hpo-terms-phenotypes-samples"]
-                            }
-                          >
-                            {noHpoTermPhenotype.samples.map((s) => (
-                              // open in new window the sample page
-                              <Link
-                                to={`/sample/${s}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {s}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {vusList && (
-                  <div className={styles["file-content"]}>
-                    <div className={styles["file-summary"]}>
-                      <div className={styles.summary}>
-                        <p>RSIDs</p>
-                        <p>
-                          {
-                            vusList.filter(
-                              (vus) =>
-                                vus.rsid !== "NORSID" && vus.rsidDbsnpVerified
-                            ).length
-                          }
-                        </p>
-                      </div>
-                      <div className={`${styles.summary} ${styles["num-vus"]}`}>
-                        <p>VUS</p> <p>{vusList.length}</p>
-                      </div>
-                      <div className={styles.summary}>
-                        <p>ClinVar</p>
-                        <p>
-                          {
-                            vusList.filter(
-                              (vus) => vus.clinvarErrorMsg.length === 0
-                            ).length
-                          }
-                        </p>
-                      </div>
-                    </div>
-
-                    <VusTable vusList={vusList} />
-                  </div>
-                )}
-              </>
-            )}
           </div>
         )}
       </div>
@@ -360,15 +264,10 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   }
 
   function newFileUpload() {
-    // setAreRsidsRetrieved(false);
-    // setIsClinvarAccessed(false);
-
     setFile(undefined);
 
     setIsProcessing(false);
     setIsFileProcessed(false);
-    setVusList(undefined);
-    setNoHpoTermPhenootypes(undefined);
     setMultipleGenes(undefined);
     setMultipleGenesSelection(undefined);
 
@@ -393,13 +292,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           setMultipleGenes(undefined);
           setMultipleGenesSelection(undefined);
           setTaskIds(taskIds.concat(res.taskId));
-
-          // setVusList(res.vusList);
-          // setNoHpoTermPhenootypes(res.noHpoTermPhenotypes);
         }
-
-        // setAreRsidsRetrieved(res.areRsidsRetrieved);
-        // setIsClinvarAccessed(res.isClinvarAccessed);
       });
   }
 

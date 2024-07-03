@@ -18,4 +18,124 @@ body {
 
 //TODO: add common styling for inner-page-width
 .container {
+  .completed-task-ids {
+    position: sticky;
+    top: 0;
+    right: 0;
+    width: 100%;
+    z-index: 999;
+
+    .banners {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .banner {
+        position: relative;
+
+        [class*="banner-container"] {
+          position: relative !important;
+          top: 0;
+          right: 0;
+        }
+      }
+    }
+  }
+
+  .file-upload-modal {
+    width: 80% !important;
+
+    .file-upload-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+
+      [class*="vus-table-container"] {
+        width: 95%;
+        margin: 0 auto;
+      }
+
+      .no-hpo-terms-phenotypes-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        border: 2px solid #008080;
+        border-radius: 4px;
+        padding: 16px;
+
+        .no-hpo-terms-phenotypes-title-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .no-hpo-terms-phenotypes-title {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            font-weight: bold;
+          }
+        }
+
+        .no-hpo-terms-phenotypes {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+
+          .no-hpo-terms-phenotype {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .phenotype {
+              text-decoration: underline;
+            }
+          }
+
+          .no-hpo-terms-phenotypes-samples {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-left: 16px;
+          }
+        }
+      }
+
+      .file-content {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        width: 100%;
+
+        .file-summary {
+          display: flex;
+          flex-direction: row;
+          gap: 16px;
+          justify-content: center;
+          align-items: center;
+
+          .summary {
+            width: 50px;
+            height: fit-content;
+            text-align: center;
+            padding: 10px 5px;
+            border: 2px solid #008080;
+            color: #008080;
+            border-radius: 40px;
+            background-color: #e2f9f9;
+            font-size: 12px;
+            font-weight: bold;
+
+            &.num-vus {
+              padding: 16px 10px;
+            }
+          }
+        }
+      }
+    }
+  }
 }

@@ -122,6 +122,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               {(props.vus.clinvarClassification?.length > 0 ||
                 props.vus.clinvarErrorMsg?.length > 0) && (
                 <Icon
+                  width={18}
+                  height={18}
                   name="external-link"
                   className={`${styles["external-link"]} ${styles.clinvar} ${
                     props.vus.clinvarClassification?.length === 0
@@ -200,6 +202,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <p className={styles["info-title"]}>dbSNP:</p>
               {props.vus.rsid?.length > 0 && (
                 <Icon
+                  width={18}
+                  height={18}
                   name="external-link"
                   className={`${styles["external-link"]} ${styles.dbsnp} ${
                     props.vus.rsidDbsnpVerified
@@ -234,12 +238,12 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             >
               {props.vus.rsid?.length > 0 ? (
                 <>
-                  <div className={styles.information}>
+                  {/* <div className={styles.information}>
                     <div className={styles["info-title"]}>
                       Is RSID verified:
                     </div>
                     {props.vus.rsidDbsnpVerified.toString()}
-                  </div>
+                  </div> */}
                   {props.vus.rsidDbsnpVerified ? (
                     <div className={styles.information}>
                       <div className={styles["info-title"]}>RSID:</div>
@@ -319,29 +323,27 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
 
         {/** Samples */}
         <div className={styles["samples-container"]}>
-          <p className={styles["info-title"]}>Samples with this variant:</p>
+          <p className={styles["info-title"]}>Variant samples:</p>
           {samples.length > 0 ? (
             <>
-              <div className={styles["description-container"]}>
-                <p className={styles["info-description"]}>
-                  Click on the sample Ids to visit the respective sample page.
-                  Consequences are affected by different transcripts, i.e. HGVS,
-                  according to:&nbsp;
-                  <a href="https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html">
-                    Ensembl
-                  </a>
-                  . To remove a sample from this variant, tick its checkbox and
-                  click on the "Remove sample/s button".
-                </p>
-                <div className={styles["delete-sample"]}>
-                  <Icon name="bin" fill="#008080" width={21} height={21} />
-                </div>
-              </div>
+              <p className={styles["info-description"]}>
+                Click on the sample Ids to visit the respective sample page.
+                Consequences are affected by different transcripts, i.e. HGVS,
+                according to:&nbsp;
+                <a href="https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html">
+                  Ensembl
+                </a>
+                . To remove a sample from this variant, tick its checkbox and
+                click on the "Remove sample/s button".
+              </p>
               <div className={styles.samples}>
                 <div className={styles["samples-header"]}>
                   <span>Sample Id</span>
                   <span>HGVS</span>
                   <span>Consequence</span>
+                  <div className={styles["delete-sample"]}>
+                    <Icon name="bin" fill="#008080" width={21} height={21} />
+                  </div>
                 </div>
                 {samples.map((s) => (
                   <div className={styles.sample}>

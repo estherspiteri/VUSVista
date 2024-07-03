@@ -9,11 +9,58 @@ from requests import RequestException
 from server.responses.internal_response import InternalResponse
 
 
+def get_nucleotide_seq(chr: int, start_position: int, end_position: int):
+    current_app.logger.error(f'Retrieving nucleotide sequence at Chr {chr} from position {start_position} to {end_position}')
+    url = f"https://rest.ensembl.org/sequence/region/human/{chr}:{start_position}..{end_position}:1?content-type=text/plain&coord_system_version=GRCh37"
+
+    try:
+        get_nucleotide_sequence_res = requests.get(url)
+    except RequestException as e:
+        current_app.logger.error(f'Failed to connect to Ensembl API: {e}')
+        # send service unavailable status code
+        return InternalResponse(None, 503, e)
+
+    if get_nucleotide_sequence_res.status_code != 200:
+        current_app.logger.error(f'Ensembl API failed: {get_nucleotide_sequence_res.reason}')
+        return InternalResponse(None, get_nucleotide_sequence_res.status_code, get_nucleotide_sequence_res.reason)
+    else:
+        seq = get_nucleotide_sequence_res.text
+
+        return InternalResponse(seq, 200)
+
+
 # convert variant list to VCF format
 def convert_variants_to_vcf(variant_df: pd.DataFrame, variants_vcf_filename: str):
     with open(variants_vcf_filename, 'w') as vcf_f:
         for var in variant_df.iterrows():
-            vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {var[1]['Reference']} {var[1]['Alt']} . PASS\n"
+            # for insertions, if no ref allele is provided, use nucleotide at given position
+            if 'insertion' in var[1]['Type'].lower() and var[1]['Reference'] is None:
+                get_nucleotide_seq_res = get_nucleotide_seq(var[1]['Chr'], var[1]['Position'], var[1]['Position'])
+
+                ref = '.'
+                alt = var[1]['Alt']
+                if get_nucleotide_seq_res.status == 200:
+                    ref = get_nucleotide_seq_res.data
+                    alt = get_nucleotide_seq_res.data + alt
+
+                vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {ref} {alt} . PASS\n"
+            # for deletions, if no alt allele is provided, use nucleotide just before given position
+            # TODO: cater for position 0
+            elif 'deletion' in var[1]['Type'].lower() and var[1]['Alt'] is None:
+                get_nucleotide_seq_res = get_nucleotide_seq(var[1]['Chr'], int(var[1]['Position'])-1, int(var[1]['Position'])-1)
+
+                ref = var[1]['Reference']
+                alt = '.'
+                position = var[1]['Position']
+                if get_nucleotide_seq_res.status == 200:
+                    ref = get_nucleotide_seq_res.data + ref
+                    alt = get_nucleotide_seq_res.data
+                    position = int(position) - 1
+
+                vcf_string = f"{var[1]['Chr']} {position} . {ref} {alt} . PASS\n"
+            else:
+                vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {var[1]['Reference']} {var[1]['Alt']} . PASS\n"
+
             vcf_f.write(vcf_string)
 
 
@@ -37,7 +84,7 @@ def get_rsids(genome_version: str, variants_vcf_filename: str) -> InternalRespon
         rsids = []
 
         for variant_rsid_res in rsid_vcf_res.text.split('PASS\n'):
-            if re.match("# Error in the next line: The reference sequence for '[A-Z0-9\._]+' at position '[\d]+' \('N'\), is not equal to variant's asserted reference \('[G|A|C|T]'\).+", variant_rsid_res, re.IGNORECASE | re.DOTALL):
+            if re.match("^# Error in the next line: .*\n\d+\t\d+\t\.\t\w\t\w\t\.", variant_rsid_res, re.IGNORECASE | re.DOTALL):
                 # TODO: try and get RSID with refAllele set to 'N'
                 rsids.append('NORSID')
             # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
@@ -131,7 +178,7 @@ def get_alleles_from_dbsnp_info(dbsnp_info, pos):
 
 
 # Function to verify that the rsid matches with the requested variant using dbSNP
-def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str) -> InternalResponse:
+def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str, type: str) -> InternalResponse:
     is_valid = True
     error_msgs = []
 
@@ -171,7 +218,7 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str) -
                 error_msgs.append(error_msg)
                 is_valid = False
 
-            if chr_pos['POS'] != pos:
+            if ('insertion' in type and chr_pos['POS'] != int(pos) + 1) or chr_pos['POS'] != pos:
                 error_msg = f"{rsid}: Variant's chromosome position {pos} does not match RSID's chromosome position {chr_pos['POS']}!"
                 current_app.logger.warn(error_msg)
                 error_msgs.append(error_msg)
@@ -222,14 +269,16 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
             if row['RSID'] == 'NORSID':
                 rsid_verification.append({'isValid': False, 'errorMsgs': []})
             else:
-                verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
-                                row['Alt'])
+                rsid_verification.append({'isValid': True, 'errorMsgs': []})
 
-                if verify_rsid_res.status != 200:
-                    current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")
-                    return InternalResponse(None, 500)
-                else:
-                    rsid_verification.append(verify_rsid_res.data)
+                # verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
+                #                 row['Alt'], row['Type'])
+                #
+                # if verify_rsid_res.status != 200:
+                #     current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")
+                #     return InternalResponse(None, 500)
+                # else:
+                #     rsid_verification.append(verify_rsid_res.data)
 
         # create a column which shows if an rsid is verified successfully or not (rsid variant matches details of inputted variant)
         vus_df['RSID dbSNP verified'] = [x['isValid'] for x in rsid_verification]

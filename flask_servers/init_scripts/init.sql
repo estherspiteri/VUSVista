@@ -10,7 +10,6 @@ IS_TEMPLATE = False;
 -- Once db is created/ ON PRODUCTION, change connection to new db and run this:
 -- Create tables within the new database
 -- CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
-CREATE TYPE VARIANT_TYPE AS ENUM ('SNV', 'MNV', 'INDEL');
 CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
 CREATE TYPE GENOTYPE AS ENUM ('HOMOZYGOUS', 'HETEROZYGOUS');
 CREATE TYPE ACMG_RULE AS ENUM ('PS2', 'PM3', 'PM6', 'PP1', 'PP4', 'BS4', 'BP2', 'PS3', 'PP5', 'BP6', 'PVS1', 'PS1', 'BS3', 'PM1', 'BP3', 'PM2', 'PM4', 'PM5', 'PP2', 'BP1', 'PP3', 'BP4', 'BA1', 'BS1', 'BS2', 'BP7', 'PS4', 'BP5');
@@ -56,7 +55,7 @@ CREATE TABLE variants (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     chromosome VARCHAR(2) NOT NULL,
     chromosome_position TEXT NOT NULL,
-    variant_type VARIANT_TYPE NOT NULL,
+    variant_type TEXT NOT NULL,
     ref TEXT NOT NULL,
     alt TEXT,
     classification CLASSIFICATION NOT NULL,

@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 from typing import List, Dict
 
@@ -30,9 +32,17 @@ def convert_df_to_list(df: pd.DataFrame) -> List:
 
 
 def prep_unprocessed_vus_dict_for_react(vus: Dict) -> Dict:
+    ref = vus['Reference']
+    if isinstance(ref, float) and math.isnan(ref):
+        ref = None
+
+    alt = vus['Alt']
+    if isinstance(alt, float) and math.isnan(alt):
+        alt = None
+
     # to match React camelCase syntax
-    new_vus = {'locus': vus['Locus'], 'type': vus['Type'], 'genotype': vus['Genotype'], 'refAllele': vus['Reference'],
-               'altAllele': vus['Alt']}
+    new_vus = {'locus': vus['Locus'], 'type': vus['Type'], 'genotype': vus['Genotype'], 'refAllele': ref,
+               'altAllele': alt}
 
     return new_vus
 

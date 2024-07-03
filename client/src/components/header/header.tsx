@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useContext } from "react";
 import styles from "./header.module.scss";
 import { Link } from "react-router-dom";
 import Button from "../../atoms/button/button";
 import { AuthService } from "../../services/auth/auth.service";
 import Icon from "../../atoms/icons/icon";
+import { AppContext } from "../../app-context";
 
 type HeaderProps = { isUserLoggedIn: boolean; authService: AuthService };
 
 const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
+  const { setIsUserLoggedIn } = useContext(AppContext);
+
   return (
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>
@@ -52,7 +55,9 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
             <Link
               to="/login"
               className={styles["logout-btn"]}
-              onClick={() => props.authService.logout()}
+              onClick={() =>
+                props.authService.logout().then(() => setIsUserLoggedIn(false))
+              }
             >
               <Button text="Log out" icon="logout" />
             </Link>

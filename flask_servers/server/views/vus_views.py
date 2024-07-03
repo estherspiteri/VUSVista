@@ -98,7 +98,7 @@ def store_and_verify_vus_file():
 
         task_id = file_upload_event.id
 
-        file_upload_tasks[task_id] = 'in progress'
+        file_upload_tasks[task_id] = {'isSuccess': None, 'taskId': task_id}
 
         # handle_vus_file(task_id, file, multiple_genes_selection_object)
 

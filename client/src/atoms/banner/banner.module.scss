@@ -3,7 +3,7 @@
   background-color: rgb(142, 27, 27);
   top: 50px;
   right: 50px;
-  width: 250px;
+  max-width: 350px;
   border-radius: 8px;
   padding: 16px;
   color: #fff;
@@ -12,6 +12,10 @@
 
   display: flex;
   flex-direction: row;
+
+  &.green {
+    background-color: rgb(3, 97, 51, 1);
+  }
 
   &.closed {
     display: none;
@@ -26,6 +30,7 @@
     width: 24px;
     height: 24px;
     cursor: pointer;
+    flex-shrink: 0;
 
     svg {
       position: absolute;

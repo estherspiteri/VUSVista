@@ -55,12 +55,12 @@
       flex-direction: column;
       gap: 8px;
 
-      [class*="phenotype-selection-container"] {
-        min-height: 200px;
+      &.alleles {
+        width: fit-content;
       }
 
-      .alt-allele-description {
-        text-wrap: nowrap;
+      [class*="phenotype-selection-container"] {
+        min-height: 200px;
       }
 
       .acmg-rules-edit {
