@@ -775,6 +775,18 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
                            'hgvs': 'HGVS'},
                   inplace=True)
 
+    vus_df_copy = vus_df.copy()
+
+    # handle empty ref & alt alleles
+    for index, row in vus_df_copy.iterrows():
+        ref = row['Reference']
+        if isinstance(ref, float) and math.isnan(ref):
+            vus_df.at[index, 'Reference'] = None
+
+        alt = row['Alt']
+        if isinstance(alt, float) and math.isnan(alt):
+            vus_df.at[index, 'Alt'] = None
+
     preprocess_vus_res = preprocess_vus(vus_df)
 
     if preprocess_vus_res.status != 200:

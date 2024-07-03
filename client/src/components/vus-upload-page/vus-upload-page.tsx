@@ -160,7 +160,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
               </div>
 
               <div className={styles["field-content"]}>
-                <span>Chromosome Position: </span>
+                <span>Chromosome Position (use position in locus): </span>
                 <Text
                   value={chromosomePosition}
                   placeholder="0"
