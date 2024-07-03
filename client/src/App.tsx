@@ -233,14 +233,17 @@ const App: React.FunctionComponent<AppProps> = () => {
                     <p>
                       {
                         fileUploadTaskOnDisplay.vusList.filter(
-                          (vus) => vus.clinvarErrorMsg.length === 0
+                          (vus) => vus.isFoundInClinvar
                         ).length
                       }
                     </p>
                   </div>
                 </div>
 
-                <VusTable vusList={fileUploadTaskOnDisplay.vusList} />
+                <VusTable
+                  vusList={fileUploadTaskOnDisplay.vusList}
+                  isClickable={false}
+                />
               </div>
             )}
           </div>

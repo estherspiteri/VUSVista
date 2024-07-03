@@ -57,7 +57,7 @@ export interface IStatus {
   filename?: string | null;
   areRsidsRetrieved?: boolean | null;
   isClinvarAccessed?: boolean | null;
-  vusList?: IVus[] | null;
+  vusList?: IVUSSummary[] | null;
   noHpoTermPhenotypes?: INoHPOTermPhenotype[] | null;
 }
 

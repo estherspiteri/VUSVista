@@ -16,7 +16,8 @@ import json
 import re
 
 from server import db, file_upload_tasks
-from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
+from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react, \
+    get_variant_summary
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Genotype, \
@@ -761,7 +762,16 @@ def handle_vus_file(task_id: int, vus_df: pd.DataFrame, filename: str, user_id: 
 
         store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, filename, True, user_id)
 
-        file_upload_tasks[task_id] = store_vus_info_in_db_res.data
+        # get variant summaries
+        vus_list = []
+        for vus in store_vus_info_in_db_res.data['vusList']:
+            v = db.session.query(Variants).filter(Variants.id == int(vus['id'])).first()
+            vus_list.append(get_variant_summary(v, True, True))
+
+        task_status = store_vus_info_in_db_res.data
+        task_status['vusList'] = vus_list
+
+        file_upload_tasks[task_id] = task_status
         file_upload_tasks[task_id]['filename'] = filename
         file_upload_tasks[task_id]['taskId'] = task_id
 

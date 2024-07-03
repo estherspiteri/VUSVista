@@ -9,7 +9,13 @@ from server.responses.internal_response import InternalResponse
 
 
 def get_consequences_for_new_vus(hgvs: List[str]) -> InternalResponse:
-    data = {"hgvs_notations": hgvs}
+    simplified_hgvs_dict = {}
+
+    for h in hgvs:
+        simplified_hgvs = h.split(' ')[0]
+        simplified_hgvs_dict[simplified_hgvs] = h
+
+    data = {"hgvs_notations": list(simplified_hgvs_dict.keys())}
 
     try:
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -34,6 +40,7 @@ def get_consequences_for_new_vus(hgvs: List[str]) -> InternalResponse:
         hgvs_dict = {}
 
         for r in res_json:
-            hgvs_dict[r["id"]] = r["most_severe_consequence"]
+            unsimplified_hgvs = simplified_hgvs_dict[r["id"]]
+            hgvs_dict[unsimplified_hgvs] = r["most_severe_consequence"]
 
         return InternalResponse({'consequences_dict': hgvs_dict}, 200)
