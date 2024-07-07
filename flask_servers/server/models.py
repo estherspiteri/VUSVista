@@ -508,7 +508,7 @@ class VariantsSamples(Base):
 
     variant_id = mapped_column(Integer, nullable=False)
     sample_id = mapped_column(Integer, nullable=False)
-    variant_hgvs_id = mapped_column(Integer, nullable=False)
+    variant_hgvs_id = mapped_column(Integer)
     genotype = mapped_column(EnumSQL(Genotype, name='genotype'), nullable=False)
     consequence = mapped_column(Text)
 

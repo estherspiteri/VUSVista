@@ -2,8 +2,6 @@ import json
 
 from flask import Blueprint, current_app, Response, request
 
-from server import db
-from server.models import Samples
 from server.services.phenotype_service import add_phenotype_to_existing_sample, remove_phenotype_to_sample, get_hpo_terms
 from server.services.samples_service import retrieve_sample_from_db, retrieve_all_samples_from_db, delete_sample_entry, \
     update_variant_sample_hgvs, add_variants_to_sample, remove_variants_to_sample

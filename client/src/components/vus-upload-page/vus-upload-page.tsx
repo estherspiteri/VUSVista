@@ -46,7 +46,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [altAlleleErrorMsg, setAltAlleleErrorMsg] = useState("");
 
   const [hgvs, setHgvs] = useState<string | undefined>(undefined);
-  const [hgvsErrorMsg, setHgvsErrorMsg] = useState("");
 
   const [genotype, setGenotype] = useState<string | undefined>(undefined);
   const [genotypeErrorMsg, setGenotypeErrorMsg] = useState("");
@@ -80,8 +79,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     refAlleleErrorMsg.length === 0 &&
     altAllele.length > 0 &&
     altAlleleErrorMsg.length === 0;
-
-  const isHgvsValid = hgvs !== undefined && hgvsErrorMsg.length === 0;
 
   const isGenotypeValid =
     genotype !== undefined && genotypeErrorMsg.length === 0;
@@ -257,18 +254,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             </div>
           </VusUploadField>
 
-          {/** HGVS */}
-          <VusUploadField title="HGVS" showCheckMark={isHgvsValid}>
-            <div className={styles["field-content"]}>
-              <span>Input the HGVS:</span>
-              <Text
-                value={hgvs}
-                onChange={(e) => setHgvs(e.currentTarget.value)}
-                errorMsg={hgvsErrorMsg}
-              />
-            </div>
-          </VusUploadField>
-
           {/** Type */}
           <VusUploadField title="Type" showCheckMark={isTypeValid}>
             <div className={styles["field-content"]}>
@@ -323,7 +308,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
 
               {/** Phenotypes */}
               <div className={styles["field-content"]}>
-                <span>Input the samples' phenotypes</span>
+                <span>Input the samples' phenotypes (optional)</span>
                 <SamplePhenotypeSelection
                   isSelectingPhenotypesForVariant={true}
                   sampleService={props.sampleService}
@@ -335,8 +320,19 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             </div>
           </VusUploadField>
 
+          {/** HGVS */}
+          <VusUploadField title="HGVS (optional)">
+            <div className={styles["field-content"]}>
+              <span>Input the HGVS:</span>
+              <Text
+                value={hgvs}
+                onChange={(e) => setHgvs(e.currentTarget.value)}
+              />
+            </div>
+          </VusUploadField>
+
           {/** ACMG Rules */}
-          <VusUploadField title="ACMG Rules">
+          <VusUploadField title="ACMG Rules (optional)">
             {/** ACMG Rules */}
             <div className={styles["field-content"]}>
               <span>Choose the ACMG rules that this variant has</span>
@@ -377,7 +373,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             !areAllelesValid ||
             !isGenotypeValid ||
             !isGeneValid ||
-            !isHgvsValid ||
             !isTypeValid ||
             !areSamplesValid
           }
@@ -395,73 +390,59 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Locus</p>
                   <span>
-                    <b>
-                      chr{chromosome}:{chromosomePosition}
-                    </b>
+                    chr{chromosome}:{chromosomePosition}
                   </span>
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Reference allele</p>
-                  <span>
-                    <b>{refAllele.toUpperCase()}</b>
-                  </span>
+                  <span>{refAllele.toUpperCase()}</span>
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Alternate allele</p>
-                  <span>
-                    <b>{altAllele.toUpperCase()}</b>
-                  </span>
+                  <span>{altAllele.toUpperCase()}</span>
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Gene</p>
-                  <span>
-                    <b>{geneInput}</b>
-                  </span>
+                  <span>{geneInput}</span>
+                </div>
+                <div className={styles["summary-field"]}>
+                  <p className={styles["selection-name"]}>Sample Ids</p>
+                  {samples.map((s) => (
+                    <p className={styles.selection}>
+                      <div className={styles.bullet}>{"\u25CF"}</div>
+                      <p>{s}</p>
+                    </p>
+                  ))}
+                </div>
+                <div className={styles["summary-field"]}>
+                  <p className={styles["selection-name"]}>Phenotypes</p>
+                  {phenotypes?.length > 0
+                    ? phenotypes.map((p) => (
+                        <p className={styles.selection}>
+                          <div className={styles.bullet}>{"\u25CF"}</div>
+                          <p>
+                            {p.ontologyId}: {p.name}
+                          </p>
+                        </p>
+                      ))
+                    : "No phenotypes selected"}
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>HGVS</p>
                   <span>
-                    <b>{hgvs}</b>
+                    {hgvs?.trim().length > 0 ? hgvs : "No HGVS inputted"}
                   </span>
                 </div>
                 <div className={styles["summary-field"]}>
-                  <p className={styles["selection-name"]}>Sample Ids</p>
-                  <b>
-                    {samples.map((s) => (
-                      <p className={styles.selection}>
-                        <div className={styles.bullet}>{"\u25CF"}</div>
-                        <p>{s}</p>
-                      </p>
-                    ))}
-                  </b>
-                </div>
-                <div className={styles["summary-field"]}>
-                  <p className={styles["selection-name"]}>Phenotypes</p>
-                  <b>
-                    {phenotypes?.length > 0
-                      ? phenotypes.map((p) => (
-                          <p className={styles.selection}>
-                            <div className={styles.bullet}>{"\u25CF"}</div>
-                            <p>
-                              {p.ontologyId}: {p.name}
-                            </p>
-                          </p>
-                        ))
-                      : "No phenotypes selected"}
-                  </b>
-                </div>
-                <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>ACMG Rules</p>
-                  <b>
-                    {acmgRules?.length > 0
-                      ? acmgRules.map((a) => (
-                          <p className={styles.selection}>
-                            <div className={styles.bullet}>{"\u25CF"}</div>
-                            <p>{a.name}</p>
-                          </p>
-                        ))
-                      : "No rules selected"}
-                  </b>
+                  {acmgRules?.length > 0
+                    ? acmgRules.map((a) => (
+                        <p className={styles.selection}>
+                          <div className={styles.bullet}>{"\u25CF"}</div>
+                          <p>{a.name}</p>
+                        </p>
+                      ))
+                    : "No rules selected"}
                 </div>
               </div>
               <div className={styles.buttons}>
@@ -566,7 +547,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       samples: samples,
       phenotypes: phenotypes ?? [],
       acmgRules: acmgRules ?? [],
-      hgvs: hgvs,
+      hgvs: hgvs ?? "",
     };
 
     setIsLoading(true);

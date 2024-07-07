@@ -60,16 +60,21 @@ def get_publications_of_variant_by_rsid_with_optional_text(variant_id: str, rsid
     publication_list = []
 
     if variant is not None:
-        get_publications_res = get_publications(variant.variant_hgvs[0].hgvs, rsid, optional_text)
-        status = get_publications_res.status
+        hgvs = None
+        if len(variant.variant_hgvs) > 0:
+            hgvs = variant.variant_hgvs[0].hgvs.split(' ')[0]
 
-        for publication in get_publications_res.data:
-            encoded_publication = alchemy_encoder(publication)
+        if hgvs is not None or rsid is not None:
+            get_publications_res = get_publications(hgvs, rsid, optional_text)
+            status = get_publications_res.status
 
-            # changing keys of dictionary
-            encoded_publication['date'] = encoded_publication.pop('date_published')
+            for publication in get_publications_res.data:
+                encoded_publication = alchemy_encoder(publication)
 
-            publication_list.append(encoded_publication)
+                # changing keys of dictionary
+                encoded_publication['date'] = encoded_publication.pop('date_published')
+
+                publication_list.append(encoded_publication)
 
     variant_summary = get_variant_summary(variant)
 

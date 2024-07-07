@@ -172,7 +172,7 @@ CREATE TABLE samples_phenotypes(
 CREATE TABLE variants_samples (
     variant_id INT NOT NULL,
     sample_id TEXT NOT NULL,
-	variant_hgvs_id INT NOT NULL,
+	variant_hgvs_id INT,
     genotype GENOTYPE NOT NULL,
 	consequence TEXT,
 	CONSTRAINT fk_variant_hgvs

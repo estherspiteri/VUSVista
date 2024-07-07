@@ -1,17 +1,13 @@
 from datetime import datetime
 from urllib import parse
 
-from flask import current_app, Response
+from flask import current_app
 import requests
-import pandas as pd
-from urllib.parse import urlencode
 
-from server.helpers.data_helper import convert_df_to_list
 from server.models import Publications
 from server.responses.internal_response import InternalResponse
 from server.services.entrez_service import retrieve_pubmed_publications_info
 from typing import Dict, List
-import json
 
 
 def get_litvar_info(search_string: str) -> InternalResponse:
@@ -196,39 +192,41 @@ def get_more_info_on_litvar_publications(litvar_publications: list[Publications]
 def get_publications(hgvs: str | None, rsid: str | None, optional_text: str | None) -> InternalResponse:
     # get LitVar id
     current_app.logger.info(f'Retrieving LitVar ID for HGVS {hgvs} and RSID {rsid}')
-    litvar_id_res: InternalResponse = get_litvar_id(hgvs, rsid)
 
-    if litvar_id_res.status != 200:
-        current_app.logger.error(
-            f'LitVar Search Variant query failed 500')
-        return InternalResponse({'isSuccess': False}, 500)
-    else:
-        litvar_id = litvar_id_res.data
+    if hgvs is not None or rsid is not None:
+        litvar_id_res: InternalResponse = get_litvar_id(hgvs, rsid)
 
-        if len(litvar_id) > 0:
-            current_app.logger.info(f'Retrieved LitVar ID {litvar_id}')
+        if litvar_id_res is None or litvar_id_res.status != 200:
+            current_app.logger.error(
+                f'LitVar Search Variant query failed 500')
+            return InternalResponse({'isSuccess': False}, 500)
+        else:
+            litvar_id = litvar_id_res.data
 
-            # search for LitVar publications for given variant
-            current_app.logger.info(f'Retrieving LitVar publications for {litvar_id}')
-            litvar_publications_res: InternalResponse = get_litvar_publications(litvar_id, optional_text)
+            if len(litvar_id) > 0:
+                current_app.logger.info(f'Retrieved LitVar ID {litvar_id}')
 
-            if litvar_publications_res.status != 200:
-                current_app.logger.error(
-                    f'LitVar Variant Publications query failed 500')
-                return InternalResponse({'isSuccess': False}, 500)
-            else:
-                publications = litvar_publications_res.data
+                # search for LitVar publications for given variant
+                current_app.logger.info(f'Retrieving LitVar publications for {litvar_id}')
+                litvar_publications_res: InternalResponse = get_litvar_publications(litvar_id, optional_text)
 
-                if len(publications) > 0:
-                    # get additional information about the publications
-                    handle_litvar_publications_res = get_more_info_on_litvar_publications(publications)
+                if litvar_publications_res.status != 200:
+                    current_app.logger.error(
+                        f'LitVar Variant Publications query failed 500')
+                    return InternalResponse({'isSuccess': False}, 500)
+                else:
+                    publications = litvar_publications_res.data
 
-                    if handle_litvar_publications_res.status != 200:
-                        current_app.logger.error(
-                            f'LitVar Variant Publications query for more information failed 500')
-                        return InternalResponse({'isSuccess': False}, 500)
-                    else:
-                        return InternalResponse(handle_litvar_publications_res.data, 200)
+                    if len(publications) > 0:
+                        # get additional information about the publications
+                        handle_litvar_publications_res = get_more_info_on_litvar_publications(publications)
 
-        current_app.logger.info(f'Found 0 LitVar publications')
-        return InternalResponse([], 200)
+                        if handle_litvar_publications_res.status != 200:
+                            current_app.logger.error(
+                                f'LitVar Variant Publications query for more information failed 500')
+                            return InternalResponse({'isSuccess': False}, 500)
+                        else:
+                            return InternalResponse(handle_litvar_publications_res.data, 200)
+
+                current_app.logger.info(f'Found 0 LitVar publications')
+    return InternalResponse([], 200)

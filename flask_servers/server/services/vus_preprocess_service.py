@@ -1,17 +1,16 @@
+import html
 import math
+import traceback
 from datetime import datetime
 from io import BytesIO
 from typing import List, Hashable, Dict
 
-import requests
 from flask import current_app, Response
 import pandas as pd
 from Bio import Entrez
 from flask_login import current_user
-from requests import RequestException
 from sqlalchemy import and_
 from sqlalchemy.exc import SQLAlchemyError
-from werkzeug.datastructures import FileStorage
 import json
 import re
 
@@ -30,7 +29,7 @@ from server.services.clinvar_service import retrieve_clinvar_variant_classificat
 from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
 from server.services.samples_service import add_new_sample_to_db
 from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
-from server.services.view_vus_service import get_last_saved_clinvar_update
+from server.services.view_vus_service import get_last_saved_clinvar_update, retrieve_vus_summaries_from_db
 from server.services.publications_service import retrieve_and_store_variant_publications
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
@@ -406,25 +405,27 @@ def preprocess_vus(vus_df: pd.DataFrame):
 
             hgvs = []
             for var in new_vus_df.iterrows():
-                hgvs.append(var[1]["HGVS"])
+                if not (isinstance(var[1]["HGVS"], float) and math.isnan(var[1]["HGVS"])):
+                    hgvs.append(var[1]["HGVS"])
 
-            # get variant consequences though HGVS
-            get_consequences_for_new_vus_res = get_consequences_for_new_vus(hgvs)
+            if len(hgvs) > 0:
+                # get variant consequences though HGVS
+                get_consequences_for_new_vus_res = get_consequences_for_new_vus(hgvs)
 
-            if get_consequences_for_new_vus_res.status != 200:
-                current_app.logger.error(
-                    f'Preprocessing of VUS and retrieval of variant consequences failed 500')
-                return InternalResponse(
-                    {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
-                     'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
-                     'multiple_genes': None}, 500)
-            else:
-                hgvs_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+                if get_consequences_for_new_vus_res.status != 200:
+                    current_app.logger.error(
+                        f'Preprocessing of VUS and retrieval of variant consequences failed 500')
+                    return InternalResponse(
+                        {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
+                         'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
+                         'multiple_genes': None}, 500)
+                else:
+                    hgvs_dict = get_consequences_for_new_vus_res.data['consequences_dict']
 
-                # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
-                vus_df_copy = new_vus_df.copy()
-                for index, row in vus_df_copy.iterrows():
-                    new_vus_df.at[index, 'Consequence'] = hgvs_dict.get(row['HGVS'], "")
+                    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
+                    vus_df_copy = new_vus_df.copy()
+                    for index, row in vus_df_copy.iterrows():
+                        new_vus_df.at[index, 'Consequence'] = hgvs_dict.get(row['HGVS'], "")
 
     # get updated external references for existing vus
     if len(existing_vus_df) > 0:
@@ -458,7 +459,7 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
         # create new variant
-        new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=row['Type'],
+        new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=html.unescape(row['Type']),
                                ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
                                gene_id=row['Gene Id'], gene_name=row['Gene'])
         # add the new variant to the session
@@ -643,7 +644,7 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
         db.session.add(new_review)
 
 
-def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], filename: str,
+def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List[int], filename: str | None,
                                          is_file_upload: bool, user_id: int):
     if is_file_upload:
         # create entry for file in the db
@@ -677,7 +678,7 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
 
 
 def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: List[str], new_vus_df: pd.DataFrame,
-                         filename: str, is_file_upload: bool, user_id: int) -> InternalResponse:
+                         filename: str | None, is_file_upload: bool, user_id: int) -> InternalResponse:
     # join existing vus_df with the new vus
     all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
@@ -738,42 +739,47 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
 
 
 def handle_vus_file(task_id: int, vus_df: pd.DataFrame, filename: str, user_id: int):
-    vus_df_copy = vus_df.copy()
+    try:
+        vus_df_copy = vus_df.copy()
 
-    # handle empty ref & alt alleles
-    for index, row in vus_df_copy.iterrows():
-        ref = row['Reference']
-        if isinstance(ref, float) and math.isnan(ref):
-            vus_df.at[index, 'Reference'] = None
+        # handle empty ref & alt alleles
+        for index, row in vus_df_copy.iterrows():
+            ref = row['Reference']
+            if isinstance(ref, float) and math.isnan(ref):
+                vus_df.at[index, 'Reference'] = None
 
-        alt = row['Alt']
-        if isinstance(alt, float) and math.isnan(alt):
-            vus_df.at[index, 'Alt'] = None
+            alt = row['Alt']
+            if isinstance(alt, float) and math.isnan(alt):
+                vus_df.at[index, 'Alt'] = None
 
-    preprocess_vus_res = preprocess_vus_from_file(vus_df)
+        preprocess_vus_res = preprocess_vus_from_file(vus_df)
 
-    if preprocess_vus_res.status != 200:
+        if preprocess_vus_res.status != 200:
+            file_upload_tasks[task_id] = {'taskId': task_id, 'isSuccess': False, 'filename': filename}
+        else:
+            existing_vus_df = preprocess_vus_res.data['existing_vus_df']
+            existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
+
+            vus_df = preprocess_vus_res.data['vus_df']
+
+            store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, filename, True, user_id)
+
+            # get variant summaries
+            variant_ids = [v['id'] for v in store_vus_info_in_db_res.data['vusList']]
+
+            variants: List[Variants] = db.session.query(Variants).filter(Variants.id.in_(variant_ids)).all()
+            vus_list = retrieve_vus_summaries_from_db(variants)
+
+            task_status = store_vus_info_in_db_res.data
+            task_status['vusList'] = vus_list
+
+            file_upload_tasks[task_id] = task_status
+            file_upload_tasks[task_id]['filename'] = filename
+            file_upload_tasks[task_id]['taskId'] = task_id
+    except Exception as error:
+        current_app.logger.error(traceback.format_exc())
+        current_app.logger.error(error)
         file_upload_tasks[task_id] = {'taskId': task_id, 'isSuccess': False, 'filename': filename}
-    else:
-        existing_vus_df = preprocess_vus_res.data['existing_vus_df']
-        existing_variant_ids = preprocess_vus_res.data['existing_variant_ids']
-
-        vus_df = preprocess_vus_res.data['vus_df']
-
-        store_vus_info_in_db_res = store_vus_info_in_db(existing_vus_df, existing_variant_ids, vus_df, filename, True, user_id)
-
-        # get variant summaries
-        vus_list = []
-        for vus in store_vus_info_in_db_res.data['vusList']:
-            v = db.session.query(Variants).filter(Variants.id == int(vus['id'])).first()
-            vus_list.append(get_variant_summary(v, True, True))
-
-        task_status = store_vus_info_in_db_res.data
-        task_status['vusList'] = vus_list
-
-        file_upload_tasks[task_id] = task_status
-        file_upload_tasks[task_id]['filename'] = filename
-        file_upload_tasks[task_id]['taskId'] = task_id
 
 
 def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
@@ -796,6 +802,9 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
         alt = row['Alt']
         if isinstance(alt, float) and math.isnan(alt):
             vus_df.at[index, 'Alt'] = None
+
+        if row['HGVS'] == "":
+            vus_df.at[index, 'HGVS'] = None
 
     preprocess_vus_res = preprocess_vus(vus_df)
 

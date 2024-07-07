@@ -1,3 +1,4 @@
+import html
 from typing import List
 
 from flask import current_app
@@ -14,7 +15,7 @@ def get_variant_from_db(vus_df_row: Series) -> Variants | None:
         variant: Variants = db.session.query(Variants).filter(
             Variants.chromosome == vus_df_row['Chr'],
             Variants.chromosome_position == vus_df_row['Position'],
-            Variants.variant_type == vus_df_row['Type'],
+            Variants.variant_type == html.unescape(vus_df_row['Type']),
             Variants.ref == vus_df_row['Reference'],
             Variants.alt == vus_df_row['Alt'],
             Variants.gene_id == vus_df_row['Gene Id']

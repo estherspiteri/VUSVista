@@ -11,10 +11,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.helpers.data_helper import alchemy_encoder
-from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Publications, Variants, ExternalReferences, VariantsPublications, AutoPublicationEvalDates
 from server.responses.internal_response import InternalResponse
-from server.services.litvar_service import get_litvar_publications, get_publications
+from server.services.litvar_service import get_publications
 
 
 def get_publication_info(publication_link: str) -> InternalResponse:
@@ -121,7 +120,6 @@ def store_variant_publications_in_db(publications: List[Publications], variant_i
         db.session.add(vus_pub)
 
 
-
 def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_already_stored_in_db: bool):
     current_app.logger.info('Retrieving publications for variants')
 
@@ -151,24 +149,29 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
                 else:
                     publication_links.append(link_publication_res.data)
 
-        # attempt to get litvar publications using rsid if it exists, else use hgvs
-        if row['RSID'] == 'NORSID':
+        # attempt to get litvar publications using rsid if it exists and if it does not have any errors, else use hgvs
+        if row['RSID'] == 'NORSID' or len(row['RSID dbSNP errorMsgs']) > 0:
             litvar_rsid = None
         else:
             litvar_rsid = row['RSID']
 
-        # retrieve LitVar publications
-        litvar_publications_res = get_publications(row['HGVS'], litvar_rsid, None)
+        hgvs = None
+        if not (isinstance(row["HGVS"], float) and math.isnan(row["HGVS"])):
+            hgvs = row['HGVS'].split(' ')[0]
 
-        if litvar_publications_res.status != 200:
-            current_app.logger.error(
-                f'Retrieval of information for the user provided literature link failed 500')
-            return InternalResponse(None, 500)
-        else:
-            litvar_publications = litvar_publications_res.data
+        litvar_publications = []
+        if hgvs is not None or litvar_rsid is not None:
+            # retrieve LitVar publications
+            litvar_publications_res = get_publications(hgvs, litvar_rsid, None)
+
+            if litvar_publications_res.status != 200:
+                current_app.logger.error(
+                    f'Retrieval of information for the user provided literature link failed 500')
+            else:
+                litvar_publications = litvar_publications_res.data
 
         # retrieve variant
-        variant = get_variant_from_db(row)
+        variant: Variants = db.session.query(Variants).get(row['Variant Id'])
 
         # merge the user's publications together with litvar's publications together with the variant's db publications
         if variants_already_stored_in_db:
@@ -245,36 +248,39 @@ def check_for_new_litvar_publications():
         if db_snp_external_ref is not None:
             rsid = db_snp_external_ref.db_snp.rsid
 
+        hgvs = None
         # get one of its HGVS
-        hgvs = v.variant_hgvs[0].hgvs
+        if len(v.variant_hgvs) > 0:
+            hgvs = v.variant_hgvs[0].hgvs.split(' ')[0]
 
-        # retrieve LitVar publications using rsid if it exists, else use hgvs
-        litvar_publications_res = get_publications(hgvs, rsid, None)
+        if hgvs is not None or rsid is not None:
+            # retrieve LitVar publications using rsid if it exists, else use hgvs
+            litvar_publications_res = get_publications(hgvs, rsid, None)
 
-        if litvar_publications_res.status != 200:
-            current_app.logger.error(
-                f'Retrieval of information for the user provided literature link failed 500')
-        else:
-            litvar_publications = litvar_publications_res.data
+            if litvar_publications_res.status != 200:
+                current_app.logger.error(
+                    f'Retrieval of information for the user provided literature link failed 500')
+            else:
+                litvar_publications = litvar_publications_res.data
 
-            # get variant's current publications
-            variant_pub_ids = [vp.publication_id for vp in v.variants_publications]
-            variant_publications: List[Publications] = db.session.query(Publications).filter(
-                Publications.id.in_(variant_pub_ids)).all()
+                # get variant's current publications
+                variant_pub_ids = [vp.publication_id for vp in v.variants_publications]
+                variant_publications: List[Publications] = db.session.query(Publications).filter(
+                    Publications.id.in_(variant_pub_ids)).all()
 
-            # merge litvar publications with those found in db
-            updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
+                # merge litvar publications with those found in db
+                updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
 
-            # extract the publications not yet included for the variant
-            pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
+                # extract the publications not yet included for the variant
+                pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
 
-            date = datetime.now()
+                date = datetime.now()
 
-            # update the variant's publications in the db
-            store_variant_publications_in_db(pub_not_in_variant, v.id, [], date)
+                # update the variant's publications in the db
+                store_variant_publications_in_db(pub_not_in_variant, v.id, [], date)
 
-            auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=v.id)
-            db.session.add(auto_pub_eval_date)
+                auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=v.id)
+                db.session.add(auto_pub_eval_date)
 
     try:
         # Commit the session to persist changes to the database

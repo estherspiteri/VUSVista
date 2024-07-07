@@ -17,9 +17,7 @@ from server.services.samples_service import add_new_sample_to_db
 from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 
 
-def retrieve_all_vus_summaries_from_db():
-    variants: List[Variants] = db.session.query(Variants).all()
-
+def retrieve_vus_summaries_from_db(variants: List[Variants]):
     # sort by id
     variants.sort(key=lambda x: x.id)
 
@@ -67,12 +65,16 @@ def retrieve_all_vus_summaries_from_db():
 
 
 def get_variant_samples(variant_samples: List[VariantsSamples]) -> Tuple[List, List]:
-    variant_samples_list = [
-        {'id': vs.sample_id, 'hgvs': vs.variant_hgvs.hgvs, 'noOfVariants': len(vs.sample.variants_samples),
-         'consequence': vs.consequence} for vs in
-        variant_samples]
+    variant_samples_list = []
+    for vs in variant_samples:
+        hgvs = None
+        if vs.variant_hgvs is not None:
+            hgvs = vs.variant_hgvs.hgvs
 
-    # retrieve samples that do not have this variant
+        variant_samples_list.append({'id': vs.sample_id, 'hgvs': hgvs, 'noOfVariants': len(vs.sample.variants_samples),
+                                     'consequence': vs.consequence})
+
+        # retrieve samples that do not have this variant
     samples_ids = [vs.sample_id for vs in variant_samples]
     not_variants_samples: List[Samples] = db.session.query(Samples).filter(Samples.id.not_in(samples_ids)).all()
     not_variant_samples_list = [{'id': s.id, 'noOfVariants': len(s.variants_samples)} for s in
@@ -237,27 +239,32 @@ def commit_samples_update_to_variant(variant_id: int):
 
 def add_samples_to_variant(variant_id: int, samples_to_add: List) -> InternalResponse:
     for s in samples_to_add:
-        hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id,
-                                                                 VariantHgvs.hgvs == s['hgvs']).one_or_none()
+        hgvs_id = None
+        consequence = None
 
-        if hgvs is None:
-            hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
-            db.session.add(hgvs)
-            db.session.flush()
+        if 'hgvs' in s.keys():
+            hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id,
+                                                                     VariantHgvs.hgvs == s['hgvs']).one_or_none()
 
-        hgvs_consequence_dict = {}
+            if hgvs is None:
+                hgvs = VariantHgvs(variant_id=variant_id, hgvs=s['hgvs'], is_updated=False)
+                db.session.add(hgvs)
+                db.session.flush()
 
-        # get variant consequences though HGVS
-        get_consequences_for_new_vus_res = get_consequences_for_new_vus([hgvs.hgvs])
+            hgvs_id = hgvs.id
 
-        if get_consequences_for_new_vus_res.status != 200:
-            current_app.logger.error(
-                f'Retrieval of variant consequence failed 500')
-        else:
-            hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+            # get variant consequences though HGVS
+            get_consequences_for_new_vus_res = get_consequences_for_new_vus([hgvs.hgvs])
+
+            if get_consequences_for_new_vus_res.status != 200:
+                current_app.logger.error(
+                    f'Retrieval of variant consequence failed 500')
+            else:
+                hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+                consequence = hgvs_consequence_dict.get(hgvs.hgvs, "")
 
         variant_sample = VariantsSamples(variant_id=variant_id, sample_id=s['sampleId'], genotype=s['genotype'].upper(),
-                                         variant_hgvs_id=hgvs.id, consequence=hgvs_consequence_dict.get(hgvs.hgvs, ""))
+                                         variant_hgvs_id=hgvs_id, consequence=consequence)
         db.session.add(variant_sample)
 
         store_upload_details_for_variant_sample(None, False, s['sampleId'], variant_id, current_user.id)
@@ -281,20 +288,23 @@ def add_new_sample_to_variant(variant_id: int, sample_to_add: Dict) -> InternalR
 
     db.session.flush()
 
-    hgvs_consequence_dict = {}
+    hgvs = None
+    consequence = None
+    if 'hgvs' in sample_to_add.keys():
+        hgvs = sample_to_add["hgvs"]
+        # get variant consequences though HGVS
+        get_consequences_for_new_vus_res = get_consequences_for_new_vus([hgvs])
 
-    # get variant consequences though HGVS
-    get_consequences_for_new_vus_res = get_consequences_for_new_vus([sample_to_add["hgvs"]])
-
-    if get_consequences_for_new_vus_res.status != 200:
-        current_app.logger.error(
-            f'Retrieval of variant consequence failed 500')
-    else:
-        hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+        if get_consequences_for_new_vus_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of variant consequence failed 500')
+        else:
+            hgvs_consequence_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+            consequence = hgvs_consequence_dict.get(hgvs, "")
 
     # store the variants sample
-    add_variant_sample_to_db(variant_id, new_sample.id, sample_to_add["hgvs"], sample_to_add["genotype"],
-                             hgvs_consequence_dict.get(sample_to_add["hgvs"], ""))
+    add_variant_sample_to_db(variant_id, new_sample.id, hgvs, sample_to_add["genotype"],
+                             consequence)
 
     # store the upload details related to this variant & sample
     store_upload_details_for_variant_sample(None, False, new_sample.id, variant_id, current_user.id)
