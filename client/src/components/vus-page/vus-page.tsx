@@ -23,6 +23,10 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
 ) => {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isDeletingVariant, setIsDeletingVariant] = useState(false);
+  
+  const [numOfPublications, setNumOfPublication] = useState(
+    props.vus.numOfPublications
+  );
 
   return (
     <div className={styles["vus-page-container"]}>
@@ -44,14 +48,13 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
               >
                 Classification Review History
               </Link>
-              {props.vus.numOfPublications > 0 && (
-                <Link
-                  to={`/publication-view/${props.vus.id}`}
-                  className={styles.option}
-                >
-                  View Publications
-                </Link>
-              )}
+              <Link
+                to={`/publication-view/${props.vus.id}`}
+                className={styles.option}
+              >
+                View Publications ({numOfPublications})
+              </Link>
+
               <Button
                 text="Delete Variant"
                 icon="bin"
@@ -71,6 +74,7 @@ const VusPage: React.FunctionComponent<VusPageProps> = (
         acmgRules={props.acmgRules}
         vusService={props.vusService}
         sampleService={props.sampleService}
+        onRsidUpdateCallback={(numOfPublications) => setNumOfPublication(numOfPublications)}
       />
 
       {isDeleteModalVisible && (

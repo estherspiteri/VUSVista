@@ -22,7 +22,7 @@ export const AppProvider = ({ children }) => {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(
     initialContext.isUserLoggedIn
   );
-  console.log(taskIds);
+
   // poll to check if any file upload tasks have completed
   useEffect(() => {
     const pollTaskStatus = () => {

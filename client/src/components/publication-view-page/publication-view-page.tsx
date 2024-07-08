@@ -63,7 +63,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
               className={styles["add-publications-header-btn"]}
               onClick={() => setShowAddPublicationModal(true)}
             />
-            {props.publications.length > 0 && (
+            {publications.length > 0 && (
               <Button
                 text={"Save as PDF"}
                 onClick={handlePrint}
@@ -119,14 +119,15 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
             <VariantSummary variant={props.variant} />
           </div>
           <div className={styles["publication-previews"]}>
-            {!props.isPhenotypePublicationPage && (
-              <div
-                className={styles["publication-archive-link"]}
-                onClick={getPublicationUpdates}
-              >
-                Click here to view Publication updates
-              </div>
-            )}
+            {!props.isPhenotypePublicationPage &&
+              publications.length > 0 && (
+                <div
+                  className={styles["publication-archive-link"]}
+                  onClick={getPublicationUpdates}
+                >
+                  Click here to view Publication updates
+                </div>
+              )}
             <div className={styles.header}>
               <span className={styles["header-title"]}>Publication Titles</span>
               <DebouncedInput
@@ -228,7 +229,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                             )}
                           </div>
                           <div className={styles["manual-add"]}>
-                            {p.isManuallyAdded && <Icon name="profile" />}
+                            {p.isManuallyAdded && <Icon name="profile" fill="#008080"/>}
                           </div>
                         </div>
                       ))}

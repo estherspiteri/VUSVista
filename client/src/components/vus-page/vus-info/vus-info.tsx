@@ -25,6 +25,7 @@ type VusInfoProps = {
   acmgRules: IAcmgRule[];
   vusService?: VusService;
   sampleService?: SampleService;
+  onRsidUpdateCallback?: (numOfPublications: number) => void;
 };
 
 const VusInfo: React.FunctionComponent<VusInfoProps> = (
@@ -62,6 +63,39 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
   const [isRemovingSamplesModalVisible, setIsRemovingSamplesModalVisible] =
     useState(false);
   const [isRemovingSamples, setIsRemovingSamples] = useState(false);
+
+  const [updatedRsid, setUpdatedRsid] = useState(undefined);
+  const [updatedRsidErrorMsg, setUpdatedRsidErrorMsg] = useState("");
+  const [showUpdateRsidModal, setShowUpdateRsidModal] = useState(false);
+  const [showUpdateRsidConfirmationModal, setShowUpdateRsidConfirmationModal] =
+    useState(false);
+  const [isUpdatingRsid, setIsUpdatingRsid] = useState(false);
+
+  const [rsidInfo, setRsidInfo] = useState({
+    rsid: props.vus.rsid,
+    rsidDbsnpVerified: props.vus.rsidDbsnpVerified,
+    rsidDbsnpErrorMsgs: props.vus.rsidDbsnpErrorMsgs,
+  });
+  const [clinvarInfo, setClinvarInfo] = useState({
+    clinvarId: props.vus.clinvarId,
+    clinvarVariationId: props.vus.clinvarVariationId,
+    clinvarCanonicalSpdi: props.vus.clinvarCanonicalSpdi,
+    clinvarClassification: props.vus.clinvarClassification,
+    clinvarClassificationReviewStatus:
+      props.vus.clinvarClassificationReviewStatus,
+    clinvarClassificationLastEval: props.vus.clinvarClassificationLastEval,
+    clinvarErrorMsg: props.vus.clinvarErrorMsg,
+  });
+
+  const rsidEditIcon = (
+    <Icon
+      width={16}
+      height={16}
+      name="edit"
+      className={styles["edit-rsid-icon"]}
+      onClick={() => setShowUpdateRsidModal(true)}
+    />
+  );
 
   return (
     <div className={styles["vus-info-container"]}>
@@ -113,31 +147,32 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             <div className={styles["external-ref-title-container"]}>
               <p className={styles["info-title"]}>
                 {`ClinVar${
-                  props.vus.clinvarClassification?.length > 0 &&
-                  !props.vus.rsidDbsnpVerified
+                  clinvarInfo.clinvarClassification?.length > 0 &&
+                  !rsidInfo.rsidDbsnpVerified
                     ? " of suggested dbSNP RSID"
                     : ""
                 }:`}
               </p>
-              {(props.vus.clinvarClassification?.length > 0 ||
-                props.vus.clinvarErrorMsg?.length > 0) && (
+              {(clinvarInfo.clinvarClassification?.length > 0 ||
+                clinvarInfo.clinvarErrorMsg?.length > 0) && (
                 <Icon
                   width={18}
                   height={18}
                   name="external-link"
                   className={`${styles["external-link"]} ${styles.clinvar} ${
-                    props.vus.clinvarClassification?.length === 0
+                    clinvarInfo.clinvarClassification?.length === 0
                       ? styles.disabled
-                      : props.vus.rsid?.length > 0 &&
-                        !props.vus.rsidDbsnpVerified
+                      : (rsidInfo.rsid?.length > 0 &&
+                          !rsidInfo.rsidDbsnpVerified) ||
+                        clinvarInfo.clinvarErrorMsg.length > 0
                       ? styles["unverified-rsid"]
                       : styles.active
                   }`}
                   onClick={(e) => {
-                    if (props.vus.clinvarErrorMsg?.length === 0) {
+                    if (clinvarInfo.clinvarVariationId.length > 0) {
                       e.stopPropagation();
                       openInNewWindow(
-                        `https://www.ncbi.nlm.nih.gov/clinvar/variation/${props.vus.clinvarVariationId}`
+                        `https://www.ncbi.nlm.nih.gov/clinvar/variation/${clinvarInfo.clinvarVariationId}`
                       );
                     }
                   }}
@@ -146,47 +181,56 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
             </div>
             <div
               className={`${styles.info} ${
-                (!props.vus.clinvarClassification ||
-                  props.vus.clinvarClassification?.length === 0) &&
-                (!props.vus.clinvarErrorMsg ||
-                  props.vus.clinvarErrorMsg?.length === 0)
+                (!clinvarInfo.clinvarClassification ||
+                  clinvarInfo.clinvarClassification?.length === 0) &&
+                (!clinvarInfo.clinvarErrorMsg ||
+                  clinvarInfo.clinvarErrorMsg?.length === 0)
                   ? styles.disabled
-                  : props.vus.rsid?.length > 0 && !props.vus.rsidDbsnpVerified
+                  : (rsidInfo.rsid?.length > 0 &&
+                      !rsidInfo.rsidDbsnpVerified) ||
+                    clinvarInfo.clinvarErrorMsg.length > 0
                   ? styles["unverified-rsid"]
                   : ""
               }`}
             >
-              {props.vus.clinvarClassification?.length > 0 ? (
+              {clinvarInfo.clinvarClassification?.length > 0 && (
                 <>
                   <div className={styles.information}>
                     <div className={styles["info-title"]}>Classification:</div>
-                    {props.vus.clinvarClassification}
+                    {clinvarInfo.clinvarClassification}
                   </div>
                   <div className={styles.information}>
                     <div className={styles["info-title"]}>Review status:</div>
-                    {props.vus.clinvarClassificationReviewStatus}
+                    {clinvarInfo.clinvarClassificationReviewStatus}
                   </div>
                   <div className={styles.information}>
                     <div className={styles["info-title"]}>Last evaluated:</div>
-                    {props.vus.clinvarClassificationLastEval}
+                    {clinvarInfo.clinvarClassificationLastEval}
                   </div>
                   <div className={styles.information}>
                     <div className={styles["info-title"]}>Canonical SPDI:</div>
-                    {props.vus.clinvarCanonicalSpdi}
+                    {clinvarInfo.clinvarCanonicalSpdi}
                   </div>
                 </>
-              ) : props.vus.clinvarErrorMsg?.length > 0 ? (
+              )}
+
+              {clinvarInfo.clinvarErrorMsg?.length > 0 && (
                 <div className={styles.information}>
                   <div className={styles["info-title"]}>Error message:</div>
-                  {props.vus.clinvarErrorMsg}
+                  {clinvarInfo.clinvarErrorMsg}
                 </div>
-              ) : (
+              )}
+
+              {!(
+                clinvarInfo.clinvarClassification?.length > 0 &&
+                clinvarInfo.clinvarErrorMsg?.length > 0
+              ) && (
                 <div className={styles.information}>
                   No Clinvar entry found based on dbSNP's RSID
                 </div>
               )}
             </div>
-            {props.vus.clinvarClassification?.length > 0 && (
+            {clinvarInfo.clinvarClassification?.length > 0 && (
               <div
                 className={styles["clinvar-archive-link"]}
                 onClick={getClinvarUpdates}
@@ -200,26 +244,26 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           <div className={styles["info-container"]}>
             <div className={styles["external-ref-title-container"]}>
               <p className={styles["info-title"]}>dbSNP:</p>
-              {props.vus.rsid?.length > 0 && (
+              {rsidInfo.rsid?.length > 0 && (
                 <Icon
                   width={18}
                   height={18}
                   name="external-link"
                   className={`${styles["external-link"]} ${styles.dbsnp} ${
-                    props.vus.rsidDbsnpVerified
+                    rsidInfo.rsidDbsnpVerified
                       ? styles.active
-                      : props.vus.rsid?.length > 0
+                      : rsidInfo.rsid?.length > 0
                       ? styles["unverified-rsid"]
                       : styles.disabled
                   }`}
                   onClick={(e) => {
                     if (
-                      props.vus.rsidDbsnpVerified ||
-                      props.vus.rsid?.length > 0
+                      rsidInfo.rsidDbsnpVerified ||
+                      rsidInfo.rsid?.length > 0
                     ) {
                       e.stopPropagation();
                       openInNewWindow(
-                        `https://www.ncbi.nlm.nih.gov/snp/${props.vus.rsid}`
+                        `https://www.ncbi.nlm.nih.gov/snp/${rsidInfo.rsid}`
                       );
                     }
                   }}
@@ -229,53 +273,82 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
 
             <div
               className={`${styles.info} ${
-                props.vus.rsidDbsnpVerified
+                rsidInfo.rsidDbsnpVerified
                   ? ""
-                  : props.vus.rsid?.length > 0
+                  : rsidInfo.rsid?.length > 0
                   ? styles["unverified-rsid"]
                   : styles.disabled
               }`}
             >
-              {props.vus.rsid?.length > 0 ? (
+              {rsidInfo.rsid?.length > 0 ? (
                 <>
-                  {/* <div className={styles.information}>
-                    <div className={styles["info-title"]}>
-                      Is RSID verified:
-                    </div>
-                    {props.vus.rsidDbsnpVerified.toString()}
-                  </div> */}
-                  {props.vus.rsidDbsnpVerified ? (
-                    <div className={styles.information}>
-                      <div className={styles["info-title"]}>RSID:</div>
-                      {props.vus.rsid}
+                  {rsidInfo.rsidDbsnpVerified ? (
+                    <div className={styles["rsid-information"]}>
+                      <div className={styles.information}>
+                        <div className={styles["info-title"]}>RSID:</div>
+                        {rsidInfo.rsid}
+                      </div>
+                      {rsidEditIcon}
                     </div>
                   ) : (
                     <>
-                      {props.vus.rsid !== "NORSID" && (
+                      {rsidInfo.rsid !== "NORSID" && (
                         <div className={styles.information}>
                           <div className={styles["info-title"]}>
                             Suggested RSID:
                           </div>
-                          {props.vus.rsid}
+                          {rsidInfo.rsid}
                         </div>
                       )}
                       <div className={styles.information}>
                         <div className={styles["info-title"]}>
-                          Error message:
+                          Error message/s:
                         </div>
-                        {props.vus.rsid === "NORSID"
-                          ? "No RSID found."
-                          : props.vus.rsidDbsnpErrorMsgs}
+                        {rsidInfo.rsid === "NORSID" ? (
+                          "No RSID found."
+                        ) : (
+                          <div className={styles["rsid-errors"]}>
+                            {rsidInfo.rsidDbsnpErrorMsgs
+                              .split("|| ")
+                              .map((msg) => (
+                                <div className={styles["rsid-error"]}>
+                                  <div className={styles.bullet}>
+                                    {"\u25CF"}
+                                  </div>
+                                  <span>{msg}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
                 </>
               ) : (
-                <div className={styles.information}>
-                  No valid RSID found for this variant.
+                <div className={styles["rsid-information"]}>
+                  <p>No valid RSID found for this variant.</p>
+                  {rsidEditIcon}
                 </div>
               )}
             </div>
+
+            {rsidInfo.rsidDbsnpErrorMsgs?.length > 0 && (
+              <>
+                <Button
+                  text="Save Suggested RSID"
+                  className={styles["rsid-update-btn"]}
+                  onClick={() => {
+                    setUpdatedRsid(props.vus.rsid);
+                    setShowUpdateRsidConfirmationModal(true);
+                  }}
+                />
+                <Button
+                  text="Update RSID"
+                  className={styles["rsid-update-btn"]}
+                  onClick={() => setShowUpdateRsidModal(true)}
+                />
+              </>
+            )}
           </div>
         </div>
 
@@ -358,7 +431,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                       </span>
                       <span>{s.hgvs}</span>
                       <span>
-                        {s.consequence.replace("_", " ").replace("_", " ")}
+                        {s.consequence?.replace("_", " ").replace("_", " ")}
                       </span>
                     </div>
                     <input
@@ -438,15 +511,20 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     >
                       <b>{p.ontologyId}</b>: {p.name}
                     </div>
-                    <Icon
-                      name="publication"
-                      className={styles["pub-icon"]}
-                      onClick={() =>
-                        openInNewWindow(
-                          `/publication-phenotype-view/${props.vus.id}?rsid=${props.vus.rsid}&phenotype=${p.name}`
-                        )
-                      }
-                    />
+                    {/** Allow user to look up publications related to the phenotype, only if the vus has at least 1 HGVS or has a valid RSID  */}
+                    {((rsidInfo.rsid &&
+                      rsidInfo.rsidDbsnpErrorMsgs?.length === 0) ||
+                      samples.find((s) => s.hgvs?.length > 0)) && (
+                      <Icon
+                        name="publication"
+                        className={styles["pub-icon"]}
+                        onClick={() =>
+                          openInNewWindow(
+                            `/publication-phenotype-view/${props.vus.id}?rsid=${rsidInfo.rsid}&phenotype=${p.name}`
+                          )
+                        }
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -675,8 +753,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   disabled={
                     (showSamplesInfoToAdd &&
                       (sampleInfoToAdd.length !== sampleIdsToAdd.length ||
-                        sampleInfoToAdd.filter((s) => !s.hgvs || !s.genotype)
-                          .length > 0)) ||
+                        sampleInfoToAdd.filter((s) => !s.genotype).length >
+                          0)) ||
                     isAddingSamples
                   }
                   text={
@@ -807,9 +885,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
               <Button
                 disabled={
                   sampleInfoToAdd.length !== 1 ||
-                  sampleInfoToAdd.filter(
-                    (s) => !s.sampleId || !s.hgvs || !s.genotype
-                  ).length > 0 ||
+                  sampleInfoToAdd.filter((s) => !s.sampleId || !s.genotype)
+                    .length > 0 ||
                   showNewSampleIdError ||
                   isAddingSamples
                 }
@@ -828,6 +905,97 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           {isAddingSamples && <Loader />}
         </Modal>
       )}
+
+      {showUpdateRsidModal && (
+        <Modal
+          modalContainerStyle={styles["update-rsid-confirmation-modal"]}
+          title="Update RSID"
+        >
+          <div className={styles["update-rsid-confirmation-modal-content"]}>
+            <div className={styles["update-rsid"]}>
+              <p>RSID:</p>
+              <div className={styles["rsid-input"]}>
+                <Text
+                  value={updatedRsid}
+                  autoFocus={true}
+                  maxLength={15}
+                  onChange={(e) => {
+                    setUpdatedRsid(e.currentTarget.value);
+                    setUpdatedRsidErrorMsg(
+                      (e.currentTarget.value.length === 1 &&
+                        !e.currentTarget.value.startsWith("r")) ||
+                        (e.currentTarget.value.length > 1 &&
+                          !e.currentTarget.value.match(/^rs\d{1,13}$/))
+                        ? "RSID needs to start with 'rs' followed by a maximum of 13 digits"
+                        : ""
+                    );
+                  }}
+                />
+                {updatedRsidErrorMsg.length > 0 && (
+                  <p className={styles.error}>{updatedRsidErrorMsg}</p>
+                )}
+              </div>
+            </div>
+            <div className={styles["option-btns"]}>
+              <Button
+                text="Update RSID"
+                onClick={() => {
+                  setShowUpdateRsidModal(false);
+                  setShowUpdateRsidConfirmationModal(true);
+                }}
+                className={styles["delete-btn"]}
+                disabled={
+                  isUpdatingRsid ||
+                  !updatedRsid ||
+                  updatedRsid.trim().length === 0 ||
+                  updatedRsidErrorMsg.length > 0
+                }
+              />
+              <Button
+                text="Cancel update"
+                onClick={() => {
+                  setIsUpdatingRsid(false);
+                  setShowUpdateRsidModal(false);
+                  setUpdatedRsid(undefined);
+                  setUpdatedRsidErrorMsg("");
+                }}
+                disabled={isUpdatingRsid}
+              />
+            </div>
+          </div>
+          {isUpdatingRsid && <Loader />}
+        </Modal>
+      )}
+
+      {showUpdateRsidConfirmationModal && (
+        <Modal modalContainerStyle={styles["update-rsid-confirmation-modal"]}>
+          <div className={styles["update-rsid-confirmation-modal-content"]}>
+            <p>
+              Are you sure you want to update Variant&nbsp;
+              <b>{props.vus.id}</b>'s RSID to <b>{updatedRsid}</b> ?
+            </p>
+            <div className={styles["option-btns"]}>
+              <Button
+                text="Yes, update it"
+                onClick={saveSuggestedRsid}
+                className={styles["delete-btn"]}
+                disabled={isUpdatingRsid}
+              />
+              <Button
+                text="No, return to variant page"
+                onClick={() => {
+                  setIsUpdatingRsid(false);
+                  setShowUpdateRsidConfirmationModal(false);
+                  setUpdatedRsid(undefined);
+                  setUpdatedRsidErrorMsg("");
+                }}
+                disabled={isUpdatingRsid}
+              />
+            </div>
+          </div>
+          {isUpdatingRsid && <Loader />}
+        </Modal>
+      )}
     </div>
   );
 
@@ -836,7 +1004,7 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
 
     if (clinvarUpdates.length === 0) {
       props.vusService
-        .getClinvarUpdates({ clinvarId: props.vus.clinvarId })
+        .getClinvarUpdates({ clinvarId: clinvarInfo.clinvarId })
         .then((res) => {
           if (res.isSuccess) {
             setClinvarUpdates(res.clinvarUpdates);
@@ -1008,6 +1176,63 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           closeSampleRemovalModal();
         }
         setIsRemovingSamples(false);
+      });
+  }
+
+  function saveSuggestedRsid() {
+    setIsUpdatingRsid(true);
+    props.vusService
+      .updateRsid({
+        variantId: props.vus.id,
+        newRsid: updatedRsid,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          setRsidInfo({
+            rsid: res.updatedExternalRefData.rsid,
+            rsidDbsnpErrorMsgs: res.updatedExternalRefData.rsidDbsnpErrorMsgs,
+            rsidDbsnpVerified: res.updatedExternalRefData.rsidDbsnpVerified,
+          });
+
+          setClinvarInfo({
+            clinvarId: res.updatedExternalRefData.clinvarId,
+            clinvarVariationId: res.updatedExternalRefData.clinvarVariationId,
+            clinvarCanonicalSpdi:
+              res.updatedExternalRefData.clinvarCanonicalSpdi,
+            clinvarClassification:
+              res.updatedExternalRefData.clinvarClassification,
+            clinvarClassificationLastEval:
+              res.updatedExternalRefData.clinvarClassificationLastEval,
+            clinvarErrorMsg: res.updatedExternalRefData.clinvarErrorMsg,
+            clinvarClassificationReviewStatus:
+              res.updatedExternalRefData.clinvarClassificationReviewStatus,
+          });
+
+          setClinvarUpdates([]);
+
+          if (res.updatedExternalRefData.clinvarId) {
+            props.vusService
+              .getClinvarUpdates({
+                clinvarId: res.updatedExternalRefData.clinvarId,
+              })
+              .then((res) => {
+                if (res.isSuccess) {
+                  setClinvarUpdates(res.clinvarUpdates);
+                  if (res.datesWithUpdates)
+                    setDatesWithUpdates(res.datesWithUpdates);
+                }
+              });
+          }
+
+          props.onRsidUpdateCallback &&
+            props.onRsidUpdateCallback(
+              res.updatedExternalRefData.numOfPublications
+            );
+        }
+        setShowUpdateRsidConfirmationModal(false);
+        setIsUpdatingRsid(false);
+        setUpdatedRsid(undefined);
+        setUpdatedRsidErrorMsg("");
       });
   }
 };

@@ -2,9 +2,9 @@
   position: relative;
 
   &.coloured {
-    .header,
+    .header-content,
     .additional-info {
-      background-color: #e2f9f9;
+      background-color: #e2f9f9 !important;
     }
   }
 
@@ -21,9 +21,7 @@
   .header {
     display: flex;
     flex-direction: row;
-    gap: 16px;
     color: black;
-    background-color: #fff;
 
     .checkbox {
       margin-right: 16px;
@@ -39,6 +37,8 @@
       text-align: center;
       width: calc(100% / 7);
       box-sizing: border-box;
+      flex-shrink: 0;
+      background-color: #fff;
     }
   }
 }

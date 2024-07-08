@@ -9,4 +9,5 @@ export interface IVUSSummary {
   rsidDbsnpVerified?: boolean;
   classification?: string;
   isFoundInClinvar?: boolean;
+  rsidReviewRequired?: boolean;
 }

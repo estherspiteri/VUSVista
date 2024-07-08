@@ -236,6 +236,37 @@ def get_publications_by_variant_id_from_db(variant_id: str) -> (Variants, List[D
     return variant, publication_list
 
 
+def update_variant_publications(variant: Variants, hgvs: str | None, rsid: str | None):
+    if hgvs is not None or rsid is not None:
+        # retrieve LitVar publications using rsid if it exists, else use hgvs
+        litvar_publications_res = get_publications(hgvs, rsid, None)
+
+        if litvar_publications_res.status != 200:
+            current_app.logger.error(
+                f'Retrieval of information for the user provided literature link failed 500')
+        else:
+            litvar_publications = litvar_publications_res.data
+
+            # get variant's current publications
+            variant_pub_ids = [vp.publication_id for vp in variant.variants_publications]
+            variant_publications: List[Publications] = db.session.query(Publications).filter(
+                Publications.id.in_(variant_pub_ids)).all()
+
+            # merge litvar publications with those found in db
+            updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
+
+            # extract the publications not yet included for the variant
+            pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
+
+            date = datetime.now()
+
+            # update the variant's publications in the db
+            store_variant_publications_in_db(pub_not_in_variant, variant.id, [], date)
+
+            auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=variant.id)
+            db.session.add(auto_pub_eval_date)
+
+
 def check_for_new_litvar_publications():
     variants = db.session.query(Variants).all()
 
@@ -253,34 +284,7 @@ def check_for_new_litvar_publications():
         if len(v.variant_hgvs) > 0:
             hgvs = v.variant_hgvs[0].hgvs.split(' ')[0]
 
-        if hgvs is not None or rsid is not None:
-            # retrieve LitVar publications using rsid if it exists, else use hgvs
-            litvar_publications_res = get_publications(hgvs, rsid, None)
-
-            if litvar_publications_res.status != 200:
-                current_app.logger.error(
-                    f'Retrieval of information for the user provided literature link failed 500')
-            else:
-                litvar_publications = litvar_publications_res.data
-
-                # get variant's current publications
-                variant_pub_ids = [vp.publication_id for vp in v.variants_publications]
-                variant_publications: List[Publications] = db.session.query(Publications).filter(
-                    Publications.id.in_(variant_pub_ids)).all()
-
-                # merge litvar publications with those found in db
-                updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
-
-                # extract the publications not yet included for the variant
-                pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
-
-                date = datetime.now()
-
-                # update the variant's publications in the db
-                store_variant_publications_in_db(pub_not_in_variant, v.id, [], date)
-
-                auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=v.id)
-                db.session.add(auto_pub_eval_date)
+        update_variant_publications(v, hgvs, rsid)
 
     try:
         # Commit the session to persist changes to the database

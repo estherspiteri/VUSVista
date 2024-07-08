@@ -24,14 +24,17 @@ def get_litvar_info(search_string: str) -> InternalResponse:
         if len(litvar_search_variant_res_json) > 0:
             # TODO: check gene match
 
-            # assuming first result is the most relevant
-            litvar_id = litvar_search_variant_res_json[0]['_id']
+            litvar_id = None
+            for litvar_res in litvar_search_variant_res_json:
+                if litvar_res['name'] == search_string:
+                    litvar_id = litvar_res['_id']
 
-            current_app.logger.info(f"Litvar ID for variant {search_string} is {litvar_id}")
-            return InternalResponse(litvar_id, 200)
-        else:
-            current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for {search_string}!')
-            return InternalResponse('', 500, litvar_search_variant_res.reason)
+            if litvar_id is not None:
+                current_app.logger.info(f"Litvar ID for variant {search_string} is {litvar_id}")
+                return InternalResponse(litvar_id, 200)
+
+        current_app.logger.info(f'LitVar Search Variant query - no LitVar id found for {search_string}!')
+        return InternalResponse('', 500, litvar_search_variant_res.reason)
 
 
 # search by rsid if it exists else by hgvs (if it exists)
@@ -73,27 +76,59 @@ def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
         return hgvs_litvar_info_res
 
 
+# get all results from Litvar (split into pages)
+def get_all_litvar_results(encoded_litvar_id: str, encoded_optional_text: str | None):
+    base_url = "https://www.ncbi.nlm.nih.gov/research/litvar2-api/search/"
+    all_results = []
+    page = 1
+
+    while True:
+        # Construct the URL for the current page
+        if encoded_optional_text is None:
+            url = f"{base_url}?variant={encoded_litvar_id}&sort=score%20desc&page={page}"
+        else:
+            url = f"{base_url}?text={encoded_optional_text}&variant={encoded_litvar_id}&sort=score%20desc&page={page}"
+        litvar_publications_res = requests.get(url)
+
+        if litvar_publications_res.status_code != 200:
+            current_app.logger.error(
+                f'Response failure {litvar_publications_res.status_code}: {litvar_publications_res.reason}')
+            return InternalResponse(None, litvar_publications_res.status_code, litvar_publications_res.reason)
+        else:
+            data = litvar_publications_res.json()
+
+            # Add the current page of results to the list of all results
+            all_results.extend(data['results'])
+
+            # Check if there are more pages
+            if data['total_pages'] == data['current']:
+                break
+
+            # Move to the next page
+            page += 1
+
+    return InternalResponse(all_results, 200)
+
+
 def get_litvar_publications(litvar_id: str, optional_text: str | None) -> InternalResponse:
     url_encoded_id = parse.quote(litvar_id)
+    url_encoded_optional_text = None
 
-    if optional_text is None:
-        url = f"https://www.ncbi.nlm.nih.gov/research/litvar2-api/search/?variant={url_encoded_id}&sort=score%20desc"
-    else:
+    if optional_text is not None:
         url_encoded_optional_text = parse.quote(optional_text)
-        url = f"https://www.ncbi.nlm.nih.gov/research/litvar2-api/search/?text={url_encoded_optional_text}&variant={url_encoded_id}&sort=score%20desc"
 
-    litvar_publications_res = requests.get(url)
+    litvar_publications_res = get_all_litvar_results(url_encoded_id, url_encoded_optional_text)
 
-    if litvar_publications_res.status_code != 200:
+    if litvar_publications_res.status != 200:
         current_app.logger.error(
-            f'Response failure {litvar_publications_res.status_code}: {litvar_publications_res.reason}')
-        return InternalResponse(None, litvar_publications_res.status_code, litvar_publications_res.reason)
+            f'Response failure {litvar_publications_res.status}: {litvar_publications_res.error_msg}')
+        return InternalResponse(None, litvar_publications_res.status, litvar_publications_res.error_msg)
     else:
-        litvar_publications_data = litvar_publications_res.json()
+        litvar_publications_data = litvar_publications_res.data
 
         litvar_publications: List[Publications] = []
 
-        for publication in litvar_publications_data['results']: # TODO: include doi & fix date when received in front (convert in front)
+        for publication in litvar_publications_data: # TODO: include doi & fix date when received in front (convert in front)
             date = datetime.strptime(publication['date'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y/%m/%d')
             litvar_publications.append(Publications(title=publication['title'], pmid=publication['pmid'],
                                                     authors=publication['authors'], journal=publication['journal'],

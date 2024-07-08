@@ -128,7 +128,7 @@ def extract_clinvar_germline_classification(clinvar_dict: Dict):
                                .get('Classifications').get('GermlineClassification'))
 
     last_eval = ""
-    if germline_classification.get('@DateLastEvaluated') != "1/01/01 00:00":
+    if germline_classification.get('@DateLastEvaluated') is not None and germline_classification.get('@DateLastEvaluated') != "1/01/01 00:00":
         last_eval = germline_classification.get('@DateLastEvaluated').replace('-', '/') + ' 00:00'
 
     return {'description': germline_classification.get('Description'), 'last_evaluated': last_eval,
@@ -190,12 +190,12 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
                     are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(genome_version,
                                                                                               clinvar_dict,
                                                                                               gene, chr, chr_pos)
-                    if are_equivalent:
-                        clinical_significance = extract_clinvar_germline_classification(clinvar_dict)
-                        canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict)
-                        variation_id = extract_clinvar_variation_id(clinvar_dict)
-                    else:
-                        is_success = False
+                    # if are_equivalent:
+                    clinical_significance = extract_clinvar_germline_classification(clinvar_dict)
+                    canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict)
+                    variation_id = extract_clinvar_variation_id(clinvar_dict)
+                    # else:
+                    #     is_success = False
 
         return InternalResponse((is_success, clinical_significance, canonical_spdi, variation_id, error_msg), 200)
 

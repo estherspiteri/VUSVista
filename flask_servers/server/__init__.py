@@ -46,7 +46,7 @@ def create_app():
             },
             'file': {
                 'class': 'logging.handlers.RotatingFileHandler',
-                'filename': 'app.log',
+                'filename': 'logs/app.log',
                 'maxBytes': 10240,
                 'backupCount': 10,
                 'formatter': 'file_formatter',

@@ -8,11 +8,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from server import db
 from server.helpers.data_helper import convert_df_to_list
 from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, Phenotypes, \
-    FileUploads, Publications, AutoClinvarUpdates, VariantHgvs
+    FileUploads, Publications, AutoClinvarUpdates, VariantHgvs, VariantsPublications, AutoPublicationEvalDates, \
+    AutoClinvarEvalDates
 from server.responses.internal_response import InternalResponse
-from server.services.clinvar_service import get_last_saved_clinvar_update
+from server.services.clinvar_service import get_last_saved_clinvar_update, clinvar_clinical_significance_pipeline, \
+    store_clinvar_info
 from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.phenotype_service import append_phenotype_to_sample
+from server.services.publications_service import update_variant_publications
 from server.services.samples_service import add_new_sample_to_db
 from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 
@@ -31,6 +34,7 @@ def retrieve_vus_summaries_from_db(variants: List[Variants]):
     # insert columns for dbsnp
     vus_df['rsid'] = ""
     vus_df['rsidDbsnpVerified'] = False
+    vus_df['rsidReviewRequired'] = False
 
     # insert column for clinvar flag
     vus_df['isFoundInClinvar'] = False
@@ -54,6 +58,8 @@ def retrieve_vus_summaries_from_db(variants: List[Variants]):
                 # only return RSID if it is valid for the respective variant
                 if len(ref.error_msg) == 0:
                     vus_df.at[index, 'rsid'] = dbsnp.rsid
+                else:
+                    vus_df.at[index, 'rsidReviewRequired'] = True
 
             # only return True Clinvar flag if it is valid for the respective variant
             elif ref.db_type == 'clinvar' and len(ref.error_msg) == 0:
@@ -327,3 +333,161 @@ def remove_sample_from_variant(variant_id: int, sample_ids_to_remove: List[str])
     db.session.query(Phenotypes).filter(~Phenotypes.sample.any()).delete()
 
     return commit_samples_update_to_variant(variant_id)
+
+
+def update_variant_rsid(variant_id: int, new_rsid: str):
+    variant: Variants = db.session.query(Variants).get(variant_id)
+
+    db_snp: DbSnp | None = None
+    db_snp_ref: ExternalReferences | None = None
+
+    clinvar: Clinvar | None = None
+    clinvar_ref: ExternalReferences | None = None
+    clinvar_error_msg = ''
+    clinvar_clinical_significance = None
+
+    # check if DbSNP entry exists for given variant
+    for ref in variant.external_references:
+        if ref.db_type == 'db_snp':
+            ref.db_snp.rsid = new_rsid
+            db_snp = ref.db_snp
+            db_snp_ref = ref
+            db_snp_ref.error_msg = ""
+        else:
+            clinvar = ref.clinvar
+            clinvar_ref = ref
+
+    # create new DbSNP entry
+    if db_snp is None:
+        db_snp_ref = ExternalReferences(variant_id=variant_id,
+                                        db_type='db_snp',
+                                        error_msg=None)
+        db.session.add(db_snp_ref)
+        db.session.flush()
+
+        db_snp = DbSnp(rsid=new_rsid,
+                       external_db_snp_id=db_snp_ref.id)
+        db.session.add(db_snp)
+
+    # remove all automatically added publications since they are related to old RSID
+    db.session.query(VariantsPublications).filter(VariantsPublications.variant_id == variant_id, VariantsPublications.is_manually_added.is_(False)).delete()
+
+    manual_publications = [p for p in variant.variants_publications if p.is_manually_added]
+    variant.variants_publications = manual_publications
+
+    db.session.flush()
+
+    # remove publications which are no longer relate dto a variant
+    db.session.query(Publications).filter(~Publications.variants_publications.any()).delete()
+
+    # remove publication eval dates for variant
+    db.session.query(AutoPublicationEvalDates).filter(AutoPublicationEvalDates.variant_id == variant_id).delete()
+
+    db.session.flush()
+
+    # get publications related to new RSID
+    hgvs = None
+    # get one of the variant's HGVS
+    if len(variant.variant_hgvs) > 0:
+        hgvs = variant.variant_hgvs[0].hgvs.split(' ')[0]
+
+    update_variant_publications(variant, hgvs, new_rsid)
+
+    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline('GRCh37',
+                                                                                        new_rsid,
+                                                                                        variant.gene_name,
+                                                                                        variant.chromosome,
+                                                                                        variant.chromosome_position)
+
+    if clinvar_clinical_significance_pipeline_res.status != 200:
+        current_app.logger.error(
+            f"ClinVar clinical significance pipeline failed for variant with RSID {new_rsid}!")
+    else:
+        # execute pipeline
+        is_success, clinical_significance, canonical_spdi, variation_id, error_msg = (
+            clinvar_clinical_significance_pipeline_res.data)
+
+        clinvar_error_msg = error_msg
+        clinvar_clinical_significance = clinical_significance
+
+        # if clinvar entry found
+        if len(variation_id) > 0:
+            if clinvar is None:
+                clinvar_ref = ExternalReferences(variant_id=variant_id,
+                                                 db_type='clinvar',
+                                                 error_msg=error_msg)
+                db.session.add(clinvar_ref)
+                db.session.flush()
+
+                clinvar = Clinvar(variation_id=variation_id,
+                                  external_clinvar_id=clinvar_ref.id,
+                                  canonical_spdi=canonical_spdi)
+                db.session.add(clinvar)
+                db.session.flush()
+            else:
+                # delete existing entries of auto_eval_dates and auto_clinvar_updates
+                auto_clinvar_eval_dates_query = db.session.query(AutoClinvarEvalDates).filter(
+                    AutoClinvarEvalDates.clinvar_id == clinvar.id)
+                auto_clinvar_eval_dates: List[AutoClinvarEvalDates] = auto_clinvar_eval_dates_query.all()
+                for eval_dates in auto_clinvar_eval_dates:
+                    if eval_dates.auto_clinvar_update_id is not None:
+                        db.session.delete(eval_dates.auto_clinvar_update)
+
+                auto_clinvar_eval_dates_query.delete()
+
+                clinvar.variation_id = variation_id
+                clinvar.canonical_spdi = canonical_spdi
+                clinvar_ref.error_msg = error_msg
+
+            store_clinvar_info(clinvar.id, clinical_significance['description'],
+                               clinical_significance['review_status'], clinical_significance['last_evaluated'],
+                               True)
+        # if no clinvar entry found and the variant used to have a clinvar entry
+        elif clinvar is not None:
+            # delete existing entries of auto_eval_dates and auto_clinvar_updates
+            auto_clinvar_eval_dates_query = db.session.query(AutoClinvarEvalDates).filter(
+                AutoClinvarEvalDates.clinvar_id == clinvar.id)
+            auto_clinvar_eval_dates: List[AutoClinvarEvalDates] = auto_clinvar_eval_dates_query.all()
+            for eval_dates in auto_clinvar_eval_dates:
+                if eval_dates.auto_clinvar_update_id is not None:
+                    db.session.delete(eval_dates.auto_clinvar_update)
+
+            auto_clinvar_eval_dates_query.delete()
+
+            db.session.delete(clinvar)
+
+            db.session.delete(clinvar_ref)
+
+            clinvar = None
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        updated_external_ref_data = {'rsid': new_rsid, 'rsidDbsnpVerified': len(db_snp_ref.error_msg) == 0,
+                                     'rsidDbsnpErrorMsgs': db_snp_ref.error_msg, 'numOfPublications': len(variant.variants_publications)}
+
+        if clinvar is not None:
+            # populate the clinvar fields
+            updated_external_ref_data['clinvarId'] = clinvar.id
+            updated_external_ref_data['clinvarVariationId'] = clinvar.variation_id
+            updated_external_ref_data['clinvarCanonicalSpdi'] = clinvar.canonical_spdi
+            if len(clinvar_clinical_significance.keys()) > 0:
+                updated_external_ref_data['clinvarClassification'] = clinvar_clinical_significance['description']
+                updated_external_ref_data['clinvarClassificationReviewStatus'] = clinvar_clinical_significance[
+                    'review_status']
+                updated_external_ref_data['clinvarClassificationLastEval'] = clinvar_clinical_significance['last_evaluated']
+            else:
+                updated_external_ref_data['clinvarClassification'] = ""
+                updated_external_ref_data['clinvarClassificationReviewStatus'] = ""
+                updated_external_ref_data['clinvarClassificationLastEval'] = ""
+            updated_external_ref_data['clinvarErrorMsg'] = clinvar_error_msg
+
+        return InternalResponse({'isSuccess': True, 'updated_external_ref_data': updated_external_ref_data}, 200)
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since RSID update for variant ID {variant_id} to {new_rsid} in DB failed due to error: {e}')
+        return InternalResponse({'isSuccess': False}, 500)
+

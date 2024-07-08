@@ -24,6 +24,8 @@ import {
   IRemoveSamplesResponse,
   IStoreAndVerifyVusFileRequest,
   IStoreAndVerifyVusFileResponse,
+  IUpdateRsidRequest,
+  IUpdateRsidResponse,
   IUploadVusRequest,
   IUploadVusResponse,
   IVerifyGeneRequest,
@@ -106,7 +108,7 @@ export class VusService {
     input: ICheckFileUploadStatusesRequest
   ): Promise<ICheckFileUploadStatusesResponse> {
     const result: ICheckFileUploadStatusesResponse = await customFetch(
-      `/vus/file/check-status/${input.taskIds.join(',')}`,
+      `/vus/file/check-status/${input.taskIds.join(",")}`,
       {
         method: "GET",
         headers: {
@@ -129,6 +131,7 @@ export class VusService {
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
       },
+      cache: "no-store",
     })
       .then((response) => {
         return response;
@@ -207,7 +210,7 @@ export class VusService {
       }
     )
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -297,7 +300,7 @@ export class VusService {
       }
     )
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -320,7 +323,7 @@ export class VusService {
       }
     )
       .then((response) => {
-        return response
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 
@@ -343,7 +346,25 @@ export class VusService {
       }
     )
       .then((response) => {
-        return response
+        return response;
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async updateRsid(input: IUpdateRsidRequest): Promise<IUpdateRsidResponse> {
+    const result: IUpdateRsidResponse = await customFetch(
+      `/vus/update-rsid/${input.variantId}/${input.newRsid}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        },
+      }
+    )
+      .then((response) => {
+        return response;
       })
       .catch((error) => console.error("error============:", error)); //TODO: handle error
 

@@ -386,8 +386,8 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                   disabled={
                     (showVariantInfoToAdd &&
                       (variantInfoToAdd.length !== variantIdsToAdd.length ||
-                        variantInfoToAdd.filter((v) => !v.hgvs || !v.genotype)
-                          .length > 0)) ||
+                        variantInfoToAdd.filter((v) => !v.genotype).length >
+                          0)) ||
                     isAddingVariants
                   }
                   text={
@@ -436,11 +436,10 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   }
 
   function updatedVariantHgvsCheck() {
-    //check that hgvs has been updated & make sure it is not an empty string
+    //check that hgvs has been updated
     if (
-      editedHgvs?.trim().length > 0 &&
       variants.find((v) => v.variantId === variantBeingEdited).hgvs !==
-        editedHgvs
+      editedHgvs
     ) {
       setIsHgvsUpdateWarningModalVisible(true);
     } else {
@@ -460,7 +459,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
 
       if (v.variantId === variantId) {
         variant.hgvs = editedHgvs;
-        variant.isHgvsUpdated = true;
+        variant.isHgvsUpdated = editedHgvs.trim().length > 0;
       }
 
       updatedVariants = updatedVariants.concat(variant);
@@ -470,7 +469,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
       .updateHgvs({
         variantId: variantId.toString(),
         sampleId: props.sample.sampleId,
-        updatedHgvs: editedHgvs,
+        updatedHgvs: editedHgvs.trim().length === 0 ? 'none' : editedHgvs,
       })
       .then((res) => {
         if (res.isSuccess) {

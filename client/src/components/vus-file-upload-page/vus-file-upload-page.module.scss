@@ -141,13 +141,15 @@
         border-radius: 8px;
         border-top-left-radius: 0px;
         color: #fff;
+        width: max-content;
 
         .genes {
           display: flex;
           flex-direction: row;
           gap: 8px;
           padding: 0px 16px 0px 8px;
-          width: max-content !important;
+          width: 100%;
+          box-sizing: border-box;
 
           input {
             cursor: pointer;

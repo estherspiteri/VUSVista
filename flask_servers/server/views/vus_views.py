@@ -1,6 +1,7 @@
 import threading
 from datetime import datetime
 from io import BytesIO
+from typing import List
 
 import pandas as pd
 from flask import Blueprint, Response, current_app, request
@@ -10,12 +11,12 @@ from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db, file_upload_tasks
-from server.models import GeneAttributes, FileUploadEvents
+from server.models import GeneAttributes, FileUploadEvents, Variants
 from server.services.acmg_service import get_acmg_rules
 from server.services.clinvar_service import get_variant_clinvar_updates
-from server.services.view_vus_service import retrieve_all_vus_summaries_from_db, \
+from server.services.view_vus_service import retrieve_vus_summaries_from_db, \
     retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant, add_new_sample_to_variant, \
-    remove_sample_from_variant
+    remove_sample_from_variant, update_variant_rsid
 from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes
 from server.services.publications_service import add_publications_to_variant, \
     get_variant_publication_updates
@@ -130,7 +131,8 @@ def check_file_upload_status(task_ids: str):
 def view_all_vus():
     current_app.logger.info(f"User requested to view all VUS")
 
-    var_list = retrieve_all_vus_summaries_from_db()
+    variants: List[Variants] = db.session.query(Variants).all()
+    var_list = retrieve_vus_summaries_from_db(variants)
 
     return Response(json.dumps({'isSuccess': True, 'vusList': var_list}), 200, mimetype='application/json')
 
@@ -255,3 +257,12 @@ def remove_samples(variant_id: str):
     res = remove_sample_from_variant(int(variant_id), sample_ids_to_remove_list)
 
     return Response(json.dumps({'isSuccess': res.status == 200, 'updatedSamples': res.data['updatedSamples'], "updatedNotVariantSamples": res.data['updatedNotVariantSamples'], "updatedPhenotypes": res.data["updatedPhenotypes"]}), res.status)
+
+
+@vus_views.route('/update-rsid/<int:variant_id>/<string:new_rsid>', methods=['POST'])
+def update_rsid(variant_id: int, new_rsid: str):
+    current_app.logger.info(f"Updating RSID for variant ID {variant_id} to: {new_rsid}")
+
+    res = update_variant_rsid(variant_id, new_rsid)
+
+    return Response(json.dumps({'isSuccess': res.status == 200, 'updatedExternalRefData': res.data['updated_external_ref_data']}), res.status)

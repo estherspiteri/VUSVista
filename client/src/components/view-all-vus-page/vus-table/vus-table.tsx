@@ -80,6 +80,27 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
         sortingFn: rsidSortFn,
       },
       {
+        accessorKey: "rsidReviewRequired",
+        cell: (info) => {
+          const val = info.getValue() as boolean;
+          if (val === true || val === false) {
+            return (
+              <div className={styles.checkmark}>
+                <Icon
+                  name={val ? "checkmark" : "close"}
+                  fill="#008080"
+                  stroke={!val ? "#008080" : undefined}
+                />
+              </div>
+            );
+          }
+        },
+        header: () => <span>Require RSID Review</span>,
+        meta: {
+          filterVariant: "boolean",
+        },
+      },
+      {
         accessorKey: "isFoundInClinvar",
         cell: (info) => {
           const val = info.getValue() as boolean;
@@ -95,7 +116,7 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
             );
           }
         },
-        header: () => <span>Clinvar</span>,
+        header: () => <span>Found in Clinvar</span>,
         meta: {
           filterVariant: "boolean",
         },

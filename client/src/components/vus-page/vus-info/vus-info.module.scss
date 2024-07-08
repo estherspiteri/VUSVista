@@ -172,6 +172,26 @@
             background-color: #a51534 !important;
           }
 
+          .rsid-information {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+
+            .edit-rsid-icon {
+              fill: #fff;
+              cursor: pointer;
+              padding: 3px;
+              border-radius: 4px;
+              &:hover {
+                background-color: #fff;
+
+                svg {
+                  fill: #008080;
+                }
+              }
+            }
+          }
+
           .information {
             display: flex;
             flex-direction: row;
@@ -179,6 +199,22 @@
             .info-title {
               min-width: 150px;
               color: #fff;
+            }
+
+            .rsid-errors {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+
+              .rsid-error {
+                display: flex;
+                flex-direction: row;
+                gap: 16px;
+
+                .bullet {
+                  color: #fff;
+                }
+              }
             }
           }
         }
@@ -194,6 +230,10 @@
           &:hover {
             text-decoration: underline;
           }
+        }
+
+        .rsid-update-btn > button {
+          width: 100%;
         }
       }
     }
@@ -420,6 +460,11 @@
     }
   }
 
+  .error {
+    color: rgb(142, 27, 27);
+    font-size: 12px;
+  }
+
   .remove-samples-modal,
   .add-new-sample-modal,
   .add-samples-modal {
@@ -461,7 +506,6 @@
           padding: 24px 16px 24px 0;
 
           .error {
-            color: #a51534;
             margin-left: 36px;
             padding-top: 8px;
           }
@@ -515,6 +559,42 @@
             }
           }
         }
+      }
+    }
+  }
+
+  .update-rsid-confirmation-modal {
+    width: 30%;
+
+    .update-rsid-confirmation-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+
+      .update-rsid {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        margin-bottom: 8px;
+
+        p {
+          margin: auto 0;
+        }
+
+        .rsid-input {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+      }
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
       }
     }
   }

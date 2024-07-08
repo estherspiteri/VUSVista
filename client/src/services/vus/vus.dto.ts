@@ -3,6 +3,7 @@ import { IClinvarUpdate } from "../../models/clinvar-updates.model";
 import { IPhenotype } from "../../models/phenotype.model";
 import { IPublicationPreview } from "../../models/publication-view.model";
 import { ISampleToAddInfo } from "../../models/sample-to-add-info.model";
+import { IUpdatedExternalRefData } from "../../models/updated-external-ref-data.model";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
 import { INotVusSample, IVus, IVusSample } from "../../models/view-vus.model";
 import {
@@ -166,4 +167,14 @@ export interface IRemoveSamplesResponse {
   updatedSamples?: IVusSample[];
   updatedNotVariantSamples?: INotVusSample[];
   updatedPhenotypes?: IPhenotype[];
+}
+
+export interface IUpdateRsidRequest {
+  variantId: number;
+  newRsid: string;
+}
+
+export interface IUpdateRsidResponse {
+  isSuccess: boolean;
+  updatedExternalRefData?: IUpdatedExternalRefData | null
 }
