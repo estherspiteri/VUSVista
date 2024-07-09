@@ -21,6 +21,7 @@ type VusTableProps = {
   isClickable?: boolean;
   showCheckboxes?: boolean;
   onSelectedVariantsUpdate?: (selectedVariantsIds: number[]) => void;
+  onVariantClickCallback?: () => void;
 };
 
 const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
@@ -203,6 +204,9 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
               isClickable={props.isClickable}
               showCheckbox={props.showCheckboxes}
               onCheckboxToggle={() => onCheckboxToggle(row.original.id)}
+              onVariantClickCallback={() =>
+                props.onVariantClickCallback && props.onVariantClickCallback()
+              }
             />
           ))}
         </tbody>

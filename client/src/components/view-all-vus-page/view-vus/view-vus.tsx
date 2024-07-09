@@ -10,6 +10,7 @@ type ViewVusProps = {
   isClickable?: boolean;
   showCheckbox?: boolean;
   onCheckboxToggle?: () => void;
+  onVariantClickCallback?: () => void;
 };
 
 const ViewVus: React.FunctionComponent<ViewVusProps> = (
@@ -41,6 +42,9 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
     return (
       <Link
         to={`/vus/${props.vusRow.original.id}`}
+        onClick={() =>
+          props.onVariantClickCallback && props.onVariantClickCallback()
+        }
         className={`${className} ${styles.clickable}`}
       >
         {row}

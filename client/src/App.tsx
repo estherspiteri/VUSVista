@@ -211,6 +211,8 @@ const App: React.FunctionComponent<AppProps> = () => {
                 </div>
               </div>
             )}
+            Scroll to the right on the table to see which variants' RSIDs need to be
+            reviewed.
             {fileUploadTaskOnDisplay.vusList && (
               <div className={styles["file-content"]}>
                 <div className={styles["file-summary"]}>
@@ -242,7 +244,9 @@ const App: React.FunctionComponent<AppProps> = () => {
 
                 <VusTable
                   vusList={fileUploadTaskOnDisplay.vusList}
-                  isClickable={false}
+                  onVariantClickCallback={() =>
+                    setIsFileUploadModalVisible(false)
+                  }
                 />
               </div>
             )}
