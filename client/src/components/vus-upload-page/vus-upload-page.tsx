@@ -102,8 +102,13 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             ACMG Rules section is optional.
           </p>
           <p>
+            Variants which had been uploaded in the past do not get overwritten
+            by the newly uploaded data. For existing variants, new samples are
+            added to the variant together with the respective HGVS.
+          </p>
+          <p>
             It is assumed that the variant information inputted is based on the{" "}
-            <b>GRCh37 (hg19)</b> build.{" "}
+            <b>GRCh37 (hg19)</b> build.
           </p>
         </div>
 

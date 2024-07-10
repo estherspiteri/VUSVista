@@ -213,7 +213,9 @@ const App: React.FunctionComponent<AppProps> = () => {
             )}
             Scroll to the right on the table to see which variants' RSIDs need
             to be reviewed. Variants which had been uploaded in the past do not
-            get overwritten by the newly uploaded data.
+            get overwritten by the newly uploaded data. For existing variants,
+            new samples are added to the variant together with the respective
+            HGVS.
             {fileUploadTaskOnDisplay.existingVariantIds.length > 0 && (
               <p>
                 <p>
