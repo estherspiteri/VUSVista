@@ -8,6 +8,8 @@ import {
   IAddSamplesResponse,
   ICheckFileForMultipleGenesRequest,
   ICheckFileForMultipleGenesResponse,
+  ICheckFileForValidGenesRequest,
+  ICheckFileForValidGenesResponse,
   ICheckFileUploadStatusesRequest,
   ICheckFileUploadStatusesResponse,
   IDeleteVariantRequest,
@@ -75,6 +77,34 @@ export class VusService {
     return result;
   }
 
+  async checkFileForValidGenes(
+    input: ICheckFileForValidGenesRequest
+  ): Promise<ICheckFileForValidGenesResponse> {
+    let data = new FormData();
+    data.append("file", input.vusFile);
+
+    const multipleGenesSelectionJsonData = input.multipleGenesSelection
+      ? JSON.stringify(input.multipleGenesSelection)
+      : "";
+
+    // Append the JSON string as a blob to the FormData
+    data.append("multipleGenesSelection", multipleGenesSelectionJsonData);
+
+    const result: ICheckFileForMultipleGenesResponse = await customFetch(
+      `/vus/file/existing-genes-check`,
+      {
+        method: "POST",
+        body: data,
+      }
+    )
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
   async storeAndVerifyVusFile(
     input: IStoreAndVerifyVusFileRequest
   ): Promise<IStoreAndVerifyVusFileResponse> {
@@ -87,6 +117,13 @@ export class VusService {
 
     // Append the JSON string as a blob to the FormData
     data.append("multipleGenesSelection", multipleGenesSelectionJsonData);
+
+    const genesNotFoundSelectionJsonData = input.genesNotFoundSelection
+      ? JSON.stringify(input.genesNotFoundSelection)
+      : "";
+
+    // Append the JSON string as a blob to the FormData
+    data.append("genesNotFoundSelection", genesNotFoundSelectionJsonData);
 
     const result: IStoreAndVerifyVusFileResponse = await customFetch(
       `/vus/file`,

@@ -7,6 +7,7 @@ import { IUpdatedExternalRefData } from "../../models/updated-external-ref-data.
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
 import { INotVusSample, IVus, IVusSample } from "../../models/view-vus.model";
 import {
+  INonExistingGene,
   ISamplePhenotypeSelected,
   IVusGene,
   IVusGeneSelected,
@@ -32,10 +33,20 @@ export interface ICheckFileForMultipleGenesResponse {
   multipleGenes?: IVusGene[] | null;
 }
 
-export interface IStoreAndVerifyVusFileRequest {
+export interface ICheckFileForValidGenesRequest {
   vusFile: File;
   multipleGenesSelection?: IVusGeneSelected[];
-  samplePhenotypeSelection?: ISamplePhenotypeSelected[];
+}
+
+export interface ICheckFileForValidGenesResponse {
+  isSuccess: boolean;
+  genesNotInDb?: INonExistingGene[] | null;
+}
+
+export interface IStoreAndVerifyVusFileRequest {
+  vusFile: File;
+  genesNotFoundSelection?: IVusGeneSelected[];
+  multipleGenesSelection?: IVusGeneSelected[];
 }
 
 export interface INoHPOTermPhenotype {
@@ -60,6 +71,7 @@ export interface IStatus {
   isClinvarAccessed?: boolean | null;
   vusList?: IVUSSummary[] | null;
   noHpoTermPhenotypes?: INoHPOTermPhenotype[] | null;
+  existingVariantIds?: number[];
 }
 
 export interface ICheckFileUploadStatusesResponse {
@@ -176,5 +188,5 @@ export interface IUpdateRsidRequest {
 
 export interface IUpdateRsidResponse {
   isSuccess: boolean;
-  updatedExternalRefData?: IUpdatedExternalRefData | null
+  updatedExternalRefData?: IUpdatedExternalRefData | null;
 }

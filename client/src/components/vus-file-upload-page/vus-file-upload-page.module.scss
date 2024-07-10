@@ -106,7 +106,8 @@
         text-align: center;
       }
 
-      .variant-info {
+      .variant-info,
+      .not-found-selected-gene-info {
         .header,
         .info {
           display: flex;
@@ -132,39 +133,56 @@
             border-bottom: 1px solid #008080;
           }
         }
-      }
 
-      .gene-selection {
-        padding: 10px 0px 8px 0px;
-        margin-top: 40px;
-        background-color: #008080;
-        border-radius: 8px;
-        border-top-left-radius: 0px;
-        color: #fff;
-        width: max-content;
+        .not-found-selected-gene {
+          width: 300px;
 
-        .genes {
+          .gene-input,
+          .gene-selected {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .gene-input {
+            [class*="input-container"] {
+              padding-left: 32px;
+            }
+          }
+        }
+
+        .multiple-genes {
           display: flex;
           flex-direction: row;
+          justify-content: center;
           gap: 8px;
           padding: 0px 16px 0px 8px;
-          width: 100%;
           box-sizing: border-box;
+          width: 300px;
 
           input {
             cursor: pointer;
           }
-        }
 
-        .genes:not(:last-child) {
-          padding-bottom: 8px;
-          margin-bottom: 8px;
-          border-bottom: 1px solid white;
-        }
+          .radio {
+            accent-color: #008080bb;
+          }
 
-        .radio {
-          accent-color: #008080bb;
+          .gene-label {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+          }
         }
+      }
+
+      .not-found-selected-gene-info {
+        padding-left: 8px;
       }
     }
 

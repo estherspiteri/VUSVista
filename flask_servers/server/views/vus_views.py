@@ -17,7 +17,8 @@ from server.services.clinvar_service import get_variant_clinvar_updates
 from server.services.view_vus_service import retrieve_vus_summaries_from_db, \
     retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant, add_new_sample_to_variant, \
     remove_sample_from_variant, update_variant_rsid
-from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes
+from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes, \
+    check_for_existing_genes
 from server.services.publications_service import add_publications_to_variant, \
     get_variant_publication_updates
 
@@ -58,12 +59,11 @@ def check_file_multiple_genes():
     return Response(json.dumps({'isSuccess': True, 'multipleGenes': multiple_genes}), 200, mimetype='application/json')
 
 
-@vus_views.route('/file', methods=['POST'])
-def store_and_verify_vus_file():
-    current_app.logger.info(f"User storing new VUS file")
+@vus_views.route('/file/existing-genes-check', methods=['POST'])
+def check_file_existing_genes():
+    current_app.logger.info(f"User checking that genes in new VUS file can be found in DB")
 
     file = request.files['file']
-    current_app.logger.info(f'Received file {file.filename} of type {file.content_type}')
 
     multiple_genes_selection = request.form['multipleGenesSelection']
 
@@ -79,6 +79,50 @@ def store_and_verify_vus_file():
 
     if len(multiple_genes_selection_arr) > 0:
         for selection in multiple_genes_selection_arr:
+            vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
+
+    genes_not_found_in_db = check_for_existing_genes(vus_df)
+
+    return Response(json.dumps({'isSuccess': True, 'genesNotInDb': genes_not_found_in_db}), 200, mimetype='application/json')
+
+
+@vus_views.route('/file', methods=['POST'])
+def store_and_verify_vus_file():
+    current_app.logger.info(f"User storing new VUS file")
+
+    file = request.files['file']
+    current_app.logger.info(f'Received file {file.filename} of type {file.content_type}')
+
+    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
+    current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
+
+    # TODO: merge multiple genes selection with genes not found selection
+    #  further improvement: store updated vus file in database after each stage
+
+    # handle multiple genes selection
+    multiple_genes_selection = request.form['multipleGenesSelection']
+
+    # Parse the JSON string into a Python object
+    if multiple_genes_selection:
+        multiple_genes_selection_arr = json.loads(multiple_genes_selection)
+    else:
+        multiple_genes_selection_arr = []
+
+    if len(multiple_genes_selection_arr) > 0:
+        for selection in multiple_genes_selection_arr:
+            vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
+
+    # handle genes not found selection
+    genes_not_found_selection = request.form['genesNotFoundSelection']
+
+    # Parse the JSON string into a Python object
+    if genes_not_found_selection:
+        genes_not_found_selection_arr = json.loads(genes_not_found_selection)
+    else:
+        genes_not_found_selection_arr = []
+
+    if len(genes_not_found_selection_arr) > 0:
+        for selection in genes_not_found_selection_arr:
             vus_df.at[int(selection['index']), 'Gene'] = selection['gene']
 
     # Create a BytesIO object

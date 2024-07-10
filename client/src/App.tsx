@@ -211,8 +211,26 @@ const App: React.FunctionComponent<AppProps> = () => {
                 </div>
               </div>
             )}
-            Scroll to the right on the table to see which variants' RSIDs need to be
-            reviewed.
+            Scroll to the right on the table to see which variants' RSIDs need
+            to be reviewed. Variants which had been uploaded in the past do not
+            get overwritten by the newly uploaded data.
+            {fileUploadTaskOnDisplay.existingVariantIds.length > 0 && (
+              <p>
+                <p>
+                  These are the variant Ids of the variants which had already
+                  been uploaded:
+                </p>
+                {fileUploadTaskOnDisplay.existingVariantIds.map((id) => (
+                  <a
+                    href={`/vus/${id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {id},&nbsp;
+                  </a>
+                ))}
+              </p>
+            )}
             {fileUploadTaskOnDisplay.vusList && (
               <div className={styles["file-content"]}>
                 <div className={styles["file-summary"]}>
@@ -222,7 +240,9 @@ const App: React.FunctionComponent<AppProps> = () => {
                       {
                         fileUploadTaskOnDisplay.vusList.filter(
                           (vus) =>
-                            vus.rsid !== "NORSID" && vus.rsidDbsnpVerified
+                            vus.rsid.length > 0 &&
+                            vus.rsid !== "NORSID" &&
+                            !vus.rsidReviewRequired
                         ).length
                       }
                     </p>

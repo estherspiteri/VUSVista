@@ -18,6 +18,12 @@ export interface IVusGeneSelected {
   gene: string;
 }
 
+export interface INonExistingGene {
+  index: number;
+  vus: IUnprocessedVus;
+  gene: string;
+}
+
 export interface ISamplePhenotypeSelected {
   sampleId: string;
   phenotypesSelected: IHPOTerm[];

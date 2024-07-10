@@ -143,9 +143,12 @@ def get_filtered_genes(gene_row: str):
 def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     multiple_genes = []
 
-    for index, row in vus_df.iterrows():
+    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
+    vus_df_copy = vus_df.copy()
+
+    for index, row in vus_df_copy.iterrows():
         # exclude AS1 and LOC from genes
-        filtered_genes = get_filtered_genes(row['Gene'])
+        filtered_genes = get_filtered_genes(row['Gene']) # TODO store updated genes in db
 
         # note if variant has multiple genes
         if len(filtered_genes) > 1:
@@ -153,6 +156,23 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
             multiple_genes.append({'index': index, 'vus': vus, 'genes': filtered_genes})
 
     return multiple_genes
+
+
+def check_for_existing_genes(vus_df: pd.DataFrame) -> List:
+    genes_not_found_in_db = []
+
+    for index, row in vus_df.iterrows():
+        # exclude AS1 and LOC from genes
+        filtered_genes = get_filtered_genes(row['Gene'])
+
+        # assume that only one gene is left after filtering (& given that multiple gene check has been executed)
+        gene_db: GeneAttributes = db.session.query(GeneAttributes).filter(and_(GeneAttributes.attribute_name.in_(['gene_name', 'gene_id']), GeneAttributes.attribute_value == filtered_genes[0])).one_or_none()
+
+        if gene_db is None:
+            vus = prep_unprocessed_vus_dict_for_react(row.to_dict())
+            genes_not_found_in_db.append({"index": index, "vus": vus, "gene": row['Gene']})
+
+    return genes_not_found_in_db
 
 
 def extract_sample_ids(sample_ids: str) -> List:
@@ -199,7 +219,7 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
 
     # iterate through the dataframe
     for index, row in new_vus_df.iterrows():
-        filtered_genes = get_filtered_genes(row['Gene'])
+        filtered_genes = [g.upper() for g in get_filtered_genes(row['Gene'])]
         is_matching_gene_found = False
 
         # Retrieving gene ids from Gene Annotations table where the VUS is located
@@ -239,31 +259,6 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
                     vus_df.at[index, 'Gene Id'] = a.gene_id
                     vus_df.at[index, 'Gene'] = a.attribute_value
                     break
-
-            # attempt to get gene id of gene with similar name to inputted gene (e.g. inputted gene = MRE11 & existing gene is MRE11A)
-            if not is_matching_gene_found:
-                current_app.logger.error(
-                    f'The following row:\n {row} \nhas a gene which does not match the gene names found in our database '
-                    f'with ids:{gene_ids}. Checking for gene names which are similar to the inputted gene\'s name')
-                gene_attributes: GeneAttributes = db.session.query(GeneAttributes).filter(
-                    (and_(GeneAttributes.attribute_name == 'gene_name',
-                          *[GeneAttributes.attribute_value.like(f'%{value}%') for value in filtered_genes])) |
-                    (and_(GeneAttributes.attribute_name == 'gene_id',
-                          *[GeneAttributes.attribute_value.like(f'%{value}%') for value in filtered_genes]))
-                ).first()
-
-                if gene_attributes:
-                    vus_df.at[index, 'Gene Id'] = gene_attributes.gene_id
-                    # vus_df.at[index, 'Gene'] = gene_attributes.attribute_value
-
-        # if len(gene_ids) > 1:
-        #     current_app.logger.error(f'The following row:\n {row} \nhas multiple gene ids: {gene_ids}')
-        # elif len(gene_ids) == 0:
-        #     current_app.logger.error(f'The following row:\n {row} \nhas no gene ids')
-        # TODO: handle multiple genes
-        # TODO: handle mismatch genes
-        # for now select the first gene
-
 
     return vus_df
 
@@ -357,7 +352,10 @@ def add_missing_columns(vus_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalResponse:
-    preprocess_and_get_rsids_res = get_rsids(new_vus_df)
+    try:
+        preprocess_and_get_rsids_res = get_rsids(new_vus_df)
+    except Exception as e:
+        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
 
     if preprocess_and_get_rsids_res.status != 200:
         current_app.logger.error(
@@ -772,6 +770,7 @@ def handle_vus_file(task_id: int, vus_df: pd.DataFrame, filename: str, user_id: 
 
             task_status = store_vus_info_in_db_res.data
             task_status['vusList'] = vus_list
+            task_status['existingVariantIds'] = existing_variant_ids
 
             file_upload_tasks[task_id] = task_status
             file_upload_tasks[task_id]['filename'] = filename
@@ -829,6 +828,8 @@ def scheduled_file_upload_events():
 
     if file_upload_events:
         for e in file_upload_events:
+            current_app.logger.info(f'Handling file Upload with Id {e.id}')
+
             # Use BytesIO to read the binary content
             byte_stream = BytesIO(e.file_data)
 

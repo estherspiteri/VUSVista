@@ -10,8 +10,9 @@ import { VusService } from "../../services/vus/vus.service";
 import { ErrorCode, FileRejection, useDropzone } from "react-dropzone";
 import uploadGif from "./upload.gif";
 import { Banner } from "../../atoms/banner/banner";
+import Text from "../../atoms/text/text";
 import Loader from "../../atoms/loader/loader";
-import { IVusGene } from "../../models/vus-file-upload.model";
+import { INonExistingGene, IVusGene } from "../../models/vus-file-upload.model";
 import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icons/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
@@ -19,6 +20,13 @@ import { AppContext } from "../../app-context";
 
 type VusFileUploadPageProps = {
   vusService?: VusService;
+};
+
+type GeneNotFoundSelection = {
+  geneNotFound: INonExistingGene;
+  geneSelected: { name?: string; id?: number };
+  errorMsg: string;
+  isValidating: boolean;
 };
 
 const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
@@ -35,11 +43,17 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
   const [multipleGenesSelectionErrorMsg, setMultipleGenesSelectionErrorMsg] =
     useState("");
 
+  const [genesNotFoundSelection, setGenesNotFoundSelection] =
+    useState<GeneNotFoundSelection[]>(undefined);
+  const [genesNotFoundSelectionErrorMsg, setGenesNotFoundSelectionErrorMsg] =
+    useState("");
+
   const { taskIds, setTaskIds } = useContext(AppContext);
 
   const [errorMsg, setErrorMsg] = useState("");
 
-  const modalRef = useRef<ModalRef>(null);
+  const multipleGenesModalRef = useRef<ModalRef>(null);
+  const genesNotFoundModalRef = useRef<ModalRef>(null);
 
   const onFileDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -172,10 +186,13 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           <p className={styles.errorMsg}>{errorMsg}</p>
         </Banner>
       )}
+
       {multipleGenes && multipleGenes.length > 0 && (
         <Modal
-          ref={modalRef}
+          ref={multipleGenesModalRef}
           title={`Please select one Gene for each of the following Variants:`}
+          isClosable={true}
+          onCloseIconClickCallback={newFileUpload}
         >
           <div className={styles["modal-content-wrapper"]}>
             <div className={styles["selection-content"]}>
@@ -185,53 +202,55 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                   <div className={styles.field}>Type</div>
                   <div className={styles.field}>Reference</div>
                   <div className={styles.field}>Alternate Allele</div>
+                  <div
+                    className={`${styles.field} ${styles["multiple-genes"]}`}
+                  >
+                    Gene Selection
+                  </div>
                 </div>
                 <div className={styles.content}>
-                  {multipleGenes.map((x) => {
+                  {multipleGenes.map((x, index) => {
                     return (
                       <div className={styles.info}>
                         <div className={styles.field}>{x.vus.locus}</div>
                         <div className={styles.field}>{x.vus.type}</div>
                         <div className={styles.field}>{x.vus.refAllele}</div>
                         <div className={styles.field}>{x.vus.altAllele}</div>
+                        <div
+                          className={`${styles.field} ${styles["multiple-genes"]}`}
+                        >
+                          {x.genes.map((gene) => {
+                            return (
+                              <label className={styles["gene-label"]}>
+                                <input
+                                  type="radio"
+                                  name={`gene-selection-${index}`}
+                                  value={gene}
+                                  checked={
+                                    multipleGenesSelection[index] === gene
+                                  }
+                                  onChange={(e) =>
+                                    setMultipleGenesSelection(
+                                      multipleGenesSelection.map(
+                                        (selection, i) => {
+                                          if (i === index) {
+                                            return gene;
+                                          } else return selection;
+                                        }
+                                      )
+                                    )
+                                  }
+                                  className={styles.radio}
+                                />
+                                {gene}
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              </div>
-              <div className={styles["gene-selection"]}>
-                {multipleGenes.map((x, multipleGenesIndex) => {
-                  return (
-                    <div className={`${styles.field} ${styles.genes}`}>
-                      {x.genes.map((gene, geneIndex) => {
-                        return (
-                          <label>
-                            <input
-                              type="radio"
-                              name={`gene-selection-${multipleGenesIndex}`}
-                              value={gene}
-                              checked={
-                                multipleGenesSelection[multipleGenesIndex] ===
-                                gene
-                              }
-                              onChange={(e) =>
-                                setMultipleGenesSelection(
-                                  multipleGenesSelection.map((selection, i) => {
-                                    if (i === multipleGenesIndex) {
-                                      return gene;
-                                    } else return selection;
-                                  })
-                                )
-                              }
-                              className={styles.radio}
-                            />
-                            {gene}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
               </div>
             </div>
             {multipleGenesSelectionErrorMsg?.length > 0 && (
@@ -247,6 +266,149 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           </div>
         </Modal>
       )}
+
+      {genesNotFoundSelection && genesNotFoundSelection.length > 0 && (
+        <Modal
+          ref={genesNotFoundModalRef}
+          title={`Please input a valid Gene for each of the following Variants:`}
+          isClosable={true}
+          onCloseIconClickCallback={newFileUpload}
+        >
+          <p style={{ marginBottom: "16px" }}>
+            The genes for the following variants were not found in our database.
+            Kindly input a valid gene and click on the search icon for it to be validated. Once a
+            gene is validated, the text box will no longer be visible. Check out
+            gene aliases at&nbsp;
+            <a
+              href="https://www.genecards.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              color="#008080"
+            >
+              Gene Cards
+            </a>
+          </p>
+          <div className={styles["modal-content-wrapper"]}>
+            <div className={styles["selection-content"]}>
+              <div className={styles["not-found-selected-gene-info"]}>
+                <div className={styles.header}>
+                  <div className={styles.field}>Locus</div>
+                  <div className={styles.field}>Type</div>
+                  <div className={styles.field}>Reference</div>
+                  <div className={styles.field}>Alternate Allele</div>
+                  <div className={styles.field}>Invalid Gene</div>
+                  <div
+                    className={`${styles.field} ${styles["not-found-selected-gene"]}`}
+                  >
+                    Valid Gene Check
+                  </div>
+                </div>
+                <div className={styles.content}>
+                  {genesNotFoundSelection.map((x, genesNotFoundIndex) => {
+                    return (
+                      <div className={styles.info}>
+                        <div className={styles.field}>
+                          {x.geneNotFound.vus.locus}
+                        </div>
+                        <div className={styles.field}>
+                          {x.geneNotFound.vus.type}
+                        </div>
+                        <div className={styles.field}>
+                          {x.geneNotFound.vus.refAllele}
+                        </div>
+                        <div className={styles.field}>
+                          {x.geneNotFound.vus.altAllele}
+                        </div>
+                        <div className={styles.field}>
+                          {x.geneNotFound.gene}
+                        </div>
+                        <div
+                          className={`${styles.field} ${styles["not-found-selected-gene"]}`}
+                        >
+                          {genesNotFoundSelection[genesNotFoundIndex]
+                            .geneSelected.id ? (
+                            <div className={styles["gene-selected"]}>
+                              <span>
+                                {genesNotFoundSelection[
+                                  genesNotFoundIndex
+                                ].geneSelected.name.toUpperCase()}
+                              </span>
+                              <Icon
+                                name="close"
+                                onClick={() => removeGene(genesNotFoundIndex)}
+                                stroke="#008080"
+                                cursor="pointer"
+                              />
+                            </div>
+                          ) : (
+                            <div className={styles["gene-input"]}>
+                              <Text
+                                value={
+                                  genesNotFoundSelection[genesNotFoundIndex]
+                                    .geneSelected.name
+                                }
+                                disabled={
+                                  genesNotFoundSelection[genesNotFoundIndex]
+                                    .isValidating
+                                }
+                                onChange={(e) =>
+                                  setGenesNotFoundSelection(
+                                    genesNotFoundSelection.map(
+                                      (selection, i) => {
+                                        if (i === genesNotFoundIndex) {
+                                          return {
+                                            ...genesNotFoundSelection[i],
+                                            errorMsg: "",
+                                            geneSelected: {
+                                              name: e.currentTarget.value,
+                                            },
+                                          };
+                                        } else return selection;
+                                      }
+                                    )
+                                  )
+                                }
+                                errorMsg={
+                                  genesNotFoundSelection[genesNotFoundIndex]
+                                    .errorMsg
+                                }
+                              />
+                              <Icon
+                                name="search"
+                                onClick={() => {
+                                  if (
+                                    !genesNotFoundSelection[genesNotFoundIndex]
+                                      .isValidating
+                                  ) {
+                                    checkGeneValidity(genesNotFoundIndex);
+                                  }
+                                }}
+                                stroke="#008080"
+                                fill="#fff"
+                                cursor="pointer"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            {genesNotFoundSelectionErrorMsg?.length > 0 && (
+              <span className={styles["error-msg"]}>
+                {genesNotFoundSelectionErrorMsg}
+              </span>
+            )}
+            <Button
+              text="Continue processing file"
+              icon="file-process"
+              onClick={saveGenesNotFoundSelection}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 
@@ -254,12 +416,27 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     const areAllGenesSelected = !multipleGenesSelection.includes(undefined);
 
     if (areAllGenesSelected) {
-      storeAndVerifyFile();
-      modalRef.current.closeModal();
+      checkGenesExist();
+      multipleGenesModalRef.current.closeModal();
     } else {
       setMultipleGenesSelectionErrorMsg(
         "Please select a single gene for each of the above variants!"
       );
+    }
+  }
+
+  function saveGenesNotFoundSelection() {
+    const areThereUnselectedGenes = genesNotFoundSelection.find(
+      (g) => !g.geneSelected.id
+    );
+
+    if (areThereUnselectedGenes) {
+      setGenesNotFoundSelectionErrorMsg(
+        "Please input and verfiy genes for each of the above variants!"
+      );
+    } else {
+      storeAndVerifyFile();
+      genesNotFoundModalRef.current.closeModal();
     }
   }
 
@@ -270,6 +447,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     setIsFileProcessed(false);
     setMultipleGenes(undefined);
     setMultipleGenesSelection(undefined);
+    setMultipleGenesSelectionErrorMsg("");
+    setGenesNotFoundSelection(undefined);
+    setGenesNotFoundSelectionErrorMsg("");
 
     setErrorMsg("");
   }
@@ -278,6 +458,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
     props.vusService
       ?.storeAndVerifyVusFile({
         vusFile: file,
+        genesNotFoundSelection: genesNotFoundSelection?.map((g) => {
+          return { index: g.geneNotFound.index, gene: g.geneSelected.name };
+        }),
         multipleGenesSelection: multipleGenesSelection?.map((g, i) => {
           return { index: multipleGenes[i].index, gene: g };
         }),
@@ -296,33 +479,125 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
       });
   }
 
+  function checkGenesExist() {
+    // check if all genes can be found in DB
+    props.vusService
+      .checkFileForValidGenes({
+        vusFile: file,
+        multipleGenesSelection: multipleGenesSelection?.map((g, i) => {
+          return { index: multipleGenes[i].index, gene: g };
+        }),
+      })
+      .then((res) => {
+        if (res.genesNotInDb && res.genesNotInDb.length > 0) {
+          setIsFileProcessed(true);
+
+          // initialise gene selection array
+          setGenesNotFoundSelection(
+            res.genesNotInDb.map((g) => {
+              return {
+                geneNotFound: g,
+                geneSelected: { name: undefined, id: undefined },
+                errorMsg: "",
+                isValidating: false,
+              };
+            })
+          );
+          return;
+        } else {
+          storeAndVerifyFile();
+        }
+      });
+  }
+
   function processFile() {
     setIsProcessing(true);
     setErrorMsg("");
 
-    if (!multipleGenes) {
-      props.vusService
-        .checkFileForMultipleGenes({
-          vusFile: file,
-        })
-        .then((res) => {
-          if (res.multipleGenes && res.multipleGenes.length > 0) {
-            setIsFileProcessed(true);
+    props.vusService
+      .checkFileForMultipleGenes({
+        vusFile: file,
+      })
+      .then((res) => {
+        if (res.multipleGenes && res.multipleGenes.length > 0) {
+          setIsFileProcessed(true);
 
-            // populate gene selection array with undefined
-            setMultipleGenesSelection(
-              Array.apply(undefined, Array(res.multipleGenes.length))
-            );
+          // populate gene selection array with undefined
+          setMultipleGenesSelection(
+            Array.apply(undefined, Array(res.multipleGenes.length))
+          );
 
-            setMultipleGenes(res.multipleGenes);
-            return;
-          } else {
-            storeAndVerifyFile();
-          }
+          setMultipleGenes(res.multipleGenes);
+          return;
+        } else {
+          checkGenesExist();
+        }
+      });
+  }
+
+  function checkGeneValidity(index: number) {
+    let isValid = false;
+
+    // only validate if the gene has no errors
+    if (genesNotFoundSelection[index].errorMsg.length === 0) {
+      const val = genesNotFoundSelection[index].geneSelected.name;
+
+      isValid = val?.length > 0;
+
+      if (isValid) {
+        //set is validating to true
+        setGenesNotFoundSelection(
+          genesNotFoundSelection.map((selection, i) => {
+            if (i === index) {
+              return {
+                ...genesNotFoundSelection[i],
+                isValidating: true,
+              };
+            } else return selection;
+          })
+        );
+
+        // verify the gene
+        props.vusService?.verifyGene({ geneName: val }).then((res) => {
+          setGenesNotFoundSelection(
+            genesNotFoundSelection.map((selection, i) => {
+              if (i === index) {
+                if (res.isSuccess) {
+                  return {
+                    ...genesNotFoundSelection[i],
+                    geneSelected: { name: val, id: res.geneId },
+                    errorMsg: "",
+                    isValidating: false,
+                  };
+                } else {
+                  return {
+                    ...genesNotFoundSelection[i],
+                    geneSelected: { name: undefined },
+                    errorMsg: "Please enter a valid gene",
+                    isValidating: false,
+                  };
+                }
+              } else return selection;
+            })
+          );
         });
-    } else {
-      storeAndVerifyFile();
+      }
     }
+
+    return isValid;
+  }
+
+  function removeGene(index: number) {
+    setGenesNotFoundSelection(
+      genesNotFoundSelection.map((selection, i) => {
+        if (i === index) {
+          return {
+            ...genesNotFoundSelection[i],
+            geneSelected: { id: undefined, name: undefined },
+          };
+        } else return selection;
+      })
+    );
   }
 };
 
