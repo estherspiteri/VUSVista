@@ -137,7 +137,7 @@
 
             &:hover {
               background-color: #a51534;
-      
+
               svg {
                 fill: #fff;
               }
@@ -325,6 +325,8 @@
           border-width: 4px;
 
           .delete-sample {
+            padding-top: 16px;
+            padding-bottom: 8px;
             margin: 0 8px 0 16px;
           }
 
@@ -397,13 +399,6 @@
 
     .info-description {
       font-size: 14px;
-
-      a {
-        color: #008080;
-      }
-    }
-
-    .info-description {
       margin-bottom: -8px;
       line-height: 28px;
     }

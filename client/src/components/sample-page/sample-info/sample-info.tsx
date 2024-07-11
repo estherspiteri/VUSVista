@@ -12,6 +12,7 @@ import VusTable from "../../view-all-vus-page/vus-table/vus-table";
 import { IVariantToAddInfo } from "../../../models/variant-to-add-info.model";
 import Loader from "../../../atoms/loader/loader";
 import SamplePhenotypeSelection from "../../shared/sample-phenotype-selection/sample-phenotype-selection";
+import DebouncedInput from "../../shared/table/debounced-input/debounced-input";
 
 type SampleInfoProps = {
   sample: ISample;
@@ -21,6 +22,8 @@ type SampleInfoProps = {
 const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
   props: SampleInfoProps
 ) => {
+  const [filterValue, setFilterValue] = useState("");
+
   const [variants, setVariants] = useState(props.sample.variants);
   const [notSampleVariants, setNotSampleVariants] = useState(
     props.sample.notSampleVariants
@@ -78,6 +81,20 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
         {/** Variants */}
         <div className={styles["sample-variant-container"]}>
           <div className={styles["info-title"]}>Variants:</div>
+          <p className={styles["info-description"]}>
+            Click on the left-most icon to visit the respective variant page. To
+            remove a variant from this sample, tick its checkbox and click on
+            the "Remove selected variant/s" button at the bottom of the variant
+            list. You can search through the variants using any element from the
+            variant summary, the genotype or the HGVS.
+          </p>
+          <DebouncedInput
+            onChange={(val) => setFilterValue(val.toString())}
+            placeholder={`Search variants ...`}
+            type="text"
+            value={filterValue}
+            className={styles.input}
+          />
           <div className={styles["sample-variant-container-content"]}>
             <div className={styles["variants-container"]}>
               <div className={styles["variant-titles"]}>
@@ -89,7 +106,32 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 </div>
               </div>
               <div className={styles.variants}>
-                {variants.map((v) => {
+                {(filterValue.length > 0
+                  ? variants.filter(
+                      (v) =>
+                        containsFilterValue(v.variantId.toString()) ||
+                        containsFilterValue(v.variant.chromosome) ||
+                        containsFilterValue(
+                          v.variant.chromosomePosition.toString()
+                        ) ||
+                        containsFilterValue(v.variant.gene) ||
+                        containsFilterValue(v.variant.refAllele) ||
+                        containsFilterValue(v.variant.altAllele) ||
+                        containsFilterValue(
+                          `${v.variant.refAllele}/${v.variant.altAllele}`
+                        ) ||
+                        containsFilterValue(
+                          `${v.variant.altAllele}/${v.variant.altAllele}`
+                        ) ||
+                        containsFilterValue(v.hgvs)
+                    )
+                  : variants
+                ).map((v) => {
+                  const genotype =
+                    v.genotype === Genotype.Heterozygous
+                      ? `${v.variant.refAllele}/${v.variant.altAllele}`
+                      : `${v.variant.altAllele}/${v.variant.altAllele}`;
+
                   return (
                     <div className={styles.variant}>
                       <Icon
@@ -104,9 +146,9 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                             <VariantSummary variant={v.variant} />
                           </div>
                           <div className={styles.genotype}>
-                            {v.genotype === Genotype.Heterozygous
-                              ? `${v.variant.refAllele}/${v.variant.altAllele}`
-                              : `${v.variant.altAllele}/${v.variant.altAllele}`}
+                            {genotype.length > 5
+                              ? `${genotype.slice(0, 5)}...`
+                              : genotype}
                           </div>
                           <div className={styles.hgvs}>
                             {variantBeingEdited === v.variantId ? (
@@ -590,6 +632,13 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
         }
         setIsRemovingVariants(false);
       });
+  }
+
+  function containsFilterValue(val: string): boolean {
+    if (val && val.length > 0) {
+      return val?.toLowerCase().includes(filterValue?.toLowerCase());
+    }
+    return false;
   }
 };
 

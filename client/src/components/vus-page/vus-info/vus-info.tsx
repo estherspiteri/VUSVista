@@ -19,6 +19,7 @@ import SampleTable from "../../view-samples-page/sample-table/sample-table";
 import { SampleService } from "../../../services/sample/sample.service";
 import SamplePhenotypeSelection from "../../shared/sample-phenotype-selection/sample-phenotype-selection";
 import { IPhenotype } from "../../../models/phenotype.model";
+import DebouncedInput from "../../shared/table/debounced-input/debounced-input";
 
 type VusInfoProps = {
   vus: IVus;
@@ -31,6 +32,8 @@ type VusInfoProps = {
 const VusInfo: React.FunctionComponent<VusInfoProps> = (
   props: VusInfoProps
 ) => {
+  const [filterValue, setFilterValue] = useState("");
+
   const [acmgRuleHover, setAcmgRuleHover] = useState<number | undefined>(
     undefined
   );
@@ -407,8 +410,17 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   Ensembl
                 </a>
                 . To remove a sample from this variant, tick its checkbox and
-                click on the "Remove sample/s button".
+                click on the "Remove selected sample/s" button at the bottom of the
+                sample list. You can search through the samples using sample
+                ids, HGVS or consequences.
               </p>
+              <DebouncedInput
+                onChange={(val) => setFilterValue(val.toString())}
+                placeholder={`Search samples ...`}
+                type="text"
+                value={filterValue}
+                className={styles.input}
+              />
               <div className={styles.samples}>
                 <div className={styles["samples-header"]}>
                   <span>Sample Id</span>
@@ -418,7 +430,15 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     <Icon name="bin" fill="#008080" width={21} height={21} />
                   </div>
                 </div>
-                {samples.map((s) => (
+                {(filterValue.length > 0
+                  ? samples.filter(
+                      (s) =>
+                        containsFilterValue(s.id) ||
+                        containsFilterValue(s.hgvs) ||
+                        containsFilterValue(s.consequence)
+                    )
+                  : samples
+                ).map((s) => (
                   <div className={styles.sample}>
                     <div className={styles["sample-info"]}>
                       <span
@@ -1234,6 +1254,13 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
         setUpdatedRsid(undefined);
         setUpdatedRsidErrorMsg("");
       });
+  }
+
+  function containsFilterValue(val: string): boolean {
+    if (val && val.length > 0) {
+      return val?.toLowerCase().includes(filterValue?.toLowerCase());
+    }
+    return false;
   }
 };
 

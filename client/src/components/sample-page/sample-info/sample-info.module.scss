@@ -15,6 +15,13 @@
       font-weight: bold;
     }
 
+    .info-description {
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: -8px;
+      line-height: 28px;
+    }
+
     .info {
       display: flex;
       flex-direction: row;
@@ -88,7 +95,8 @@
               flex-direction: column;
               justify-content: center;
               align-items: center;
-              min-width: 80px;
+              width: 80px;
+              overflow: hidden;
             }
 
             .hgvs {
