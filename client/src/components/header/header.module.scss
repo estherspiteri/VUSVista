@@ -2,9 +2,18 @@
   width: 100%;
   min-width: 1248px;
   min-height: 70.5px;
-  padding: 16px 0;
+  padding: 8px 0;
   background-color: #008080;
   box-sizing: border-box;
+
+  .logo {
+    width: 65x;
+    height: 65px;
+
+    &:hover {
+      animation: rotation 1s 0s linear;
+    }
+  }
 
   .header-content {
     width: 1248px;
@@ -111,13 +120,19 @@
         * {
           stroke: #008080 !important;
         }
-
-        &:not(.home) {
-          * {
-            fill: #008080 !important;
-          }
+        * {
+          fill: #008080 !important;
         }
       }
     }
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
   }
 }

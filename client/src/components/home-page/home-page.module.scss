@@ -1,4 +1,35 @@
 .home-page-container {
   width: 1248px;
   margin: 40px auto;
+
+  .content {
+    .title-container {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      justify-content: center;
+      align-items: center;
+
+      .logo {
+        width: 200px;
+        height: 200px;
+        animation: rotation 30s 0s linear;
+      }
+
+      .title {
+        font-family: "Poppins-Bold", sans-serif;
+        font-size: 82px;
+        color: #008080;
+      }
+    }
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
 }

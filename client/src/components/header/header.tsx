@@ -5,6 +5,7 @@ import Button from "../../atoms/button/button";
 import { AuthService } from "../../services/auth/auth.service";
 import Icon from "../../atoms/icons/icon";
 import { AppContext } from "../../app-context";
+import Logo from "./../../assets/logo.png";
 
 type HeaderProps = { isUserLoggedIn: boolean; authService: AuthService };
 
@@ -15,8 +16,8 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>
         <div className={styles.btns}>
-          <Link className={`${styles.icon} ${styles.home}`} to="/">
-            <Icon name="home" fill="#fff" />
+          <Link className={styles.logo} to="/">
+            <img src={Logo} className={styles.logo} />
           </Link>
 
           {/** VUS */}
