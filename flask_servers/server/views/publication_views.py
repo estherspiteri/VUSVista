@@ -68,15 +68,16 @@ def get_publications_of_variant_by_rsid_with_optional_text(variant_id: str, rsid
             get_publications_res = get_publications(hgvs, rsid, optional_text)
             status = get_publications_res.status
 
-            for publication in get_publications_res.data:
-                encoded_publication = alchemy_encoder(publication)
+            if status == 200:
+                for publication in get_publications_res.data:
+                    encoded_publication = alchemy_encoder(publication)
 
-                # changing keys of dictionary
-                encoded_publication['date'] = encoded_publication.pop('date_published')
+                    # changing keys of dictionary
+                    encoded_publication['date'] = encoded_publication.pop('date_published')
 
-                publication_list.append(encoded_publication)
+                    publication_list.append(encoded_publication)
 
     variant_summary = get_variant_summary(variant)
 
-    return Response(json.dumps({'isSuccess': status == 200, 'variant': variant_summary, 'publications': publication_list}), status)
+    return Response(json.dumps({'isSuccess': True, 'variant': variant_summary, 'publications': publication_list}), 200)
 

@@ -156,11 +156,10 @@
         .multiple-genes {
           display: flex;
           flex-direction: row;
-          justify-content: center;
           gap: 8px;
           padding: 0px 16px 0px 8px;
           box-sizing: border-box;
-          width: 300px;
+          width: fit-content;
 
           input {
             cursor: pointer;
@@ -173,7 +172,7 @@
           .gene-label {
             display: flex;
             flex-direction: row;
-            gap: 8px;
+            gap: 4px;
             justify-content: center;
             align-items: center;
             cursor: pointer;
