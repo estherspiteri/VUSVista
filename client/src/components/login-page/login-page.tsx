@@ -116,7 +116,7 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
         .login({ email: email, password: password, remember: rememberMe })
         .then((res) => {
           if (res.isUserLoggedIn) {
-            window.location.href = "/profile";
+            window.location.href = "/";
           } else {
             setLoginErrorMsg(
               "The credentials you have inputted do not match any existing user. Kindly check and try again."

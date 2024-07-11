@@ -76,13 +76,13 @@ def create_app():
 
     CORS(app)
 
-    app.register_blueprint(homepage_views)
     app.register_blueprint(publication_views, url_prefix='/publication')
     app.register_blueprint(vus_views, url_prefix='/vus')
     app.register_blueprint(sample_views, url_prefix='/sample')
     app.register_blueprint(auth_views, url_prefix='/auth')
     app.register_blueprint(profile_views, url_prefix='/user')
     app.register_blueprint(review_views, url_prefix='/review')
+    app.register_blueprint(homepage_views)
 
     # Register error handlers
     register_error_handlers(app)

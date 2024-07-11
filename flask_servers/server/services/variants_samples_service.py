@@ -15,7 +15,7 @@ def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotyp
     # if variants_samples entry does not exist, add new entry
     if existing_variants_samples is None:
         hgvs_id = None
-        if not (isinstance(hgvs, float) and math.isnan(hgvs)):
+        if not (isinstance(hgvs, float) and math.isnan(hgvs)) and hgvs is not None:
             # check if HGVS exists
             variant_hgvs: VariantHgvs = db.session.query(VariantHgvs).filter(VariantHgvs.variant_id == variant_id,
                                                                              VariantHgvs.hgvs == hgvs).one_or_none()

@@ -160,7 +160,7 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
             litvar_rsid = row['RSID']
 
         hgvs = None
-        if not (isinstance(row["HGVS"], float) and math.isnan(row["HGVS"])):
+        if not (isinstance(row["HGVS"], float) and math.isnan(row["HGVS"])) and row["HGVS"] is not None:
             hgvs = row['HGVS'].split(' ')[0]
 
         litvar_publications = []
@@ -408,8 +408,11 @@ def add_publications_to_variant(variant_id: str, publication_links_list: List[st
         return Response(json.dumps({'isSuccess': False, "publications": None}), 200, mimetype='application/json')
 
 
-def get_last_pub_auto_update_date() -> str:
+def get_last_pub_auto_update_date() -> str | None:
     auto_pub_eval_date: AutoPublicationEvalDates = db.session.query(AutoPublicationEvalDates).order_by(
         desc(AutoPublicationEvalDates.eval_date)).first()
 
-    return datetime.strftime(auto_pub_eval_date.eval_date, '%d/%m/%Y %H:%M')
+    if auto_pub_eval_date is not None:
+        return datetime.strftime(auto_pub_eval_date.eval_date, '%d/%m/%Y %H:%M')
+    else:
+        return None

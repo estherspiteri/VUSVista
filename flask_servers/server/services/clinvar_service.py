@@ -206,32 +206,33 @@ def clinvar_clinical_significance_pipeline(vus_df: pd.DataFrame) -> InternalResp
     else:
         clinvar_dict = {}
 
-        variation_archive = retrieve_clinvar_dict_res.data.get('ClinVarResult-Set').get('VariationArchive')
+        if retrieve_clinvar_dict_res.data is not None and retrieve_clinvar_dict_res.data.get('ClinVarResult-Set') is not None:
+            variation_archive = retrieve_clinvar_dict_res.data.get('ClinVarResult-Set').get('VariationArchive')
 
-        for v in variation_archive:
-            clinvar_dict[v.get('@VariationID')] = v
+            for v in variation_archive:
+                clinvar_dict[v.get('@VariationID')] = v
 
-        for index in clinvar_variation_ids_dict.keys():
-            clinvar_variation_id = clinvar_variation_ids_dict[index]
-            clinvar_variant_dict = clinvar_dict[clinvar_variation_id]
+            for index in clinvar_variation_ids_dict.keys():
+                clinvar_variation_id = clinvar_variation_ids_dict[index]
+                clinvar_variant_dict = clinvar_dict[clinvar_variation_id]
 
-            classified_record_dict = clinvar_variant_dict.get('ClassifiedRecord')
+                classified_record_dict = clinvar_variant_dict.get('ClassifiedRecord')
 
-            are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant('GRCh37',
-                                                                                      classified_record_dict,
-                                                                                      vus_df.at[index, 'Gene'],  vus_df.at[index, 'Chr'],
-                                                                                      vus_df.at[index, 'Position'])
+                are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant('GRCh37',
+                                                                                          classified_record_dict,
+                                                                                          vus_df.at[index, 'Gene'],  vus_df.at[index, 'Chr'],
+                                                                                          vus_df.at[index, 'Position'])
 
-            clinical_significance = extract_clinvar_germline_classification(classified_record_dict)
+                clinical_significance = extract_clinvar_germline_classification(classified_record_dict)
 
-            if clinical_significance:
-                vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
-                vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
-                vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
+                if clinical_significance:
+                    vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
+                    vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
+                    vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
 
-            vus_df.at[index, 'Clinvar error msg'] = error_msg
-            vus_df.at[index, 'Clinvar canonical spdi'] = extract_clinvar_canonical_spdi(classified_record_dict)
-            vus_df.at[index, 'Clinvar variation id'] = clinvar_variation_id
+                vus_df.at[index, 'Clinvar error msg'] = error_msg
+                vus_df.at[index, 'Clinvar canonical spdi'] = extract_clinvar_canonical_spdi(classified_record_dict)
+                vus_df.at[index, 'Clinvar variation id'] = clinvar_variation_id
 
     return InternalResponse(vus_df, 200)
 
@@ -504,7 +505,10 @@ def get_variant_clinvar_updates(clinvar_id: str):
         200, mimetype='application/json')
 
 
-def get_last_clinvar_auto_update_date() -> str:
+def get_last_clinvar_auto_update_date() -> str | None:
     auto_clinvar_eval_date: AutoClinvarEvalDates = db.session.query(AutoClinvarEvalDates).order_by(desc(AutoClinvarEvalDates.eval_date)).first()
 
-    return datetime.strftime(auto_clinvar_eval_date.eval_date, '%d/%m/%Y %H:%M')
+    if auto_clinvar_eval_date is not None:
+        return datetime.strftime(auto_clinvar_eval_date.eval_date, '%d/%m/%Y %H:%M')
+    else:
+        return None

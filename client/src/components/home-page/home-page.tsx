@@ -25,14 +25,14 @@ const HomePage: React.FunctionComponent<HomePageProps> = (
                 Clinvar last auto update:
               </span>
               &nbsp;
-              {props.data.lastClinvarUpdateDate}
+              {props.data.lastClinvarUpdateDate ?? ""}
             </p>
             <p className={styles["last-update"]}>
               <span className={styles["last-update-desc"]}>
                 Publications last auto update:
               </span>
               &nbsp;
-              {props.data.lastPubUpdateDate}
+              {props.data.lastPubUpdateDate ?? ""}
             </p>
           </div>
 

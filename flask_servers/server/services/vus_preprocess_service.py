@@ -402,7 +402,7 @@ def preprocess_vus(vus_df: pd.DataFrame):
 
             hgvs = []
             for var in new_vus_df.iterrows():
-                if not (isinstance(var[1]["HGVS"], float) and math.isnan(var[1]["HGVS"])):
+                if not (isinstance(var[1]["HGVS"], float) and math.isnan(var[1]["HGVS"])) and var[1]['HGVS'] is not None:
                     hgvs.append(var[1]["HGVS"])
 
             if len(hgvs) > 0:
