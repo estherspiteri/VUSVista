@@ -228,7 +228,7 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
     const bIsNumber = b.match(numCheckRegex);
 
     if (aIsNumber && bIsNumber) {
-      return a > b ? 1 : -1;
+      return parseInt(a) > parseInt(b) ? 1 : -1;
     } else if (aIsNumber) {
       return -1;
     } else if (bIsNumber) {
