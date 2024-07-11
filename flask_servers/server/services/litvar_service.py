@@ -194,34 +194,37 @@ def get_more_info_on_litvar_publications(litvar_publications: list[Publications]
     # extract pmids
     litvar_pmids = [str(p.pmid) for p in litvar_publications]
 
-    # retrieve more information about publications
-    current_app.logger.info(f'Retrieving PubMed information for LitVar publications')
-    pubmed_publications_res: InternalResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
+    if len(litvar_pmids) > 0:
+        # retrieve more information about publications
+        current_app.logger.info(f'Retrieving PubMed information for LitVar publications')
+        pubmed_publications_res: InternalResponse = retrieve_pubmed_publications_info(','.join(litvar_pmids))
 
-    if pubmed_publications_res.status != 200:
-        current_app.logger.error(
-            f'Entrez Publications query failed 500')
-        return InternalResponse({'isSuccess': False}, 500)
+        if pubmed_publications_res.status != 200:
+            current_app.logger.error(
+                f'Entrez Publications query failed 500')
+            return InternalResponse({'isSuccess': False}, 500)
+        else:
+            current_app.logger.info(f'Appending PubMed abstracts to LitVar publications')
+
+            pubmed_publications_info = pubmed_publications_res.data
+
+            # store publication abstracts in a dict where the key is the publication's PMID
+            pubmed_publications_abstracts_dict = extract_abstracts_by_pmids(pubmed_publications_info)
+
+            # add abstract column to LitVar publications df
+            litvar_publications = add_abstracts_to_publications(litvar_publications,
+                                                                pubmed_publications_abstracts_dict)
+
+            # store publication doi in a dict where the key is the publication's PMID
+            pubmed_publications_doi_dict = extract_doi_by_pmids(pubmed_publications_info)
+
+            # add abstract column to LitVar publications df
+            litvar_publications = add_doi_to_publications(litvar_publications, pubmed_publications_doi_dict)
+
+            current_app.logger.info(f'Found {len(litvar_publications)} Litvar publications')
+            return InternalResponse(litvar_publications, 200)
     else:
-        current_app.logger.info(f'Appending PubMed abstracts to LitVar publications')
-
-        pubmed_publications_info = pubmed_publications_res.data
-
-        # store publication abstracts in a dict where the key is the publication's PMID
-        pubmed_publications_abstracts_dict = extract_abstracts_by_pmids(pubmed_publications_info)
-
-        # add abstract column to LitVar publications df
-        litvar_publications = add_abstracts_to_publications(litvar_publications,
-                                                            pubmed_publications_abstracts_dict)
-
-        # store publication doi in a dict where the key is the publication's PMID
-        pubmed_publications_doi_dict = extract_doi_by_pmids(pubmed_publications_info)
-
-        # add abstract column to LitVar publications df
-        litvar_publications = add_doi_to_publications(litvar_publications, pubmed_publications_doi_dict)
-
-        current_app.logger.info(f'Found {len(litvar_publications)} Litvar publications')
-        return InternalResponse(litvar_publications, 200)
+        return InternalResponse({'isSuccess': False}, 500)
 
 
 def get_publications(hgvs: str | None, rsid: str | None, optional_text: str | None) -> InternalResponse:

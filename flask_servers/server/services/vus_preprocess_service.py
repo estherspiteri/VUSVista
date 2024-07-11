@@ -15,8 +15,7 @@ import json
 import re
 
 from server import db, file_upload_tasks
-from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react, \
-    get_variant_summary
+from server.helpers.data_helper import prep_vus_df_for_react, convert_df_to_list, prep_unprocessed_vus_dict_for_react
 from server.helpers.db_access_helper import get_variant_from_db
 from server.models import Variants, GeneAnnotations, GeneAttributes, DbSnp, \
     Clinvar, ExternalReferences, FileUploads, Genotype, \
@@ -26,7 +25,7 @@ from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.dbsnp_service import get_rsids_from_dbsnp
 
 from server.services.clinvar_service import retrieve_clinvar_variant_classifications, get_updated_external_references_for_existing_vus, store_clinvar_info
-from server.services.phenotype_service import get_hpo_term_from_phenotype_name, append_phenotype_to_sample
+from server.services.phenotype_service import get_hpo_term_from_phenotype_name
 from server.services.samples_service import add_new_sample_to_db
 from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 from server.services.view_vus_service import get_last_saved_clinvar_update, retrieve_vus_summaries_from_db
@@ -355,12 +354,12 @@ def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalRes
     try:
         preprocess_and_get_rsids_res = get_rsids(new_vus_df)
     except Exception as e:
-        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
+        return InternalResponse({'areRsidsRetrieved': False, 'isClinvarAccessed': False}, 500)
 
     if preprocess_and_get_rsids_res.status != 200:
         current_app.logger.error(
             f'Preprocessing of VUS and retrieval of RSIDs failed 500')
-        return InternalResponse({'areRsidsRetrieved:': False, 'isClinvarAccessed': False}, 500)
+        return InternalResponse({'areRsidsRetrieved': False, 'isClinvarAccessed': False}, 500)
     else:
         new_vus_df = preprocess_and_get_rsids_res.data
 
@@ -369,11 +368,11 @@ def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalRes
         if retrieve_clinvar_variant_classifications_res.status != 200:
             current_app.logger.error(
                 f'Retrieval of ClinVar variant classifications failed 500')
-            return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': False}, 500)
+            return InternalResponse({'areRsidsRetrieved': True, 'isClinvarAccessed': False}, 500)
         else:
             new_vus_df = retrieve_clinvar_variant_classifications_res.data
 
-    return InternalResponse({'areRsidsRetrieved:': True, 'isClinvarAccessed': True,
+    return InternalResponse({'areRsidsRetrieved': True, 'isClinvarAccessed': True,
                              'new_vus_df': new_vus_df}, 200)
 
 
@@ -552,9 +551,9 @@ def create_sample_upload_and_sample_entries_in_db(vus_df: pd.DataFrame):
 
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
-        # extract sample ids
-        sample_ids = extract_sample_ids(str(row['Sample Ids'])) \
- \
+        # extract unique sample ids
+        sample_ids = list(set(extract_sample_ids(str(row['Sample Ids']))))
+
         # ontology ids & their names
         phenotype_terms = []
 
@@ -658,12 +657,22 @@ def store_variant_sample_relations_in_db(vus_df: pd.DataFrame, variant_ids: List
         variant_id = variant_ids[int(index)]
 
         vus_genotype = row['Genotype']
-        genotype = Genotype.HETEROZYGOUS
+        if '/' in vus_genotype:
+            genotype_split = vus_genotype.split('/')
+            ref = genotype_split[0]
+            alt = genotype_split[1]
 
-        if 'homozygous' in vus_genotype.lower():
-            genotype = Genotype.HOMOZYGOUS
+            if ref == alt:
+                genotype = Genotype.HOMOZYGOUS
+            else:
+                genotype = Genotype.HETEROZYGOUS
+        else:
+            genotype = Genotype.HETEROZYGOUS
 
-        samples = extract_sample_ids(str(row['Sample Ids']))
+            if 'homozygous' in vus_genotype.lower():
+                genotype = Genotype.HOMOZYGOUS
+
+        samples = list(set(extract_sample_ids(str(row['Sample Ids']))))
 
         hgvs = row['HGVS']
 

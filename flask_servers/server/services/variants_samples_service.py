@@ -25,7 +25,8 @@ def add_variant_sample_to_db(variant_id: int, sample_id: str, hgvs: str, genotyp
                 variant_hgvs = VariantHgvs(variant_id=variant_id, hgvs=hgvs, is_updated=False)
                 db.session.add(variant_hgvs)
                 db.session.flush()
-                hgvs_id = variant_hgvs.id
+
+            hgvs_id = variant_hgvs.id
 
         new_variants_samples = VariantsSamples(variant_id=variant_id, sample_id=sample_id,
                                                variant_hgvs_id=hgvs_id, genotype=genotype.upper(), consequence=consequence)

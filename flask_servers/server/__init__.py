@@ -127,7 +127,7 @@ def create_app():
 
         scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
         # 1 min
-        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180, max_instances=2)
+        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180)
 
         scheduler.start()
 

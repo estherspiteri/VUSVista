@@ -1,6 +1,7 @@
 import json
 import math
 from datetime import datetime
+import re
 from typing import List, Dict
 from urllib.parse import urlencode
 
@@ -36,8 +37,10 @@ def get_publication_info(publication_link: str) -> InternalResponse:
         elif 'year' in metadata.keys():
             date = metadata['year'] + '-01-01'  # TODO: fix - misleading on front-end
 
-        if date is not None:
+        if date is not None and re.match(r"^\d{4}-\d{2}-\d{2}$", date):
             date = datetime.strptime(date, '%Y-%m-%d')
+        else:
+            date = None
 
         # eliminate any keywords included
         updated_doi = metadata.get('doi', None)

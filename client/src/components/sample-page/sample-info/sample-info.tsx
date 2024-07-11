@@ -104,7 +104,9 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                             <VariantSummary variant={v.variant} />
                           </div>
                           <div className={styles.genotype}>
-                            {v.genotype === Genotype.Heterozygous ? "Aa" : "AA"}
+                            {v.genotype === Genotype.Heterozygous
+                              ? `${v.variant.refAllele}/${v.variant.altAllele}`
+                              : `${v.variant.altAllele}/${v.variant.altAllele}`}
                           </div>
                           <div className={styles.hgvs}>
                             {variantBeingEdited === v.variantId ? (
@@ -469,7 +471,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
       .updateHgvs({
         variantId: variantId.toString(),
         sampleId: props.sample.sampleId,
-        updatedHgvs: editedHgvs.trim().length === 0 ? 'none' : editedHgvs,
+        updatedHgvs: editedHgvs.trim().length === 0 ? "none" : editedHgvs,
       })
       .then((res) => {
         if (res.isSuccess) {

@@ -213,7 +213,7 @@ def verify_rsid(rsid: str, genes: str, chr: str, pos: str, ref: str, alt: str, t
 
         if db_snp_variant_info is not None:
             # compare with any provided RSID
-            if len(user_rsid) > 0 and user_rsid != rsid:
+            if str(user_rsid) != "nan" and len(user_rsid) > 0 and user_rsid != rsid:
                 error_msg = f"Variant's provided RSID {user_rsid} does not match the suggested RSID {rsid}!"
                 current_app.logger.warn(error_msg)
                 error_msgs.append(error_msg)
@@ -296,8 +296,11 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
             if row['RSID'] == 'NORSID':
                 rsid_verification.append({'isValid': False, 'errorMsgs': []})
             else:
-                verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
-                                              row['Alt'], row['Type'], row['RSID_'])
+                try:
+                    verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
+                                                  row['Alt'], row['Type'], row['RSID_'])
+                except Exception as e:
+                    print('here', e)
 
                 if verify_rsid_res.status != 200:
                     current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")

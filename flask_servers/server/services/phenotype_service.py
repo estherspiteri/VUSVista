@@ -57,6 +57,7 @@ def append_phenotype_to_sample(sample: Samples, phenotype: Dict):
     if phenotype_selected is None:
         new_phenotype = Phenotypes(ontology_term_id=phenotype['ontologyId'], term_name=phenotype['name'])
         db.session.add(new_phenotype)
+        db.session.flush()
 
         sample.ontology_term.append(new_phenotype)
     else:

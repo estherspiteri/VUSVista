@@ -175,7 +175,7 @@ class Clinvar(Base):
     id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
     variation_id = mapped_column(Text, nullable=False)
     external_clinvar_id = mapped_column(Integer, nullable=False)
-    canonical_spdi = mapped_column(Text, nullable=False)
+    canonical_spdi = mapped_column(Text)
 
     external_clinvar: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='clinvar')
     auto_clinvar_eval_dates: Mapped[List['AutoClinvarEvalDates']] = relationship('AutoClinvarEvalDates', uselist=True, back_populates='clinvar')

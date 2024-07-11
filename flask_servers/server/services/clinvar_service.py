@@ -88,56 +88,70 @@ def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]):  # TODO: use this to
 # Note:
 # - When a ClinVar variant has multiple genes, then each gene is compared with the expeceted gene until a match is found.
 # - The genotype is compared when the Variant Validator request is made (not in the below fn).
-def compare_clinvar_variant_with_expected_variant(genome_version: str, retrieved_var_clinvar_dict, gene: str,
+def compare_clinvar_variant_with_expected_variant(genome_version: str, classified_record_dict, gene: str,
                                                   chr: str, chr_pos: str) -> tuple[bool, str]:
-    clinvar_allele = (retrieved_var_clinvar_dict.get('ClinVarResult-Set').get('VariationArchive')
-                      .get('ClassifiedRecord').get('SimpleAllele'))
-
-    # compare expected and retrieved variant's gene
-    clinvar_genes = clinvar_allele.get('GeneList')
-
-    # if none of the genes match the expected gene
-    if isinstance(clinvar_genes['Gene'], list):
-        if gene not in [g['@Symbol'] for g in clinvar_genes['Gene']]:
-            return False, (f"None of the gene names {[g['@Symbol'] for g in clinvar_genes['Gene']]} "
-                           f"match the expected gene name {gene}!")
+    # only compare if Clinvar entry has classification (variationId: 478905)
+    if classified_record_dict is None:
+        return False, (f"Unable to verify this Clinvar entry!")
     else:
-        if gene != clinvar_genes['Gene']['@Symbol']:
-            return False, (f"None of the gene names {clinvar_genes['Gene']['@Symbol']} "
-                           f"match the expected gene name {gene}!")
+        clinvar_allele = classified_record_dict.get('SimpleAllele')
 
-    clinvar_locations = clinvar_allele.get('Location').get('SequenceLocation')
-    for loc in clinvar_locations:
-        if loc.get('@Assembly') == genome_version:
-            # compare expected and retrieved variant's chromosome
-            if loc.get('@Chr') != chr:
-                return False, f"Chromosome {loc.get('@Chr')} does not match the expected chromosome {chr}!"
-            # compare expected and retrieved variant's chromosome position
-            elif loc.get('@start') != str(chr_pos):
-                return False, (f"Chromosome start position {loc.get('@start')} does not match the expected chromosome "
-                               f"position {chr_pos}!")
-            break
-        # TODO compare ref & alt alleles
+        if clinvar_allele:
+            # compare expected and retrieved variant's gene
+            clinvar_genes = clinvar_allele.get('GeneList')
+
+            # if none of the genes match the expected gene
+            if isinstance(clinvar_genes['Gene'], list):
+                if gene not in [g['@Symbol'] for g in clinvar_genes['Gene']]:
+                    return False, (f"None of the gene names {[g['@Symbol'] for g in clinvar_genes['Gene']]} "
+                                   f"match the expected gene name {gene}!")
+            else:
+                if gene != clinvar_genes['Gene']['@Symbol']:
+                    return False, (f"None of the gene names {clinvar_genes['Gene']['@Symbol']} "
+                                   f"match the expected gene name {gene}!")
+
+            clinvar_locations = clinvar_allele.get('Location').get('SequenceLocation')
+            for loc in clinvar_locations:
+                if loc.get('@Assembly') == genome_version:
+                    # compare expected and retrieved variant's chromosome
+                    if loc.get('@Chr') != chr:
+                        return False, f"Chromosome {loc.get('@Chr')} does not match the expected chromosome {chr}!"
+                    # compare expected and retrieved variant's chromosome position
+                    elif loc.get('@start') != str(chr_pos):
+                        return False, (
+                            f"Chromosome start position {loc.get('@start')} does not match the expected chromosome "
+                            f"position {chr_pos}!")
+                    break
+                # TODO compare ref & alt alleles
+        else:
+            return False, (f"Unable to verify this Clinvar entry!")
 
     return True, ''
 
 
 # Retrieve the ClinVar variant's clinical significance.
-def extract_clinvar_germline_classification(clinvar_dict: Dict):
-    germline_classification = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
-                               .get('Classifications').get('GermlineClassification'))
+def extract_clinvar_germline_classification(classified_record_dict: Dict):
+    # only compare if Clinvar entry has classification (variationId: 478905)
+    if classified_record_dict is None:
+        return {'description': None, 'last_evaluated': None, 'review_status': None}
+    else:
+        germline_classification = classified_record_dict.get('Classifications').get('GermlineClassification')
 
-    last_eval = ""
-    if germline_classification.get('@DateLastEvaluated') is not None and germline_classification.get('@DateLastEvaluated') != "1/01/01 00:00":
-        last_eval = germline_classification.get('@DateLastEvaluated').replace('-', '/') + ' 00:00'
+        last_eval = ""
+        if germline_classification.get('@DateLastEvaluated') is not None and germline_classification.get(
+                '@DateLastEvaluated') != "1/01/01 00:00":
+            last_eval = germline_classification.get('@DateLastEvaluated').replace('-', '/') + ' 00:00'
 
-    return {'description': germline_classification.get('Description'), 'last_evaluated': last_eval,
-            'review_status': germline_classification.get('ReviewStatus')}
+        return {'description': germline_classification.get('Description'), 'last_evaluated': last_eval,
+                'review_status': germline_classification.get('ReviewStatus')}
 
 
 # Retrieve the ClinVar variant's canonical SPDI.
-def extract_clinvar_canonical_spdi(clinvar_dict: Dict):
-    canonical_spdi = (clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord')
+def extract_clinvar_canonical_spdi(classified_record_dict: Dict):
+    if classified_record_dict is None or classified_record_dict.get('SimpleAllele') is None:
+        return None
+
+    canonical_spdi = (classified_record_dict
                       .get('SimpleAllele').get('CanonicalSPDI'))
 
     return canonical_spdi
@@ -148,8 +162,82 @@ def extract_clinvar_variation_id(clinvar_dict: Dict):
     return clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('@VariationID')
 
 
-def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene: str, chr: str,
-                                           chr_pos: str) -> InternalResponse:
+def clinvar_clinical_significance_pipeline(vus_df: pd.DataFrame) -> InternalResponse:
+    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
+    new_vus_df = vus_df.copy()
+    clinvar_variation_ids_dict = {}
+
+    # get clinvar ids based on the rsid values
+    for index, row in new_vus_df.iterrows():
+        if row['RSID'] == "NORSID":
+            current_app.logger.error(
+                f"ClinVar clinical significance pipeline cannot run for variant without RSID!")
+            vus_df.at[index, 'Clinvar error msg'] = "No RSID"
+        else:
+            current_app.logger.info(
+                f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: "
+                f"{row['Position']}\n\tGenotype: {row['Genotype']}")
+
+            retrieve_clinvar_ids_res = retrieve_clinvar_ids(row['RSID'])
+
+            if retrieve_clinvar_ids_res.status != 200:
+                vus_df.at[index, 'Clinvar error msg'] = "Failed to retrieve Clinvar id"
+                current_app.logger.error(f"Retrieval of ClinVar id for {row['RSID']} failed 500!")
+            else:
+                var_clinvar_ids = retrieve_clinvar_ids_res.data
+
+                # check the number of ClinVar IDs returned for a variant search
+                if len(var_clinvar_ids) == 0:
+                    vus_df.at[index, 'Clinvar error msg'] = "ClinVar ID has not been found!"
+                elif len(var_clinvar_ids) > 1:
+                    vus_df.at[index, 'Clinvar error msg'] = f"The following ClinVar IDs returned: {var_clinvar_ids}"
+                # if only a single ClinVar ID has been returned
+                else:
+                    clinvar_variation_ids_dict[index] = var_clinvar_ids[0]
+
+    # get clinvar information
+    clinvar_ids = list(clinvar_variation_ids_dict.values())
+    retrieve_clinvar_dict_res = retrieve_multiple_clinvar_dict(clinvar_ids)
+
+    if retrieve_clinvar_dict_res.status != 200:
+        current_app.logger.error(
+            f"Retrieval of ClinVar document summaries failed 500!")
+        return InternalResponse(None, 500)
+    else:
+        clinvar_dict = {}
+
+        variation_archive = retrieve_clinvar_dict_res.data.get('ClinVarResult-Set').get('VariationArchive')
+
+        for v in variation_archive:
+            clinvar_dict[v.get('@VariationID')] = v
+
+        for index in clinvar_variation_ids_dict.keys():
+            clinvar_variation_id = clinvar_variation_ids_dict[index]
+            clinvar_variant_dict = clinvar_dict[clinvar_variation_id]
+
+            classified_record_dict = clinvar_variant_dict.get('ClassifiedRecord')
+
+            are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant('GRCh37',
+                                                                                      classified_record_dict,
+                                                                                      vus_df.at[index, 'Gene'],  vus_df.at[index, 'Chr'],
+                                                                                      vus_df.at[index, 'Position'])
+
+            clinical_significance = extract_clinvar_germline_classification(classified_record_dict)
+
+            if clinical_significance:
+                vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
+                vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
+                vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
+
+            vus_df.at[index, 'Clinvar error msg'] = error_msg
+            vus_df.at[index, 'Clinvar canonical spdi'] = extract_clinvar_canonical_spdi(classified_record_dict)
+            vus_df.at[index, 'Clinvar variation id'] = clinvar_variation_id
+
+    return InternalResponse(vus_df, 200)
+
+
+def clinvar_clinical_significance_pipeline_single(genome_version: str, rsid: str, gene: str, chr: str,
+                                            chr_pos: str) -> InternalResponse:
     is_success = True
     clinical_significance = {}
     canonical_spdi = ''
@@ -188,11 +276,11 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
 
                 if is_success:
                     are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(genome_version,
-                                                                                              clinvar_dict,
+                                                                                              clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord'),
                                                                                               gene, chr, chr_pos)
                     # if are_equivalent:
-                    clinical_significance = extract_clinvar_germline_classification(clinvar_dict)
-                    canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict)
+                    clinical_significance = extract_clinvar_germline_classification(clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord'))
+                    canonical_spdi = extract_clinvar_canonical_spdi(clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord'))
                     variation_id = extract_clinvar_variation_id(clinvar_dict)
                     # else:
                     #     is_success = False
@@ -204,46 +292,15 @@ def clinvar_clinical_significance_pipeline(genome_version: str, rsid: str, gene:
 # Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding
 # ClinVar variant and extract its clinical significance.
 def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalResponse:
-    genome_version = 'GRCh37'
-    # performance_dict = {}
+    # TODO: add fix for when multiple rsids are found
+    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(vus_df)
 
-    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
-    new_vus_df = vus_df.copy()
-
-    for index, row in new_vus_df.iterrows():
-        if row['RSID'] == "NORSID":
-            current_app.logger.error(
-                f"ClinVar clinical significance pipeline cannot run for variant without RSID!")
-            vus_df.at[index, 'Clinvar error msg'] = "No RSID"
-        else:
-            current_app.logger.info(
-                f"Retrieving information for:\n\tGene: {row['Gene']}\n\tChromosome: {row['Chr']}\n\tChromosome position: "
-                f"{row['Position']}\n\tGenotype: {row['Genotype']}")
-
-            # TODO: add fix for when multiple rsids are found
-            clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(genome_version,
-                                                                                                row['RSID'],
-                                                                                                row['Gene'],
-                                                                                                row['Chr'],
-                                                                                                row['Position'])
-
-            if clinvar_clinical_significance_pipeline_res.status != 200:
-                current_app.logger.error(
-                    f"ClinVar clinical significance pipeline failed for variant with RSID {row['RSID']}!")
-                return InternalResponse(None, 500)
-            else:
-                # execute pipeline
-                is_success, clinical_significance, canonical_spdi, variation_id, error_msg = (
-                    clinvar_clinical_significance_pipeline_res.data)
-
-                if clinical_significance:
-                    vus_df.at[index, 'Clinvar classification'] = clinical_significance['description']
-                    vus_df.at[index, 'Clinvar classification last eval'] = clinical_significance['last_evaluated']
-                    vus_df.at[index, 'Clinvar classification review status'] = clinical_significance['review_status']
-
-                vus_df.at[index, 'Clinvar error msg'] = error_msg
-                vus_df.at[index, 'Clinvar canonical spdi'] = canonical_spdi
-                vus_df.at[index, 'Clinvar variation id'] = variation_id
+    if clinvar_clinical_significance_pipeline_res.status != 200:
+        current_app.logger.error(
+            f"ClinVar clinical significance pipeline failed!")
+        return InternalResponse(None, 500)
+    else:
+        vus_df = clinvar_clinical_significance_pipeline_res.data
 
     return InternalResponse(vus_df, 200)
 
@@ -264,12 +321,13 @@ def get_last_saved_clinvar_update(clinvar_id: int) -> (int, str, str, str):
     return auto_clinvar_update.id, auto_clinvar_update.review_status, auto_clinvar_update.classification, clinvar_last_evaluated
 
 
-def store_clinvar_info(clinvar_id: int, classification: str, review_status: str, last_eval: str, is_new_vus: bool) -> \
-Tuple[bool, str]:
+def store_clinvar_info(clinvar_id: int, classification: str | None, review_status: str | None, last_eval: str | None,
+                       is_new_vus: bool) -> \
+        Tuple[bool, str]:
     clinvar_last_evaluated = None
     last_saved_classification = None
 
-    if len(last_eval):
+    if last_eval is not None and len(last_eval):
         clinvar_last_evaluated = datetime.strptime(last_eval, '%Y/%m/%d %H:%M')
 
     create_new_clinvar_update = True
@@ -333,7 +391,7 @@ def get_updated_external_references_for_existing_vus(existing_vus_df: pd.DataFra
                 clinvar_dict = retrieve_clinvar_dict_res.data
 
                 # get latest clinvar classification
-                clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict)
+                clinvar_germline_classification = extract_clinvar_germline_classification(clinvar_dict.get('ClinVarResult-Set').get('VariationArchive').get('ClassifiedRecord'))
                 latest_germline_classification = clinvar_germline_classification.get('description')
 
                 is_clinvar_update_created, last_saved_classification = store_clinvar_info(clinvar.id,
@@ -394,7 +452,8 @@ def scheduled_clinvar_updates():
             mail_message = Message(
                 subject='Clinvar Classification Updates',
                 bcc=recipient_emails,
-                html=render_template('clinvar_update_email_template.html', updates=clinvar_updates, domain=os.environ.get('FRONT_URL')),
+                html=render_template('clinvar_update_email_template.html', updates=clinvar_updates,
+                                     domain=os.environ.get('FRONT_URL')),
             )
 
             try:

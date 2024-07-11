@@ -11,8 +11,7 @@ from server.models import ExternalReferences, Variants, DbSnp, Clinvar, Variants
     FileUploads, Publications, AutoClinvarUpdates, VariantHgvs, VariantsPublications, AutoPublicationEvalDates, \
     AutoClinvarEvalDates
 from server.responses.internal_response import InternalResponse
-from server.services.clinvar_service import get_last_saved_clinvar_update, clinvar_clinical_significance_pipeline, \
-    store_clinvar_info
+from server.services.clinvar_service import get_last_saved_clinvar_update, store_clinvar_info, clinvar_clinical_significance_pipeline_single
 from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.phenotype_service import append_phenotype_to_sample
 from server.services.publications_service import update_variant_publications
@@ -393,7 +392,7 @@ def update_variant_rsid(variant_id: int, new_rsid: str):
 
     update_variant_publications(variant, hgvs, new_rsid)
 
-    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline('GRCh37',
+    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline_single('GRCh37',
                                                                                         new_rsid,
                                                                                         variant.gene_name,
                                                                                         variant.chromosome,

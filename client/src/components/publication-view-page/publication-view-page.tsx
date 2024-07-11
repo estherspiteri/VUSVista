@@ -57,12 +57,14 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
         <div className={styles["title-section"]}>
           <div className={styles.title}>Publications</div>
           <div className={styles["title-btns"]}>
-            <Button
-              text="Add Publications"
-              icon="add"
-              className={styles["add-publications-header-btn"]}
-              onClick={() => setShowAddPublicationModal(true)}
-            />
+            {!props.isPhenotypePublicationPage && (
+              <Button
+                text="Add Publications"
+                icon="add"
+                className={styles["add-publications-header-btn"]}
+                onClick={() => setShowAddPublicationModal(true)}
+              />
+            )}
             {publications.length > 0 && (
               <Button
                 text={"Save as PDF"}
@@ -119,15 +121,14 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
             <VariantSummary variant={props.variant} />
           </div>
           <div className={styles["publication-previews"]}>
-            {!props.isPhenotypePublicationPage &&
-              publications.length > 0 && (
-                <div
-                  className={styles["publication-archive-link"]}
-                  onClick={getPublicationUpdates}
-                >
-                  Click here to view Publication updates
-                </div>
-              )}
+            {!props.isPhenotypePublicationPage && publications.length > 0 && (
+              <div
+                className={styles["publication-archive-link"]}
+                onClick={getPublicationUpdates}
+              >
+                Click here to view Publication updates
+              </div>
+            )}
             <div className={styles.header}>
               <span className={styles["header-title"]}>Publication Titles</span>
               <DebouncedInput
@@ -229,7 +230,9 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                             )}
                           </div>
                           <div className={styles["manual-add"]}>
-                            {p.isManuallyAdded && <Icon name="profile" fill="#008080"/>}
+                            {p.isManuallyAdded && (
+                              <Icon name="profile" fill="#008080" />
+                            )}
                           </div>
                         </div>
                       ))}

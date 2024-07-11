@@ -67,6 +67,10 @@
             }
           }
 
+          .variant-info {
+            width: 100%;
+          }
+
           .variant-titles,
           .variant,
           .variant-info {
@@ -92,11 +96,16 @@
               flex-direction: row;
               gap: 8px;
               align-items: center;
+              justify-content: space-between;
+              flex-grow: 1;
+              padding-right: 32px;
+              max-width: 380px !important;
 
               .hgvs-edit,
               .hgvs-edit-close {
                 border-radius: 8px;
                 cursor: pointer;
+                flex-shrink: 0;
 
                 &:hover {
                   background-color: #fff;
