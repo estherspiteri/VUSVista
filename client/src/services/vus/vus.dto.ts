@@ -8,7 +8,6 @@ import { IVariantPublicationUpdates } from "../../models/variant-publication-upd
 import { INotVusSample, IVus, IVusSample } from "../../models/view-vus.model";
 import {
   INonExistingGene,
-  ISamplePhenotypeSelected,
   IVusGene,
   IVusGeneSelected,
 } from "../../models/vus-file-upload.model";

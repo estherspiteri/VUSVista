@@ -32,6 +32,7 @@ import { IStatus } from "./services/vus/vus.dto";
 import Modal from "./atoms/modal/modal";
 import VusTable from "./components/view-all-vus-page/vus-table/vus-table";
 import Icon from "./atoms/icons/icon";
+import HomePageWrapper from "./wrappers/homepage-wrapper";
 
 type AppProps = {};
 const App: React.FunctionComponent<AppProps> = () => {
@@ -147,7 +148,7 @@ const App: React.FunctionComponent<AppProps> = () => {
           path="/review-history/*"
           element={<ReviewHistoryPageWrapper />}
         />
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePageWrapper />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
 

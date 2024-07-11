@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 import pandas as pd
 import requests
 from flask import current_app, Response
+from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
@@ -405,3 +406,10 @@ def add_publications_to_variant(variant_id: str, publication_links_list: List[st
         current_app.logger.error(
             f'Rollback carried out since insertion of new publication entries in DB failed due to error: {e}')
         return Response(json.dumps({'isSuccess': False, "publications": None}), 200, mimetype='application/json')
+
+
+def get_last_pub_auto_update_date() -> str:
+    auto_pub_eval_date: AutoPublicationEvalDates = db.session.query(AutoPublicationEvalDates).order_by(
+        desc(AutoPublicationEvalDates.eval_date)).first()
+
+    return datetime.strftime(auto_pub_eval_date.eval_date, '%d/%m/%Y %H:%M')

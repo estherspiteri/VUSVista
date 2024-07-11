@@ -15,6 +15,7 @@ from server.services.clinvar_service import scheduled_clinvar_updates
 from server.services.publications_service import check_for_new_litvar_publications
 from server.services.vus_preprocess_service import scheduled_file_upload_events
 from server.views.auth_views import auth_views
+from server.views.homepage_views import homepage_views
 from server.views.profile_views import profile_views
 from server.views.publication_views import publication_views
 from server.views.review_views import review_views
@@ -75,6 +76,7 @@ def create_app():
 
     CORS(app)
 
+    app.register_blueprint(homepage_views)
     app.register_blueprint(publication_views, url_prefix='/publication')
     app.register_blueprint(vus_views, url_prefix='/vus')
     app.register_blueprint(sample_views, url_prefix='/sample')

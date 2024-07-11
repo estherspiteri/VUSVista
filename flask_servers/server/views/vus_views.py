@@ -16,7 +16,7 @@ from server.services.acmg_service import get_acmg_rules
 from server.services.clinvar_service import get_variant_clinvar_updates
 from server.services.view_vus_service import retrieve_vus_summaries_from_db, \
     retrieve_vus_from_db, delete_variant_entry, add_samples_to_variant, add_new_sample_to_variant, \
-    remove_sample_from_variant, update_variant_rsid
+    remove_sample_from_variant, update_variant_rsid, get_latest_added_vus
 from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes, \
     check_for_existing_genes
 from server.services.publications_service import add_publications_to_variant, \
@@ -310,3 +310,12 @@ def update_rsid(variant_id: int, new_rsid: str):
     res = update_variant_rsid(variant_id, new_rsid)
 
     return Response(json.dumps({'isSuccess': res.status == 200, 'updatedExternalRefData': res.data['updated_external_ref_data']}), res.status)
+
+
+@vus_views.route('/latest-uploaded-vus/<int:number_of_variants>', methods=['GET'])
+def get_latest_uploaded_vus(number_of_variants: int):
+    current_app.logger.info(f"Retrieving last {number_of_variants} uploaded variants")
+
+    res = get_latest_added_vus(number_of_variants)
+
+    return Response(json.dumps({'isSuccess': True, 'vusList': res.data['var_list']}), res.status)

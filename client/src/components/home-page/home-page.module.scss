@@ -1,26 +1,65 @@
+.banner {
+  margin-top: 32px;
+
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    justify-content: center;
+    align-items: center;
+    margin-left: -64px;
+    background-color: #fff;
+    padding: 32px;
+
+    .logo {
+      width: 150px;
+      height: 150px;
+      animation: rotation 30s 0s linear;
+    }
+
+    .title {
+      font-family: "Poppins-Bold", sans-serif;
+      font-size: 82px;
+      color: #008080;
+    }
+  }
+}
+
 .home-page-container {
   width: 1248px;
   margin: 40px auto;
 
   .content {
-    .title-container {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    margin-top: 32px;
+
+    .updates {
+      background-color: #008080;
+      color: #fff;
       display: flex;
-      flex-direction: row;
-      gap: 32px;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      align-self: center;
+      gap: 8px;
+      padding: 16px;
+      border-radius: 16px;
 
-      .logo {
-        width: 200px;
-        height: 200px;
-        animation: rotation 30s 0s linear;
-      }
+      .last-update {
+        display: flex;
 
-      .title {
-        font-family: "Poppins-Bold", sans-serif;
-        font-size: 82px;
-        color: #008080;
+        .last-update-desc {
+          width: 270px;
+          display: block;
+          font-weight: bold;
+        }
       }
+    }
+
+    .info-title {
+      font-size: 24px;
+      color: #008080;
+      font-weight: bold;
     }
   }
 }

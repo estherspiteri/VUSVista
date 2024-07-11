@@ -20,6 +20,9 @@ type VusTableProps = {
   vusList: IVUSSummary[];
   isClickable?: boolean;
   showCheckboxes?: boolean;
+  showFilters?: boolean;
+  showSort?: boolean;
+  showExtraInfoColumns?: boolean;
   onSelectedVariantsUpdate?: (selectedVariantsIds: number[]) => void;
   onVariantClickCallback?: () => void;
 };
@@ -30,6 +33,12 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [selectedVariants, setSelectedVariants] = useState<number[]>([]);
+
+  const [columnVisibility, setColumnVisibility] = useState({
+    columnId1: true,
+    columnId2: false, //hide this column by default
+    columnId3: true,
+  });
 
   //define columns
   const columns = useMemo<ColumnDef<IVUSSummary, any>[]>(
@@ -81,6 +90,7 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
         sortingFn: rsidSortFn,
       },
       {
+        id: "rsid-review",
         accessorKey: "rsidReviewRequired",
         cell: (info) => {
           const val = info.getValue() as boolean;
@@ -102,6 +112,7 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
         },
       },
       {
+        id: "found-in-clinvar",
         accessorKey: "isFoundInClinvar",
         cell: (info) => {
           const val = info.getValue() as boolean;
@@ -133,6 +144,10 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
     state: {
       columnFilters,
       sorting,
+      columnVisibility: {
+        "rsid-review": props.showExtraInfoColumns,
+        "found-in-clinvar": props.showExtraInfoColumns,
+      },
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(), //client side filtering
@@ -157,35 +172,46 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
                   <th key={header.id} className={styles["header-content"]}>
                     {header.isPlaceholder ? null : (
                       <>
-                        <div className={styles.title}>
+                        <div
+                          className={`${styles.title} ${
+                            !props.showSort && !props.showFilters
+                              ? styles["header-centered"]
+                              : ""
+                          }`}
+                        >
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                          <div
-                            className={styles["sort-icons"]}
-                            onClick={header.column.getToggleSortingHandler()}
-                            title={
-                              header.column.getCanSort()
-                                ? header.column.getNextSortingOrder() === "asc"
-                                  ? "Sort ascending"
-                                  : header.column.getNextSortingOrder() ===
-                                    "desc"
-                                  ? "Sort descending"
-                                  : "Clear sort"
-                                : undefined
-                            }
-                          >
-                            {{
-                              asc: <Icon name="asc" width={16} height={16} />,
-                              desc: <Icon name="desc" width={16} height={16} />,
-                              false: (
-                                <Icon name="sort" width={16} height={16} />
-                              ),
-                            }[header.column.getIsSorted() as string] ?? null}
-                          </div>
+                          {props.showSort && (
+                            <div
+                              className={styles["sort-icons"]}
+                              onClick={header.column.getToggleSortingHandler()}
+                              title={
+                                header.column.getCanSort()
+                                  ? header.column.getNextSortingOrder() ===
+                                    "asc"
+                                    ? "Sort ascending"
+                                    : header.column.getNextSortingOrder() ===
+                                      "desc"
+                                    ? "Sort descending"
+                                    : "Clear sort"
+                                  : undefined
+                              }
+                            >
+                              {{
+                                asc: <Icon name="asc" width={16} height={16} />,
+                                desc: (
+                                  <Icon name="desc" width={16} height={16} />
+                                ),
+                                false: (
+                                  <Icon name="sort" width={16} height={16} />
+                                ),
+                              }[header.column.getIsSorted() as string] ?? null}
+                            </div>
+                          )}
                         </div>
-                        {header.column.getCanFilter() ? (
+                        {header.column.getCanFilter() && props.showFilters ? (
                           <Filter column={header.column} id={header.id} />
                         ) : null}
                       </>
@@ -271,6 +297,9 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
 VusTable.defaultProps = {
   isClickable: true,
   showCheckboxes: false,
+  showFilters: true,
+  showSort: true,
+  showExtraInfoColumns: true,
 };
 
 export default VusTable;

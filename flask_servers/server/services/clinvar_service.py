@@ -502,3 +502,9 @@ def get_variant_clinvar_updates(clinvar_id: str):
     return Response(
         json.dumps({'isSuccess': True, 'clinvarUpdates': clinvar_updates_list, 'datesWithUpdates': dates_with_updates}),
         200, mimetype='application/json')
+
+
+def get_last_clinvar_auto_update_date() -> str:
+    auto_clinvar_eval_date: AutoClinvarEvalDates = db.session.query(AutoClinvarEvalDates).order_by(desc(AutoClinvarEvalDates.eval_date)).first()
+
+    return datetime.strftime(auto_clinvar_eval_date.eval_date, '%d/%m/%Y %H:%M')

@@ -3,13 +3,14 @@ from typing import List, Dict, Tuple
 import pandas as pd
 from flask import current_app
 from flask_login import current_user
+from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db
 from server.helpers.data_helper import convert_df_to_list
 from server.models import ExternalReferences, Variants, DbSnp, Clinvar, VariantsSamples, Genotype, Samples, Phenotypes, \
     FileUploads, Publications, AutoClinvarUpdates, VariantHgvs, VariantsPublications, AutoPublicationEvalDates, \
-    AutoClinvarEvalDates
+    AutoClinvarEvalDates, VariantsSamplesUploads
 from server.responses.internal_response import InternalResponse
 from server.services.clinvar_service import get_last_saved_clinvar_update, store_clinvar_info, clinvar_clinical_significance_pipeline_single
 from server.services.consequence_service import get_consequences_for_new_vus
@@ -490,3 +491,21 @@ def update_variant_rsid(variant_id: int, new_rsid: str):
             f'Rollback carried out since RSID update for variant ID {variant_id} to {new_rsid} in DB failed due to error: {e}')
         return InternalResponse({'isSuccess': False}, 500)
 
+
+def get_latest_added_vus(num_of_variants: int):
+    latest_variant_sample_uploads: List[VariantsSamplesUploads] = db.session.query(VariantsSamplesUploads).order_by(
+        desc(VariantsSamplesUploads.date_uploaded)).all()
+
+    updated_num_variants = num_of_variants
+
+    latest_variant_ids = list(set([u.variant_id for u in latest_variant_sample_uploads]))
+    if len(latest_variant_ids) < num_of_variants:
+        updated_num_variants = len(latest_variant_ids)
+
+    latest_variant_ids = latest_variant_ids[:updated_num_variants]
+
+    variants: List[Variants] = db.session.query(Variants).filter(Variants.id.in_(latest_variant_ids)).all()
+
+    var_list = retrieve_vus_summaries_from_db(variants)
+
+    return InternalResponse({'var_list': var_list}, 500)
