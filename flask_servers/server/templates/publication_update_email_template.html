@@ -2,38 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clinvar update email</title>
-</head>
+  <title>Publication update email</title>
+ </head>
 <body>
-  <h1>Clinvar Classification Updates</h1>
-  <h4>The following variants' Clinvar classifications have been updated. Click on the variant Ids to access the respective variant pages.</h4>
+  <h1>Publication Updates</h1>
+  <h4>The following variants' publications have been updated. Click on the variant Ids to access the respective variant pages and on the publication DOIs to access the respective publications. If you are not logged-in, please log in first prior to accessing the variant pages.</h4>
   <table style="width:100%; border-spacing: 0; padding: 0; border: 0">
     <tr>
       <td>
-        <table style="width: 600px; border-spacing: 0; padding: 0; text-align:center; margin: 0 auto; border-left: 1px solid #008080; border-right: 1px solid #008080; border-radius: 4px">
+        <table style="border-spacing: 0; padding: 0; text-align:center;border-radius: 4px; margin: 0 auto">
           <tr style="background-color: #008080; color: #ffffff">
             <th style="padding: 16px">
-              Variant ID
-            </th>
-            <th style="padding: 16px">
-              Previous Clinvar Classification
-            </th>
-            <th style="padding: 16px">
-              New Clinvar Classification
+              Publication Updates
             </th>
           </tr>
           {% for update in updates %}
-          <tr>
-            <td style="border-bottom: 1px solid #008080">
-              <a href="http://localhost:3000/vus/{{update.variant_id}}">{{update.variant_id}}</a>
-            </td>
-            <td style="border-bottom: 1px solid #008080">
-              <p>{{update.prev_classification}}</p>
-            </td>
-            <td style="border-bottom: 1px solid #008080">
-              <p>{{update.new_classification}}</p>
-            </td>
-          </tr>
+            <tr>
+              <td style="padding: 16px 8px 8px 8px;">
+                <table style="align-self: center;
+                              text-align: center;
+                              width: 100%;
+                              border: 2px solid #008080;
+                              border-radius: 40px;
+                              background-color: #e2f9f9; font-size: 12px;
+                              ">
+                  <tr>
+                    <td style="padding: 2px 16px;">
+                      <p>Id</p>
+                      <p style="color: #008080; font-weight: bold"><a href="{{domain}}/vus/{{update.variant_id}}">{{update.variant_id}}</a></p>
+                    </td>
+                    <td style="padding: 2px 16px;">
+                      <p>Chromosome</p>
+                      <p style="color: #008080; font-weight: bold">{{update.chromosome}}</p>
+                    </td>
+                    <td style="padding: 2px 16px;">
+                      <p>Position</p>
+                      <p style="color: #008080; font-weight: bold">{{update.chromosome_position}}</p>
+                    </td>
+                    <td style="padding: 2px 16px;">
+                      <p>Gene</p>
+                      <p style="color: #008080; font-weight: bold">{{update.gene}}</p>
+                    </td>
+                    <td style="padding: 2px 16px;">
+                      <p>Reference</p>
+                      <p style="color: #008080; font-weight: bold">{{update.ref_allele}}</p>
+                    </td>
+                    <td style="padding: 2px 16px;">
+                      <p>Alternate</p>
+                      <p style="color: #008080; font-weight: bold">{{update.alt_allele}}</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            {% for pub in update.publications %}
+              <tr>
+                <td style="align-self: flex-start; width: 100%; border-bottom: 1px solid #008080">
+                  <p style="text-align: start"><b>DOI:</b> {{pub.doi}}</p>
+                  <p style="text-align: start"><b>Title:</b> {{pub.title}}</p>
+                  <p style="text-align: end"><a href={{pub.link}}">Visit</a></p>
+                </td>
+              </tr>
+            {% endfor %}
           {% endfor %}
         </table>
       </td>

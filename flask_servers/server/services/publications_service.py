@@ -1,5 +1,6 @@
 import json
 import math
+import os
 from datetime import datetime
 import re
 from typing import List, Dict
@@ -7,13 +8,15 @@ from urllib.parse import urlencode
 
 import pandas as pd
 import requests
-from flask import current_app, Response
+from flask import current_app, Response, render_template
+from flask_mail import Message
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
-from server import db
+from server import db, mail
 from server.helpers.data_helper import alchemy_encoder
-from server.models import Publications, Variants, ExternalReferences, VariantsPublications, AutoPublicationEvalDates
+from server.models import Publications, Variants, ExternalReferences, VariantsPublications, AutoPublicationEvalDates, \
+    ScientificMembers
 from server.responses.internal_response import InternalResponse
 from server.services.litvar_service import get_publications
 
@@ -106,8 +109,9 @@ def merge_user_and_litvar_and_db_publications(user_pub_list: List[Publications],
     return final_pub_list
 
 
-#TODO: stop giving this function publications which the variant already has in first parameter
-def store_variant_publications_in_db(publications: List[Publications], variant_id: int, manually_added_pub_dois: List[str], date_added=datetime.now()):
+# TODO: stop giving this function publications which the variant already has in first parameter
+def store_variant_publications_in_db(publications: List[Publications], variant_id: int,
+                                     manually_added_pub_dois: List[str], date_added=datetime.now()):
     # check which publications already exist in the publications table in the db
     vus_new_publications, vus_existing_publications = extract_publications_already_stored_in_db(publications)
 
@@ -120,7 +124,8 @@ def store_variant_publications_in_db(publications: List[Publications], variant_i
 
     # set up relationship between the variant & its publications
     for p in all_publications:
-        vus_pub = VariantsPublications(variant_id=variant_id, publication_id=p.id, date_added=date_added, is_manually_added=p.doi is not None and p.doi in manually_added_pub_dois) #TODO: get value
+        vus_pub = VariantsPublications(variant_id=variant_id, publication_id=p.id, date_added=date_added,
+                                       is_manually_added=p.doi is not None and p.doi in manually_added_pub_dois)  # TODO: get value
         db.session.add(vus_pub)
 
 
@@ -240,7 +245,8 @@ def get_publications_by_variant_id_from_db(variant_id: str) -> (Variants, List[D
     return variant, publication_list
 
 
-def update_variant_publications(variant: Variants, hgvs: str | None, rsid: str | None):
+def update_variant_publications(variant: Variants, hgvs: str | None, rsid: str | None) -> List:
+    pub_not_in_variant = []
     if hgvs is not None or rsid is not None:
         # retrieve LitVar publications using rsid if it exists, else use hgvs
         litvar_publications_res = get_publications(hgvs, rsid, None)
@@ -269,15 +275,18 @@ def update_variant_publications(variant: Variants, hgvs: str | None, rsid: str |
 
             auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=variant.id)
             db.session.add(auto_pub_eval_date)
+    return pub_not_in_variant
 
 
 def check_for_new_litvar_publications():
     variants = db.session.query(Variants).all()
+    updates = []
 
     for v in variants:
         # get rsid, if it exists
-        db_snp_external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(ExternalReferences.variant_id == v.id,
-                                                                          ExternalReferences.db_type == 'db_snp').one_or_none()
+        db_snp_external_ref: ExternalReferences = db.session.query(ExternalReferences).filter(
+            ExternalReferences.variant_id == v.id,
+            ExternalReferences.db_type == 'db_snp').one_or_none()
 
         rsid = None
         if db_snp_external_ref is not None:
@@ -288,11 +297,39 @@ def check_for_new_litvar_publications():
         if len(v.variant_hgvs) > 0:
             hgvs = v.variant_hgvs[0].hgvs.split(' ')[0]
 
-        update_variant_publications(v, hgvs, rsid)
+        pub_not_in_variant = update_variant_publications(v, hgvs, rsid)
+
+        if len(pub_not_in_variant) > 0:
+            pub_not_in_variant_info = [{"link": p.link, "doi": p.doi, "title": p.title} for p in pub_not_in_variant]
+            update = ({'variant_id': v.id, 'chromosome': v.chromosome,
+                       'chromosome_position': v.chromosome_position,
+                       'gene': v.gene_name, 'alt_allele': v.alt,
+                       'ref_allele': v.ref, "publications": pub_not_in_variant_info})
+
+            updates.append(update)
 
     try:
         # Commit the session to persist changes to the database
         db.session.commit()
+
+        if len(updates) > 0:
+            # get all scientific members of staff
+            recipients: List[ScientificMembers] = db.session.query(ScientificMembers).all()
+            recipient_emails = [r.email for r in recipients]
+
+            mail_message = Message(
+                subject='Publication Updates',
+                bcc=recipient_emails,
+                html=render_template('publication_update_email_template.html', updates=updates,
+                                     domain=os.environ.get('FRONT_URL')),
+            )
+
+            try:
+                current_app.logger.info('Sending email with Publication updates.')
+                mail.send(mail_message)
+            except Exception as e:
+                current_app.logger.error(f'Publication updates email was not sent successfully: {e}')
+
         return InternalResponse({'isSuccess': True}, 200)
     except SQLAlchemyError as e:
         # Changes were rolled back due to an error
