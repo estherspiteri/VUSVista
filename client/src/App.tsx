@@ -108,7 +108,7 @@ const App: React.FunctionComponent<AppProps> = () => {
         </div>
       )}
 
-      <Header isUserLoggedIn={isUserLoggedIn} authService={authService} />
+      <Header authService={authService} />
 
       <Routes>
         <Route

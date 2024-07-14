@@ -55,6 +55,7 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
               defaultChecked={rememberMe}
               name="rememberMe"
               onChange={() => setRememberMe(!rememberMe)}
+              style={{ cursor: "pointer" }}
             />
             Remember me
           </span>
@@ -68,12 +69,12 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
         </div>
       </div>
 
-      <p className={styles.register}>
+      {/* <p className={styles.register}>
         <Link to={"/register"} className={styles.link}>
           Click here
         </Link>
         &nbsp;to register.
-      </p>
+      </p> */}
     </div>
   );
 

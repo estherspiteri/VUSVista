@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import styles from "./header.module.scss";
 import { Link } from "react-router-dom";
 import Button from "../../atoms/button/button";
@@ -7,11 +7,12 @@ import Icon from "../../atoms/icons/icon";
 import { AppContext } from "../../app-context";
 import Logo from "./../../assets/logo.png";
 
-type HeaderProps = { isUserLoggedIn: boolean; authService: AuthService };
+type HeaderProps = { authService: AuthService };
 
 const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
-  const { setIsUserLoggedIn } = useContext(AppContext);
+  const { isUserLoggedIn, setIsUserLoggedIn } = useContext(AppContext);
 
+  console.log(isUserLoggedIn);
   return (
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>
@@ -21,7 +22,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
           </Link>
 
           {/** VUS */}
-          {props.isUserLoggedIn && (
+          {isUserLoggedIn && (
             <>
               <div className={styles["option-container"]}>
                 <div className={styles["option-btn"]}>VUS</div>
@@ -51,7 +52,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
           )}
         </div>
 
-        {props.isUserLoggedIn && (
+        {isUserLoggedIn && (
           <div className={styles["side-btns"]}>
             <Link
               to="/login"
