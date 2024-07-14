@@ -87,6 +87,38 @@
     }
   }
 
+  .important {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 32px;
+    background-color: #008080;
+    padding: 16px;
+    border-radius: 4px;
+    color: #fff;
+
+    li::marker {
+      color: #fff;
+    }
+
+    li {
+      margin: 8px 0;
+
+      &:last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    ul {
+      margin: 0;
+    }
+
+    .important-title {
+      font-weight: bold;
+      font-size: 21px;
+    }
+  }
+
   .modal-content-wrapper {
     display: flex;
     flex-direction: column;

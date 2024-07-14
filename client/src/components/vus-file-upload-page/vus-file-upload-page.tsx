@@ -17,7 +17,7 @@ import Button from "../../atoms/button/button";
 import Icon from "../../atoms/icons/icon";
 import Modal, { ModalRef } from "../../atoms/modal/modal";
 import { AppContext } from "../../app-context";
-
+import { saveAs } from "file-saver";
 type VusFileUploadPageProps = {
   vusService?: VusService;
 };
@@ -107,10 +107,24 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         {file ? (
           <p>Process your uploaded file.</p>
         ) : (
-          <p>
-            Drag 'n' drop or click on the button to select your VUS file from
-            the file directory.
-          </p>
+          <>
+            <p style={{ lineHeight: "28px" }}>
+              Drag 'n' drop or click on the button to select your VUS file from
+              the file directory. Your VUS file should be a spreadheet with the
+              same headers as in this template:&nbsp;
+              <span
+                style={{
+                  color: "#008080",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+                onClick={downloadTemplate}
+              >
+                template.xlsx
+              </span>
+              .
+            </p>
+          </>
         )}
       </div>
       <div className={styles["drag-and-drop-wrapper"]}>
@@ -186,6 +200,38 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           <p className={styles.errorMsg}>{errorMsg}</p>
         </Banner>
       )}
+      <div className={styles.important}>
+        <span className={styles["important-title"]}>IMPORTANT</span>
+        <ul>
+          <li>
+            <span>
+              <b>Sample Ids</b>: need to be separated by a <b>comma</b>
+            </span>
+          </li>
+          <li>
+            <span>
+              <b>Gene</b>: if a variant has multiple genes they need to be
+              separated by a <b>comma</b>
+            </span>
+          </li>
+          <li>
+            <span>
+              <b>ACMG rules</b>: need to be separated by a <b>comma</b>
+            </span>
+          </li>
+          <li>
+            <span>
+              <b>Literature links</b>: need to be separated by a <b>pipeline</b>
+              , i.e. |
+            </span>
+          </li>
+          <li>
+            <span>
+              RSID header needs to end with an <b>underscore</b>, i.e. _
+            </span>
+          </li>
+        </ul>
+      </div>
 
       {multipleGenes && multipleGenes.length > 0 && (
         <Modal
@@ -276,9 +322,9 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         >
           <p style={{ marginBottom: "16px" }}>
             The genes for the following variants were not found in our database.
-            Kindly input a valid gene and click on the search icon for it to be validated. Once a
-            gene is validated, the text box will no longer be visible. Check out
-            gene aliases at&nbsp;
+            Kindly input a valid gene and click on the search icon for it to be
+            validated. Once a gene is validated, the text box will no longer be
+            visible. Check out gene aliases at&nbsp;
             <a
               href="https://www.genecards.org/"
               target="_blank"
@@ -598,6 +644,26 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         } else return selection;
       })
     );
+  }
+
+  function downloadTemplate() {
+    const fileUrl = process.env.PUBLIC_URL + "/assets/template.xlsx";
+
+    // Fetch the file
+    fetch(fileUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        // Use file-saver to save the file
+        saveAs(blob, "template.xlsx");
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+      });
   }
 };
 
