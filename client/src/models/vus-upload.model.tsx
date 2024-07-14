@@ -19,4 +19,5 @@ export interface IVusUpload {
   acmgRules: IAcmgRuleUpload[];
   hgvs: string;
   rsid: string;
+  literatureLinks: string;
 }

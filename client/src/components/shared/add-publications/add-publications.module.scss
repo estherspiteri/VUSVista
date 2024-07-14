@@ -1,0 +1,71 @@
+.add-publications-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .new-input {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+
+    .text {
+      width: 100%;
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
+
+    .icon-wrapper {
+      background-color: #008080;
+      padding: 4px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: fit-content;
+      box-sizing: border-box;
+      height: 35px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .add {
+        fill: #fff;
+      }
+
+      &:hover {
+        background-color: #fff;
+        border: 2px solid #008080;
+        padding: 2px;
+        box-sizing: border-box;
+
+        .add {
+          fill: #008080;
+        }
+      }
+    }
+  }
+
+  .added-url {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 8px;
+    border: 2px solid #008080;
+    border-radius: 8px;
+    width: fit-content;
+
+    a {
+      color: #008080;
+      font-size: 14px;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    svg {
+      cursor: pointer;
+    }
+  }
+}

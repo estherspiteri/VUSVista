@@ -6,6 +6,7 @@ type VusUploadFieldProps = PropsWithChildren<{
   title: string;
   showCheckMark?: boolean;
   isOpenByDefault?: boolean;
+  isOptional?: boolean;
 }>;
 
 const VusUploadField: React.FunctionComponent<VusUploadFieldProps> = (
@@ -37,7 +38,7 @@ const VusUploadField: React.FunctionComponent<VusUploadFieldProps> = (
     <div ref={ref} className={styles["vus-upload-field-container"]}>
       <div
         className={`${styles.header} ${isContentVisible ? styles.open : ""} ${
-          props.showCheckMark ? styles.valid : ""
+          props.showCheckMark || props.isOptional ? styles.valid : ""
         }`}
         onClick={() => {
           setIsContentVisible(!isContentVisible);
@@ -58,6 +59,10 @@ const VusUploadField: React.FunctionComponent<VusUploadFieldProps> = (
       </div>
     </div>
   );
+};
+
+VusUploadField.defaultProps = {
+  isOptional: false,
 };
 
 export default VusUploadField;

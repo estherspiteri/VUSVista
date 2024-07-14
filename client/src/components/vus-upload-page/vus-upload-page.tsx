@@ -14,6 +14,7 @@ import AcmgRulesEdit from "../sample-page/acmg-rules-edit/acmg-rules-edit";
 import { IAcmgRule } from "../../models/acmg-rule.model";
 import Loader from "../../atoms/loader/loader";
 import SamplePhenotypeSelection from "../shared/sample-phenotype-selection/sample-phenotype-selection";
+import AddPublications from "../shared/add-publications/add-publications";
 
 type VusUploadPageProps = {
   acmgRules: IAcmgRule[];
@@ -66,6 +67,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [phenotypes, setPhenotypes] = useState<IHPOTerm[]>(undefined);
 
   const [acmgRules, setAcmgRules] = useState<IAcmgRuleUpload[]>(undefined);
+
+  const [literatureLinks, setLiteratureLinks] = useState<string[]>([]);
 
   const [isSummaryModalOpen, setIsSummaryModelOpen] = useState(false);
 
@@ -328,7 +331,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </VusUploadField>
 
           {/** RSID */}
-          <VusUploadField title="RSID (optional)">
+          <VusUploadField title="RSID (optional)" isOptional={true}>
             <div className={styles["field-content"]}>
               <span>Input the RSID:</span>
               <Text
@@ -339,7 +342,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </VusUploadField>
 
           {/** HGVS */}
-          <VusUploadField title="HGVS (optional)">
+          <VusUploadField title="HGVS (optional)" isOptional={true}>
             <div className={styles["field-content"]}>
               <span>Input the HGVS:</span>
               <Text
@@ -350,7 +353,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </VusUploadField>
 
           {/** ACMG Rules */}
-          <VusUploadField title="ACMG Rules (optional)">
+          <VusUploadField title="ACMG Rules (optional)" isOptional={true}>
             {/** ACMG Rules */}
             <div className={styles["field-content"]}>
               <span>Choose the ACMG rules that this variant has</span>
@@ -379,6 +382,21 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   )}
                 />
               </div>
+            </div>
+          </VusUploadField>
+
+          {/** Literature links */}
+          <VusUploadField title="Literature Links (optional)" isOptional={true}>
+            <div className={styles["field-content"]}>
+              <span>
+                Insert the URLs of the publications you would like to add for
+                this variant
+              </span>
+              <AddPublications
+                onPublicationsUpdateCallback={(urls) =>
+                  setLiteratureLinks(urls)
+                }
+              />
             </div>
           </VusUploadField>
         </div>
@@ -425,25 +443,29 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Sample Ids</p>
-                  {samples.map((s) => (
-                    <p className={styles.selection}>
-                      <div className={styles.bullet}>{"\u25CF"}</div>
-                      <p>{s}</p>
-                    </p>
-                  ))}
+                  <div className={styles["selection-container"]}>
+                    {samples.map((s) => (
+                      <p className={styles.selection}>
+                        <div className={styles.bullet}>{"\u25CF"}</div>
+                        <p>{s}</p>
+                      </p>
+                    ))}
+                  </div>
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>Phenotypes</p>
-                  {phenotypes?.length > 0
-                    ? phenotypes.map((p) => (
-                        <p className={styles.selection}>
-                          <div className={styles.bullet}>{"\u25CF"}</div>
-                          <p>
-                            {p.ontologyId}: {p.name}
+                  <div className={styles["selection-container"]}>
+                    {phenotypes?.length > 0
+                      ? phenotypes.map((p) => (
+                          <p className={styles.selection}>
+                            <div className={styles.bullet}>{"\u25CF"}</div>
+                            <p>
+                              {p.ontologyId}: {p.name}
+                            </p>
                           </p>
-                        </p>
-                      ))
-                    : "No phenotypes selected"}
+                        ))
+                      : "No phenotypes selected"}
+                  </div>
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>HGVS</p>
@@ -453,14 +475,29 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 </div>
                 <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>ACMG Rules</p>
-                  {acmgRules?.length > 0
-                    ? acmgRules.map((a) => (
-                        <p className={styles.selection}>
-                          <div className={styles.bullet}>{"\u25CF"}</div>
-                          <p>{a.name}</p>
-                        </p>
-                      ))
-                    : "No rules selected"}
+                  <div className={styles["selection-container"]}>
+                    {acmgRules?.length > 0
+                      ? acmgRules.map((a) => (
+                          <p className={styles.selection}>
+                            <div className={styles.bullet}>{"\u25CF"}</div>
+                            <p>{a.name}</p>
+                          </p>
+                        ))
+                      : "No rules selected"}
+                  </div>
+                </div>
+                <div className={styles["summary-field"]}>
+                  <p className={styles["selection-name"]}>Literature Links</p>{" "}
+                  <div className={styles["selection-container"]}>
+                    {literatureLinks?.length > 0
+                      ? literatureLinks.map((url) => (
+                          <p className={styles.selection}>
+                            <div className={styles.bullet}>{"\u25CF"}</div>
+                            <p>{url}</p>
+                          </p>
+                        ))
+                      : "No rules selected"}
+                  </div>
                 </div>
               </div>
               <div className={styles.buttons}>
@@ -490,7 +527,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   }
 
   function checkAlleleValidity(val: string, isRef: boolean) {
-    let isValid = /^[G|A|C|T|/]+$/gim.test(val);
+    let isValid = /^(\/|[GACT]+)$/gim.test(val);
     let errorMsg = "";
 
     if (!isValid) {
@@ -567,6 +604,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       acmgRules: acmgRules ?? [],
       hgvs: hgvs ?? "",
       rsid: rsid ?? "",
+      literatureLinks: literatureLinks.join("|"),
     };
 
     setIsLoading(true);

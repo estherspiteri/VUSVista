@@ -796,7 +796,7 @@ def handle_vus_from_form(vus_df: pd.DataFrame) -> Response:
                            'refAllele': 'Reference', 'altAllele': 'Alt', 'classification': Classification.VUS,
                            'gene': 'Gene', 'geneId': 'Gene Id', 'genotype': 'Genotype', 'samples': 'Sample Ids',
                            'phenotypes': 'Sample Phenotypes With Ids', 'acmgRules': 'ACMG Rules With Ids',
-                           'hgvs': 'HGVS', 'rsid': 'RSID_'},
+                           'hgvs': 'HGVS', 'rsid': 'RSID_', 'literatureLinks': 'Literature Links'},
                   inplace=True)
 
     vus_df_copy = vus_df.copy()

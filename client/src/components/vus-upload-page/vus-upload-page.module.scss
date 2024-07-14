@@ -240,13 +240,19 @@
             min-width: 300px;
           }
 
-          .selection {
+          .selection-container {
             display: flex;
-            flex-direction: row;
-            gap: 16px;
+            flex-direction: column;
+            gap: 8px;
 
-            .bullet {
-              color: #fff;
+            .selection {
+              display: flex;
+              flex-direction: row;
+              gap: 16px;
+
+              .bullet {
+                color: #fff;
+              }
             }
           }
         }

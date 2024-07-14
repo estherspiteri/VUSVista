@@ -16,6 +16,7 @@ import Text from "../../atoms/text/text";
 import Icon from "../../atoms/icons/icon";
 import { convertPubDates } from "../../helpers/date-helper";
 import { useReactToPrint } from "react-to-print";
+import AddPublications from "../shared/add-publications/add-publications";
 
 type PublicationViewPageProps = {
   variantId: string;
@@ -41,7 +42,6 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
   const [datesWithUpdates, setDatesWithUpdates] = useState([]);
 
   const [showAddPublicationModal, setShowAddPublicationModal] = useState(false);
-  const [url, setUrl] = useState("");
   const [addedUrls, setAddedUrls] = useState<string[]>([]);
   const [isAddingPublications, setIsAddingPublications] = useState(false);
 
@@ -273,45 +273,10 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
               Insert the URLs of the publications you would like to add for this
               variant
             </p>
-            <div className={styles["urls-container"]}>
-              <div className={styles["new-input"]}>
-                <div className={styles.text}>
-                  <Text
-                    disabled={isAddingPublications}
-                    placeholder="Insert URL ..."
-                    value={url}
-                    autoFocus={true}
-                    onChange={(e) => setUrl(e.currentTarget.value)}
-                  />
-                </div>
-                <div className={styles["icon-wrapper"]}>
-                  <Icon
-                    name="add"
-                    className={styles.add}
-                    onClick={() => {
-                      if (!isAddingPublications && url.trim().length > 0) {
-                        if (!addedUrls.find((u) => u === url)) {
-                          setAddedUrls(addedUrls.concat(url));
-                        }
-                        setUrl("");
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              {addedUrls.map((u) => (
-                <div className={styles["added-url"]}>
-                  <a href={u}>{u}</a>
-                  <Icon
-                    name="close"
-                    stroke="#008080"
-                    onClick={() => {
-                      setAddedUrls(addedUrls.filter((url) => url !== u));
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+            <AddPublications
+              isAddingPublications={isAddingPublications}
+              onPublicationsUpdateCallback={(urls) => setAddedUrls(urls)}
+            />
             <Button
               className={styles["add-publications-btn"]}
               disabled={isAddingPublications || addedUrls.length === 0}
