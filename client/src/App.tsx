@@ -223,13 +223,18 @@ const App: React.FunctionComponent<AppProps> = () => {
                   These are the variant Ids of the variants which had already
                   been uploaded:
                 </p>
-                {fileUploadTaskOnDisplay.existingVariantIds.map((id) => (
+                {fileUploadTaskOnDisplay.existingVariantIds.map((id, index) => (
                   <a
                     href={`/vus/${id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {id},&nbsp;
+                    {id}
+                    {index ==
+                    fileUploadTaskOnDisplay.existingVariantIds.length - 1
+                      ? ""
+                      : ","}
+                    &nbsp;
                   </a>
                 ))}
               </p>

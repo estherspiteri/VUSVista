@@ -200,38 +200,40 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
           <p className={styles.errorMsg}>{errorMsg}</p>
         </Banner>
       )}
-      <div className={styles.important}>
-        <span className={styles["important-title"]}>IMPORTANT</span>
-        <ul>
-          <li>
-            <span>
-              <b>Sample Ids</b>: need to be separated by a <b>comma</b>
-            </span>
-          </li>
-          <li>
-            <span>
-              <b>Gene</b>: if a variant has multiple genes they need to be
-              separated by a <b>comma</b>
-            </span>
-          </li>
-          <li>
-            <span>
-              <b>ACMG rules</b>: need to be separated by a <b>comma</b>
-            </span>
-          </li>
-          <li>
-            <span>
-              <b>Literature links</b>: need to be separated by a <b>pipeline</b>
-              , i.e. |
-            </span>
-          </li>
-          <li>
-            <span>
-              RSID header needs to end with an <b>underscore</b>, i.e. _
-            </span>
-          </li>
-        </ul>
-      </div>
+      {!file && (
+        <div className={styles.important}>
+          <span className={styles["important-title"]}>IMPORTANT</span>
+          <ul>
+            <li>
+              <span>
+                <b>Sample Ids</b>: need to be separated by a <b>comma</b>
+              </span>
+            </li>
+            <li>
+              <span>
+                <b>Gene</b>: if a variant has multiple genes they need to be
+                separated by a <b>comma</b>
+              </span>
+            </li>
+            <li>
+              <span>
+                <b>ACMG rules</b>: need to be separated by a <b>comma</b>
+              </span>
+            </li>
+            <li>
+              <span>
+                <b>Literature links</b>: need to be separated by a&nbsp;
+                <b>pipeline</b>, i.e. |
+              </span>
+            </li>
+            <li>
+              <span>
+                RSID header needs to end with an <b>underscore</b>, i.e. _
+              </span>
+            </li>
+          </ul>
+        </div>
+      )}
 
       {multipleGenes && multipleGenes.length > 0 && (
         <Modal
