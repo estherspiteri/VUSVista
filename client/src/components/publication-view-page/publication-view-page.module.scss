@@ -150,9 +150,14 @@
             }
 
             .manual-add {
-              stroke: #008080;
               display: flex;
               justify-content: flex-end;
+
+              .pub-archive-profile-icon {
+                * {
+                  fill: #008080;
+                }
+              }
             }
 
             background-color: #fff;
@@ -171,7 +176,11 @@
                 color: #fff;
 
                 .manual-add {
-                  stroke: #fff;
+                  .pub-archive-profile-icon {
+                    * {
+                      fill: #fff;
+                    }
+                  }
                 }
               }
             }
@@ -262,6 +271,24 @@
       margin-top: 8px;
       display: flex;
       justify-content: center;
+    }
+  }
+
+  .confirm-delete-modal {
+    width: 50%;
+    line-height: 28px;
+
+    .confirm-delete-modal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .option-btns {
+        display: flex;
+        flex-direction: row;
+        gap: 32px;
+        justify-content: center;
+      }
     }
   }
 

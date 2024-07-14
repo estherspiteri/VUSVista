@@ -445,6 +445,35 @@ def add_publications_to_variant(variant_id: str, publication_links_list: List[st
         return Response(json.dumps({'isSuccess': False, "publications": None}), 200, mimetype='application/json')
 
 
+def remove_publications_to_variant(variant_id: str, publication_id: int):
+    delete_publication = False
+
+    variant_publication: VariantsPublications = db.session.query(VariantsPublications).filter(VariantsPublications.variant_id == variant_id, VariantsPublications.publication_id == publication_id).one()
+
+    # delete publication if it only has the variant that it will be deleted from as a variant
+    if len(variant_publication.publication.variants_publications) == 1:
+        delete_publication = True
+
+    db.session.delete(variant_publication)
+
+    if delete_publication:
+        db.session.query(Publications).filter(Publications.id == publication_id).delete()
+
+    try:
+        # Commit the session to persist changes to the database
+        db.session.commit()
+
+        variant, publications = get_publications_by_variant_id_from_db(variant_id)
+        return Response(json.dumps({'isSuccess': True, 'publications': publications}), 200, mimetype='application/json')
+    except SQLAlchemyError as e:
+        # Changes were rolled back due to an error
+        db.session.rollback()
+
+        current_app.logger.error(
+            f'Rollback carried out since removal of publication {publication_id} from variant {variant_id} in DB failed due to error: {e}')
+        return Response(json.dumps({'isSuccess': False, "publications": None}), 200, mimetype='application/json')
+
+
 def get_last_pub_auto_update_date() -> str | None:
     auto_pub_eval_date: AutoPublicationEvalDates = db.session.query(AutoPublicationEvalDates).order_by(
         desc(AutoPublicationEvalDates.eval_date)).first()

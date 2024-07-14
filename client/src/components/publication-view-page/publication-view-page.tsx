@@ -9,7 +9,7 @@ import Modal from "../../atoms/modal/modal";
 import CalendarDisplay from "../../atoms/calendar-display/calendar-display";
 import Loader from "../../atoms/loader/loader";
 import { IVariantPublicationUpdates } from "../../models/variant-publication-updates";
-import { VusService } from "../../services/vus/vus.service";
+import { VusService, vusService } from "../../services/vus/vus.service";
 import { openInNewWindow } from "../../helpers/open-links";
 import Button from "../../atoms/button/button";
 import Text from "../../atoms/text/text";
@@ -44,6 +44,10 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
   const [url, setUrl] = useState("");
   const [addedUrls, setAddedUrls] = useState<string[]>([]);
   const [isAddingPublications, setIsAddingPublications] = useState(false);
+
+  const [publicationToBeRemoved, setPublicationToBeRemoved] =
+    useState<IPublicationPreview>(undefined);
+  const [isRemovingPublication, setIsRemovingPublication] = useState(false);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -153,7 +157,12 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                   )
                 : publications
               ).map((publication) => (
-                <PublicationPreview data={publication} />
+                <PublicationPreview
+                  data={publication}
+                  onRemoveClickCallback={() =>
+                    setPublicationToBeRemoved(publication)
+                  }
+                />
               ))}
             </div>
           </div>
@@ -231,7 +240,10 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                           </div>
                           <div className={styles["manual-add"]}>
                             {p.isManuallyAdded && (
-                              <Icon name="profile" fill="#008080" />
+                              <Icon
+                                name="profile"
+                                className={styles["pub-archive-profile-icon"]}
+                              />
                             )}
                           </div>
                         </div>
@@ -310,6 +322,35 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
           {isAddingPublications && <Loader />}
         </Modal>
       )}
+
+      {publicationToBeRemoved && (
+        <Modal modalContainerStyle={styles["confirm-delete-modal"]}>
+          <div className={styles["confirm-delete-modal-content"]}>
+            <p>
+              Are you sure you want to remove Publication&nbsp;
+              <b>
+                "{publicationToBeRemoved.title}" (DOI:{" "}
+                {publicationToBeRemoved.doi})
+              </b>
+              &nbsp;from this variant ?
+            </p>
+            <div className={styles["option-btns"]}>
+              <Button
+                text="Yes, remove it"
+                onClick={removePublication}
+                className={styles["delete-btn"]}
+                disabled={isRemovingPublication}
+              />
+              <Button
+                text="No, return to publication page"
+                onClick={closeRemovePublicationModal}
+                disabled={isRemovingPublication}
+              />
+            </div>
+          </div>
+          {isRemovingPublication && <Loader />}
+        </Modal>
+      )}
     </div>
   );
 
@@ -353,6 +394,29 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
           setIsAddingPublications(false);
         });
     }
+  }
+
+  function closeRemovePublicationModal() {
+    setPublicationToBeRemoved(undefined);
+    setIsRemovingPublication(false);
+  }
+
+  function removePublication() {
+    setIsRemovingPublication(true);
+
+    vusService
+      .removePublication({
+        variantId: props.variantId,
+        publicationId: publicationToBeRemoved.publicationId,
+      })
+      .then((res) => {
+        if (res.isSuccess) {
+          res.publications &&
+            setPublications(convertPubDates(res.publications));
+
+          closeRemovePublicationModal();
+        }
+      });
   }
 };
 

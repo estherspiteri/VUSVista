@@ -7,6 +7,7 @@ import { getMonthString } from "../../../helpers/date-helper";
 
 type PublicationPreviewProps = {
   data?: IPublicationPreview;
+  onRemoveClickCallback?: () => void;
 };
 
 const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
@@ -46,14 +47,30 @@ const PublicationPreview: React.FunctionComponent<PublicationPreviewProps> = (
       >
         <div className={styles.title}>{props.data?.title}</div>
         {props.data.isAddedManually && (
-          <div className={styles["profile-icon-wrapper"]}>
-            <Icon name="profile" fill="#008080" />
-          </div>
+          <>
+            <div className={styles["profile-icon-wrapper"]}>
+              <Icon name="profile" fill="#008080" />
+            </div>
+            <div className={styles["bin-icon-wrapper"]}>
+              <div
+                className={styles.icon}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  props.onRemoveClickCallback && props.onRemoveClickCallback();
+                }}
+              >
+                <Icon name="bin" fill="#008080" width={18} height={18} />
+              </div>
+            </div>
+          </>
         )}
         <div className={styles["external-link-icon-wrapper"]}>
           <div
             className={styles.icon}
-            onClick={() => openInNewWindow(props.data.link)}
+            onClick={(e) => {
+              e.stopPropagation();
+              openInNewWindow(props.data.link);
+            }}
           >
             <Icon
               name="external-link"

@@ -22,6 +22,8 @@ import {
   IGetVusRequest,
   IGetVusResponse,
   ILoadAllVusResponse,
+  IRemovePublicationRequest,
+  IRemovePublicationResponse,
   IRemoveSamplesRequest,
   IRemoveSamplesResponse,
   IStoreAndVerifyVusFileRequest,
@@ -287,12 +289,29 @@ export class VusService {
     // Append the JSON string as a blob to the FormData
     data.append("publicationUrls", publicationsJsonData);
 
-    const result: IStoreAndVerifyVusFileResponse = await customFetch(
+    const result: IAddPublicationsResponse = await customFetch(
       `/vus/add_publications/${input.variantId}`,
       {
         method: "POST",
         body: data,
         cache: "no-store",
+      }
+    )
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => console.error("error============:", error)); //TODO: handle error
+
+    return result;
+  }
+
+  async removePublication(
+    input: IRemovePublicationRequest
+  ): Promise<IRemovePublicationResponse> {
+    const result: IRemovePublicationResponse = await customFetch(
+      `/vus/remove_publication/${input.variantId}/${input.publicationId}`,
+      {
+        method: "POST",
       }
     )
       .then((response) => {

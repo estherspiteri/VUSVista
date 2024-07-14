@@ -136,6 +136,16 @@ export interface IAddPublicationsResponse {
   publications?: IPublicationPreview[];
 }
 
+export interface IRemovePublicationRequest {
+  variantId: string;
+  publicationId: number;
+}
+
+export interface IRemovePublicationResponse {
+  isSuccess: boolean;
+  publications?: IPublicationPreview[];
+}
+
 export interface IDeleteVariantRequest {
   variantId: string;
 }

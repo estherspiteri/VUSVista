@@ -20,7 +20,7 @@ from server.services.view_vus_service import retrieve_vus_summaries_from_db, \
 from server.services.vus_preprocess_service import handle_vus_file, handle_vus_from_form, check_for_multiple_genes, \
     check_for_existing_genes
 from server.services.publications_service import add_publications_to_variant, \
-    get_variant_publication_updates
+    get_variant_publication_updates, remove_publications_to_variant
 
 vus_views = Blueprint('vus_views', __name__)
 
@@ -241,6 +241,13 @@ def add_publications(variant_id: str):
         publication_links_list = []
 
     return add_publications_to_variant(variant_id, publication_links_list)
+
+
+@vus_views.route('/remove_publication/<string:variant_id>/<int:publication_id>', methods=['POST'])
+def remove_publications(variant_id: str, publication_id: int):
+    current_app.logger.info(f"Removing publication {publication_id} from variant with Id: {variant_id}")
+
+    return remove_publications_to_variant(variant_id, publication_id)
 
 
 @vus_views.route('/delete/<string:variant_id>', methods=['DELETE'])
