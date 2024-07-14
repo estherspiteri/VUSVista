@@ -23,7 +23,11 @@
       color: white;
 
       &.show-checkboxes {
-        padding-right: 40px;
+        background-color: #008080;
+      }
+
+      .extra-header-space {
+        width: 36px;
       }
 
       > * {

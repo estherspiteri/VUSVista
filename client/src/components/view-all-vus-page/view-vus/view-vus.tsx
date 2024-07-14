@@ -24,12 +24,14 @@ const ViewVus: React.FunctionComponent<ViewVusProps> = (
         </td>
       ))}
       {props.showCheckbox && (
-        <input
-          type="checkbox"
-          className={styles.checkbox}
-          name={props.vusRow.original.id.toString()}
-          onChange={() => props.onCheckboxToggle && props.onCheckboxToggle()}
-        />
+        <div className={styles["checkbox-wrapper"]}>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            name={props.vusRow.original.id.toString()}
+            onChange={() => props.onCheckboxToggle && props.onCheckboxToggle()}
+          />
+        </div>
       )}
     </tr>
   );

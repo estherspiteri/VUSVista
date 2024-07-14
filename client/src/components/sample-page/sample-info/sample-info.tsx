@@ -163,42 +163,44 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                             ) : (
                               <span>{v.hgvs}</span>
                             )}
-                            <Icon
-                              className={styles["hgvs-edit"]}
-                              name={
-                                variantBeingEdited === v.variantId
-                                  ? "save"
-                                  : "edit"
-                              }
-                              fill="#fff"
-                              width={16}
-                              height={16}
-                              onClick={() => {
-                                if (!isUpdatingHgvs) {
-                                  variantBeingEdited === v.variantId
-                                    ? updatedVariantHgvsCheck()
-                                    : editVariantHgvs(v.variantId, v.hgvs);
-                                }
-                              }}
-                            />
-                            {variantBeingEdited === v.variantId && (
+                            <div className={styles["hgvs-extras"]}>
                               <Icon
-                                className={styles["hgvs-edit-close"]}
-                                name={"close"}
-                                stroke="#fff"
-                                width={24}
-                                height={24}
+                                className={styles["hgvs-edit"]}
+                                name={
+                                  variantBeingEdited === v.variantId
+                                    ? "save"
+                                    : "edit"
+                                }
+                                fill="#fff"
+                                width={16}
+                                height={16}
                                 onClick={() => {
-                                  setEditedHgvs(undefined);
-                                  setVariantBeingEdited(undefined);
+                                  if (!isUpdatingHgvs) {
+                                    variantBeingEdited === v.variantId
+                                      ? updatedVariantHgvsCheck()
+                                      : editVariantHgvs(v.variantId, v.hgvs);
+                                  }
                                 }}
                               />
-                            )}
-                            {v.isHgvsUpdated && (
-                              <span className={styles["hgvs-updated"]}>
-                                Updated
-                              </span>
-                            )}
+                              {variantBeingEdited === v.variantId && (
+                                <Icon
+                                  className={styles["hgvs-edit-close"]}
+                                  name={"close"}
+                                  stroke="#fff"
+                                  width={24}
+                                  height={24}
+                                  onClick={() => {
+                                    setEditedHgvs(undefined);
+                                    setVariantBeingEdited(undefined);
+                                  }}
+                                />
+                              )}
+                              {v.isHgvsUpdated && (
+                                <span className={styles["hgvs-updated"]}>
+                                  Updated
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -419,6 +421,7 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 vusList={notSampleVariants.map((v) => v.variant)}
                 isClickable={false}
                 showCheckboxes={true}
+                showExtraInfoColumns={false}
                 onSelectedVariantsUpdate={(variantsToAdd) =>
                   setVariantIdsToAdd(variantsToAdd)
                 }

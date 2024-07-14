@@ -209,8 +209,11 @@ def clinvar_clinical_significance_pipeline(vus_df: pd.DataFrame) -> InternalResp
         if retrieve_clinvar_dict_res.data is not None and retrieve_clinvar_dict_res.data.get('ClinVarResult-Set') is not None:
             variation_archive = retrieve_clinvar_dict_res.data.get('ClinVarResult-Set').get('VariationArchive')
 
-            for v in variation_archive:
-                clinvar_dict[v.get('@VariationID')] = v
+            if type(variation_archive) is list:
+                for v in variation_archive:
+                    clinvar_dict[v.get('@VariationID')] = v
+            else:
+                clinvar_dict[variation_archive.get('@VariationID')] = variation_archive
 
             for index in clinvar_variation_ids_dict.keys():
                 clinvar_variation_id = clinvar_variation_ids_dict[index]
@@ -328,8 +331,10 @@ def store_clinvar_info(clinvar_id: int, classification: str | None, review_statu
     clinvar_last_evaluated = None
     last_saved_classification = None
 
-    if last_eval is not None and len(last_eval):
+    if last_eval is not None and len(last_eval) > 0:
         clinvar_last_evaluated = datetime.strptime(last_eval, '%Y/%m/%d %H:%M')
+    else:
+        last_eval = None
 
     create_new_clinvar_update = True
     new_clinvar_update_id = None
@@ -490,9 +495,13 @@ def get_variant_clinvar_updates(clinvar_id: str):
         update = None
         if eval_date.auto_clinvar_update_id is not None:
             auto_clinvar_update: AutoClinvarUpdates = eval_date.auto_clinvar_update
+
+            last_eval = None
+            if auto_clinvar_update.last_evaluated is not None:
+                last_eval = datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')
             update = {'classification': auto_clinvar_update.classification,
                       'reviewStatus': auto_clinvar_update.review_status,
-                      'lastEval': datetime.strftime(auto_clinvar_update.last_evaluated, '%Y/%m/%d %H:%M')}
+                      'lastEval': last_eval}
 
         clinvar_updates_list.append(
             {'dateChecked': datetime.strftime(eval_date.eval_date, '%d/%m/%Y %H:%M'), 'update': update})

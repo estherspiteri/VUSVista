@@ -219,6 +219,9 @@ const VusTable: FunctionComponent<VusTableProps> = (props: VusTableProps) => {
                   </th>
                 );
               })}
+              {props.showCheckboxes && (
+                <div className={styles["extra-header-space"]} />
+              )}
             </tr>
           ))}
         </thead>

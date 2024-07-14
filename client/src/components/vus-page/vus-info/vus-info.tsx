@@ -212,7 +212,9 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   </div>
                   <div className={styles.information}>
                     <div className={styles["info-title"]}>Canonical SPDI:</div>
-                    {clinvarInfo.clinvarCanonicalSpdi}
+                    <span style={{ overflowX: "auto" }}>
+                      {clinvarInfo.clinvarCanonicalSpdi}
+                    </span>
                   </div>
                 </>
               )}
@@ -224,10 +226,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                 </div>
               )}
 
-              {!(
-                clinvarInfo.clinvarClassification?.length > 0 &&
-                clinvarInfo.clinvarErrorMsg?.length > 0
-              ) && (
+              {(!clinvarInfo?.clinvarClassification ||
+                clinvarInfo?.clinvarClassification?.length === 0) && (
                 <div className={styles.information}>
                   No Clinvar entry found based on dbSNP's RSID
                 </div>
@@ -410,8 +410,8 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                   Ensembl
                 </a>
                 . To remove a sample from this variant, tick its checkbox and
-                click on the "Remove selected sample/s" button at the bottom of the
-                sample list. You can search through the samples using sample
+                click on the "Remove selected sample/s" button at the bottom of
+                the sample list. You can search through the samples using sample
                 ids, HGVS or consequences.
               </p>
               <DebouncedInput

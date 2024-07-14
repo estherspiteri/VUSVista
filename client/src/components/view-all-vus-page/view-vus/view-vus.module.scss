@@ -3,7 +3,8 @@
 
   &.coloured {
     .header-content,
-    .additional-info {
+    .additional-info,
+    .checkbox-wrapper {
       background-color: #e2f9f9 !important;
     }
   }
@@ -23,10 +24,16 @@
     flex-direction: row;
     color: black;
 
-    .checkbox {
-      margin-right: 16px;
-      accent-color: #008080;
-      cursor: pointer;
+    .checkbox-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-right: 16px;
+
+      .checkbox {
+        accent-color: #008080;
+        cursor: pointer;
+      }
     }
 
     .header-content {

@@ -109,41 +109,47 @@
               padding-right: 32px;
               max-width: 380px !important;
 
-              .hgvs-edit,
-              .hgvs-edit-close {
-                border-radius: 8px;
-                cursor: pointer;
-                flex-shrink: 0;
+              .hgvs-extras {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
 
-                &:hover {
-                  background-color: #fff;
-                }
-              }
+                .hgvs-edit,
+                .hgvs-edit-close {
+                  border-radius: 8px;
+                  cursor: pointer;
+                  flex-shrink: 0;
 
-              .hgvs-edit {
-                padding: 4px;
-
-                &:hover {
-                  svg {
-                    fill: #008080;
+                  &:hover {
+                    background-color: #fff;
                   }
                 }
-              }
 
-              .hgvs-edit-close {
-                &:hover {
-                  svg {
-                    stroke: #008080;
+                .hgvs-edit {
+                  padding: 4px;
+
+                  &:hover {
+                    svg {
+                      fill: #008080;
+                    }
                   }
                 }
-              }
 
-              .hgvs-updated {
-                font-size: 12px;
-                background-color: #e2f9e2;
-                color: #008080;
-                border-radius: 4px;
-                padding: 2px 4px;
+                .hgvs-edit-close {
+                  &:hover {
+                    svg {
+                      stroke: #008080;
+                    }
+                  }
+                }
+
+                .hgvs-updated {
+                  font-size: 12px;
+                  background-color: #e2f9e2;
+                  color: #008080;
+                  border-radius: 4px;
+                  padding: 2px 4px;
+                }
               }
             }
           }
@@ -245,6 +251,7 @@
 
   .remove-variants-modal,
   .confirm-update-modal {
+    line-height: 28px;
     width: 50%;
   }
 
@@ -306,6 +313,15 @@
               }
             }
           }
+        }
+      }
+
+      [class*="vus-table-container"] {
+        width: 95%;
+        overflow-x: visible;
+
+        table {
+          // width: 100%;
         }
       }
     }

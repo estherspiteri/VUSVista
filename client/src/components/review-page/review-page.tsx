@@ -119,7 +119,7 @@ const ReviewPage: React.FunctionComponent<ReviewPageProps> = (
         </div>
       </div>
       <div className={styles["classification-container"]}>
-        <p className={styles["section-title"]}>Select its new classification</p>
+        <p className={styles["section-title"]}>Select variant classification</p>
 
         {selectedClassification.length === 0 ? (
           <Dropdown
