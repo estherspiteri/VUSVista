@@ -45,6 +45,8 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [altAllele, setAltAllele] = useState<string | undefined>("");
   const [altAlleleErrorMsg, setAltAlleleErrorMsg] = useState("");
 
+  const [rsid, setRsid] = useState<string | undefined>(undefined);
+
   const [hgvs, setHgvs] = useState<string | undefined>(undefined);
 
   const [genotype, setGenotype] = useState<string | undefined>(undefined);
@@ -325,6 +327,17 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             </div>
           </VusUploadField>
 
+          {/** RSID */}
+          <VusUploadField title="RSID (optional)">
+            <div className={styles["field-content"]}>
+              <span>Input the RSID:</span>
+              <Text
+                value={rsid}
+                onChange={(e) => setRsid(e.currentTarget.value)}
+              />
+            </div>
+          </VusUploadField>
+
           {/** HGVS */}
           <VusUploadField title="HGVS (optional)">
             <div className={styles["field-content"]}>
@@ -553,6 +566,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       phenotypes: phenotypes ?? [],
       acmgRules: acmgRules ?? [],
       hgvs: hgvs ?? "",
+      rsid: rsid ?? "",
     };
 
     setIsLoading(true);

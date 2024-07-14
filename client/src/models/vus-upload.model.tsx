@@ -18,4 +18,5 @@ export interface IVusUpload {
   phenotypes: IPhenotype[];
   acmgRules: IAcmgRuleUpload[];
   hgvs: string;
+  rsid: string;
 }
