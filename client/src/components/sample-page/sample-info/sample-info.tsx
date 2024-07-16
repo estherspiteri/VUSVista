@@ -129,8 +129,12 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                 ).map((v) => {
                   const genotype =
                     v.genotype === Genotype.Heterozygous
-                      ? `${v.variant.refAllele}/${v.variant.altAllele}`
-                      : `${v.variant.altAllele}/${v.variant.altAllele}`;
+                      ? `${v.variant.refAllele ?? ""}/${
+                          v.variant.altAllele ?? ""
+                        }`
+                      : `${v.variant.altAllele ?? ""}/${
+                          v.variant.altAllele ?? ""
+                        }`;
 
                   return (
                     <div className={styles.variant}>

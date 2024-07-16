@@ -63,6 +63,17 @@
         min-height: 200px;
       }
 
+      .gene-selection {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: start;
+
+        .search {
+          padding-top: 8px;
+        }
+      }
+
       .acmg-rules-edit {
         width: 100%;
         box-sizing: border-box;
@@ -155,19 +166,59 @@
       border: 2px solid #008080;
       border-radius: 4px;
 
-      .sample-input {
-        width: 100%;
-        box-sizing: border-box;
-        border: none;
+      .sample-input-container {
+        display: flex;
+        flex-direction: row;
         background-color: #008080;
-        color: #fff;
-        padding: 16px;
-        font-size: 14px;
-        line-height: 21px;
+        align-items: center;
+        position: relative;
 
-        &::placeholder {
-          color: #e2f9f9;
-          font-weight: bold;
+        .sample-input {
+          width: 100%;
+          box-sizing: border-box;
+          border: none;
+          background-color: #008080;
+          color: #fff;
+          padding: 16px;
+          font-size: 14px;
+          line-height: 21px;
+
+          &::placeholder {
+            color: #e2f9f9;
+            font-weight: bold;
+          }
+        }
+
+        .icon-wrapper {
+          position: absolute;
+          right: 0;
+
+          background-color: #008080;
+          padding: 4px;
+          border-radius: 8px;
+          cursor: pointer;
+          width: fit-content;
+          box-sizing: border-box;
+          height: 35px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          margin-right: 16px;
+
+          .add {
+            fill: #fff;
+          }
+
+          &:hover {
+            background-color: #fff;
+            border: 2px solid #008080;
+            padding: 2px;
+            box-sizing: border-box;
+
+            .add {
+              fill: #008080;
+            }
+          }
         }
       }
 

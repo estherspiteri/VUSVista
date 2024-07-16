@@ -137,7 +137,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
               <span className={styles["header-title"]}>Publication Titles</span>
               <DebouncedInput
                 onChange={(val) => setFilterValue(val.toString())}
-                placeholder={`Search publication titles...`}
+                placeholder={`Search publications...`}
                 type="text"
                 value={filterValue}
                 className={styles.input}
@@ -153,7 +153,7 @@ const PublicationViewPage: React.FunctionComponent<PublicationViewPageProps> = (
                       containsFilterValue(p.abstract) ||
                       (p.authors && containsFilterValue(p.authors.join(" "))) ||
                       containsFilterValue(p.journal) ||
-                      containsFilterValue(p.pmid)
+                      containsFilterValue(p.pmid?.toString())
                   )
                 : publications
               ).map((publication) => (

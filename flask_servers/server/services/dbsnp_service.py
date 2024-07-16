@@ -86,7 +86,7 @@ def get_rsids(genome_version: str, variants_vcf_filename: str) -> InternalRespon
         rsids = []
 
         for variant_rsid_res in rsid_vcf_res.text.split('PASS\n'):
-            if re.match("^# Error in the next line: .*\n\d+\t\d+\t\.\t\w\t\w\t\.", variant_rsid_res,
+            if re.match("^# Error in the next line:", variant_rsid_res,
                         re.IGNORECASE | re.DOTALL):
                 # TODO: try and get RSID with refAllele set to 'N'
                 rsids.append('NORSID')
@@ -292,15 +292,19 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
         # check validity of RSIDs
         rsid_verification = []
 
-        for index, row in vus_df.iterrows():
+        vus_df_copy = vus_df.copy()
+
+        for index, row in vus_df_copy.iterrows():
             if row['RSID'] == 'NORSID':
-                rsid_verification.append({'isValid': False, 'errorMsgs': []})
+                if row['RSID_'] is not None and str(row['RSID_']) != 'nan' and len(row['RSID_']) > 0:
+                    vus_df.at[index, 'RSID'] = row['RSID_']
+                    rsid_verification.append({'isValid': True, 'errorMsgs': []})
+                else:
+                    rsid_verification.append({'isValid': False, 'errorMsgs': []})
             else:
-                try:
-                    verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
-                                                  row['Alt'], row['Type'], row['RSID_'])
-                except Exception as e:
-                    print('here', e)
+                verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
+                                                row['Alt'], row['Type'], row['RSID_'])
+
 
                 if verify_rsid_res.status != 200:
                     current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")

@@ -145,14 +145,17 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
     vus_df_copy = vus_df.copy()
 
-    for index, row in vus_df_copy.iterrows():
-        # exclude AS1 and LOC from genes
-        filtered_genes = get_filtered_genes(row['Gene']) # TODO store updated genes in db
+    try:
+        for index, row in vus_df_copy.iterrows():
+            # exclude AS1 and LOC from genes
+            filtered_genes = get_filtered_genes(row['Gene']) # TODO store updated genes in db
 
-        # note if variant has multiple genes
-        if len(filtered_genes) > 1:
-            vus = prep_unprocessed_vus_dict_for_react(row.to_dict())
-            multiple_genes.append({'index': index, 'vus': vus, 'genes': filtered_genes})
+            # note if variant has multiple genes
+            if len(filtered_genes) > 1:
+                vus = prep_unprocessed_vus_dict_for_react(row.to_dict())
+                multiple_genes.append({'index': index, 'vus': vus, 'genes': filtered_genes})
+    except Exception as e:
+        current_app.logger.error(current_app.logger.error(traceback.format_exc()))
 
     return multiple_genes
 
@@ -354,11 +357,12 @@ def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalRes
     try:
         preprocess_and_get_rsids_res = get_rsids(new_vus_df)
     except Exception as e:
+        current_app.logger.error(f'RSID retrieval failed because of the error: {e}')
         return InternalResponse({'areRsidsRetrieved': False, 'isClinvarAccessed': False}, 500)
 
     if preprocess_and_get_rsids_res.status != 200:
         current_app.logger.error(
-            f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+            f'Preprocessing of VUS and retrieval of RSIDs failed when getting external ref for new vus 500')
         return InternalResponse({'areRsidsRetrieved': False, 'isClinvarAccessed': False}, 500)
     else:
         new_vus_df = preprocess_and_get_rsids_res.data
@@ -392,7 +396,7 @@ def preprocess_vus(vus_df: pd.DataFrame):
 
         if get_external_references_for_new_vus_res.status != 200:
             current_app.logger.error(
-                f'Preprocessing of VUS and retrieval of RSIDs failed 500')
+                f'Preprocessing of VUS and retrieval of RSIDs failed when preprocessing vus 500')
             return InternalResponse(
                 {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
                  'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
@@ -465,7 +469,7 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
         db.session.flush()
         variant_ids.append(new_variant.id)
 
-        if len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
+        if str(row['RSID']) != 'nan' and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
             new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.id,
                                                         db_type='db_snp',
                                                         error_msg=row['RSID dbSNP errorMsgs'])

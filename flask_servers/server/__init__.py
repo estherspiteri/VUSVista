@@ -119,17 +119,17 @@ def create_app():
         timezone = pytz.timezone('Europe/Amsterdam')
         run_date = datetime.now(timezone)
 
-        scheduler.add_job(func=scheduled_clinvar_updates_, run_date=run_date)
-        # 1 week
-        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
+        # scheduler.add_job(func=scheduled_clinvar_updates_, run_date=run_date)
+        # 5min
+        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=300)
 
-        scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
-        # 10 days
-        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
+        # scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
+        # 8min
+        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=480)
 
-        scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
+        # scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
         # 1 min
-        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180)
+        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180, max_instances=1)
 
         scheduler.start()
 

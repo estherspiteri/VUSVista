@@ -361,7 +361,7 @@ def update_variant_rsid(variant_id: int, new_rsid: str):
     if db_snp is None:
         db_snp_ref = ExternalReferences(variant_id=variant_id,
                                         db_type='db_snp',
-                                        error_msg=None)
+                                        error_msg="")
         db.session.add(db_snp_ref)
         db.session.flush()
 

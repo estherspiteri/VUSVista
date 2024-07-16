@@ -231,6 +231,11 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
                 RSID header needs to end with an <b>underscore</b>, i.e. _
               </span>
             </li>
+            <li>
+              <span>
+                Do not include multiple sheets in the spreadhseet workbook
+              </span>
+            </li>
           </ul>
         </div>
       )}

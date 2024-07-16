@@ -61,6 +61,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
   const [type, setType] = useState<string | undefined>(undefined);
   const [typeErrorMsg, setTypeErrorMsg] = useState("");
 
+  const [currentSample, setCurrentSample] = useState<string>("");
   const [samples, setSamples] = useState<string[]>([]);
   const [samplesErrorMsg, setSamplesErrorMsg] = useState("");
 
@@ -103,8 +104,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
         <div className={styles.description}>
           <p>
             Click on each section to fill in the variant details. A correctly
-            filled-in section is marked with a tick on the right-hand side. The
-            ACMG Rules section is optional.
+            filled-in section is marked with a tick on the right-hand side.
           </p>
           <p>
             Variants which had been uploaded in the past do not get overwritten
@@ -239,14 +239,27 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles["field-content"]}>
               {geneId === undefined ? (
                 <>
-                  <span>Input the gene and wait for it to be validated:</span>
-                  <Text
-                    value={geneInput}
-                    disabled={isValidatingGeneInput}
-                    onChange={(e) => setGeneInput(e.currentTarget.value)}
-                    validationCallback={checkGeneValidity}
-                    errorMsg={geneInputErrorMsg}
-                  />
+                  <span>Input the gene and click on the search icon to validate it:</span>
+                  <div className={styles["gene-selection"]}>
+                    <Text
+                      value={geneInput}
+                      disabled={isValidatingGeneInput}
+                      onChange={(e) => setGeneInput(e.currentTarget.value)}
+                      errorMsg={geneInputErrorMsg}
+                    />
+                    <Icon
+                      name="search"
+                      className={styles.search}
+                      onClick={() => {
+                        if (!isValidatingGeneInput) {
+                          checkGeneValidity(geneInput);
+                        }
+                      }}
+                      stroke="#008080"
+                      fill="#fff"
+                      cursor="pointer"
+                    />
+                  </div>
                 </>
               ) : (
                 <>
@@ -267,7 +280,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           {/** Type */}
           <VusUploadField title="Type" showCheckMark={isTypeValid}>
             <div className={styles["field-content"]}>
-              <span>Input the type:</span>
+              <span>Input the variant type:</span>
               <Text
                 value={type}
                 onChange={(e) => setType(e.currentTarget.value)}
@@ -281,20 +294,24 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles["field-content-container"]}>
               {/** Sample Ids */}
               <div className={styles["field-content"]}>
-                <span>
-                  List the samples that have this variant below. Press 'Enter'
-                  to add the sample to the list.
-                </span>
+                <span>List the samples that have this variant. Click on the add icon to add a sample to this variant.</span>
                 <div className={styles.samples}>
-                  <input
-                    id="sample-input"
-                    className={styles["sample-input"]}
-                    type="text"
-                    placeholder="Input a sample id . . ."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") addSample(e.currentTarget.value);
-                    }}
-                  />
+                  <div className={styles["sample-input-container"]}>
+                    <input
+                      id="sample-input"
+                      className={styles["sample-input"]}
+                      type="text"
+                      placeholder="Input a sample id . . ."
+                      onChange={(e) => setCurrentSample(e.currentTarget.value)}
+                    />
+                    <div className={styles["icon-wrapper"]}>
+                      <Icon
+                        name="add"
+                        className={styles.add}
+                        onClick={() => addSample(currentSample)}
+                      />
+                    </div>
+                  </div>
                   <div className={styles["samples-selected"]}>
                     {samplesErrorMsg !== undefined &&
                       samples.length > 0 &&
@@ -468,6 +485,12 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                   </div>
                 </div>
                 <div className={styles["summary-field"]}>
+                  <p className={styles["selection-name"]}>RSID</p>
+                  <span>
+                    {rsid?.trim().length > 0 ? rsid : "No RSID inputted"}
+                  </span>
+                </div>
+                <div className={styles["summary-field"]}>
                   <p className={styles["selection-name"]}>HGVS</p>
                   <span>
                     {hgvs?.trim().length > 0 ? hgvs : "No HGVS inputted"}
@@ -496,7 +519,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                             <p>{url}</p>
                           </p>
                         ))
-                      : "No rules selected"}
+                      : "No links selected"}
                   </div>
                 </div>
               </div>
@@ -583,10 +606,10 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
       const updatedSelection = samples.concat(sample);
 
       setSamples(updatedSelection);
-
-      //clear inputted sample
-      (document.getElementById("sample-input") as HTMLInputElement).value = "";
     }
+
+    //clear inputted sample
+    (document.getElementById("sample-input") as HTMLInputElement).value = "";
   }
 
   function saveVus() {
