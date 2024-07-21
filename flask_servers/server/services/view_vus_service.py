@@ -182,8 +182,8 @@ def delete_variant_entry(variant_id: str) -> InternalResponse:
         f"Deleting variant with ID: {variant_id}")
     db.session.delete(variant)
 
-    # deleting any publications without variants_publications
-    publications_query = db.session.query(Publications).filter(~Publications.variants_publications.any())
+    # deleting any publications without variants_publications & without reviews
+    publications_query = db.session.query(Publications).filter(~Publications.variants_publications.any(), ~Publications.review.any())
     publications_query.delete()
 
     # deleting any auto_clinvar_updates without auto_clinvar_eval_dates
@@ -377,8 +377,8 @@ def update_variant_rsid(variant_id: int, new_rsid: str):
 
     db.session.flush()
 
-    # remove publications which are no longer relate dto a variant
-    db.session.query(Publications).filter(~Publications.variants_publications.any()).delete()
+    # remove publications which are no longer related to a variant & not related to a review
+    db.session.query(Publications).filter(~Publications.variants_publications.any(), ~Publications.review.any()).delete()
 
     # remove publication eval dates for variant
     db.session.query(AutoPublicationEvalDates).filter(AutoPublicationEvalDates.variant_id == variant_id).delete()
