@@ -128,7 +128,7 @@ def create_app():
         scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=480)
 
         # scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
-        # 1 min
+        # 3 min
         scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180, max_instances=1)
 
         scheduler.start()

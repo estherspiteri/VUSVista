@@ -459,45 +459,49 @@ def store_new_vus_df_in_db(vus_df: pd.DataFrame) -> List[int]:
 
     # iterate through the dataframe
     for index, row in vus_df.iterrows():
-        # create new variant
-        new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=html.unescape(row['Type']),
-                               ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
-                               gene_id=row['Gene Id'], gene_name=row['Gene'])
-        # add the new variant to the session
-        db.session.add(new_variant)
+        variant = get_variant_from_db(row)
 
-        db.session.flush()
-        variant_ids.append(new_variant.id)
-
-        if str(row['RSID']) != 'nan' and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
-            new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.id,
-                                                        db_type='db_snp',
-                                                        error_msg=row['RSID dbSNP errorMsgs'])
-            db.session.add(new_dbnsp_external_ref)
+        if variant is None:
+            # create new variant
+            new_variant = Variants(chromosome=row['Chr'], chromosome_position=row['Position'], variant_type=html.unescape(row['Type']),
+                                   ref=row['Reference'], alt=row['Alt'], classification=Classification.VUS,
+                                   gene_id=row['Gene Id'], gene_name=row['Gene'])
+            # add the new variant to the session
+            db.session.add(new_variant)
 
             db.session.flush()
+            variant_ids.append(new_variant.id)
 
-            new_dbsnp = DbSnp(rsid=row['RSID'],
-                              external_db_snp_id=new_dbnsp_external_ref.id)
-            db.session.add(new_dbsnp)
+            if str(row['RSID']) != 'nan' and len(row['RSID']) > 0 and row['RSID'] != 'NORSID':
+                new_dbnsp_external_ref = ExternalReferences(variant_id=new_variant.id,
+                                                            db_type='db_snp',
+                                                            error_msg=row['RSID dbSNP errorMsgs'])
+                db.session.add(new_dbnsp_external_ref)
 
-        if len(row['Clinvar variation id']) > 0:
-            new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.id,
-                                                          db_type='clinvar',
-                                                          error_msg=row['Clinvar error msg'])
-            db.session.add(new_clinvar_external_ref)
-            db.session.flush()
+                db.session.flush()
 
-            new_clinvar = Clinvar(variation_id=row['Clinvar variation id'],
-                                  external_clinvar_id=new_clinvar_external_ref.id,
-                                  canonical_spdi=row['Clinvar canonical spdi'])
-            db.session.add(new_clinvar)
-            db.session.flush()
+                new_dbsnp = DbSnp(rsid=row['RSID'],
+                                  external_db_snp_id=new_dbnsp_external_ref.id)
+                db.session.add(new_dbsnp)
 
-            store_clinvar_info(new_clinvar.id, row['Clinvar classification'],
-                               row['Clinvar classification review status'], row['Clinvar classification last eval'],
-                               True)
+            if len(row['Clinvar variation id']) > 0:
+                new_clinvar_external_ref = ExternalReferences(variant_id=new_variant.id,
+                                                              db_type='clinvar',
+                                                              error_msg=row['Clinvar error msg'])
+                db.session.add(new_clinvar_external_ref)
+                db.session.flush()
 
+                new_clinvar = Clinvar(variation_id=row['Clinvar variation id'],
+                                      external_clinvar_id=new_clinvar_external_ref.id,
+                                      canonical_spdi=row['Clinvar canonical spdi'])
+                db.session.add(new_clinvar)
+                db.session.flush()
+
+                store_clinvar_info(new_clinvar.id, row['Clinvar classification'],
+                                   row['Clinvar classification review status'], row['Clinvar classification last eval'],
+                                   True)
+        else:
+            variant_ids.append(variant.id)
     return variant_ids
 
 
@@ -706,19 +710,12 @@ def store_vus_info_in_db(existing_vus_df: pd.DataFrame, existing_variant_ids: Li
     # override to include newly added variants' ids
     all_vus_df = pd.concat([existing_vus_df, new_vus_df], axis=0)
 
-    # retrieve and store the publications (user links & LitVar) of new variants
-    retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(new_vus_df, False)
+    # retrieve and store the publications (user links & LitVar) of all variants
+    retrieve_and_store_variant_pub_res = retrieve_and_store_variant_publications(all_vus_df)
 
     if retrieve_and_store_variant_pub_res.status != 200:
         current_app.logger.error(
-            f'Get publications for new variants failed 500')
-
-    # retrieve and store the publications (user links & LitVar) of existing variants
-    retrieve_and_store_existing_variant_pub_res = retrieve_and_store_variant_publications(existing_vus_df, True)
-
-    if retrieve_and_store_existing_variant_pub_res.status != 200:
-        current_app.logger.error(
-            f'Get publications for existing variants failed 500')
+            f'Get publications for variants failed 500')
 
     # join existing vus_df's variant ids with the new vus variant ids
     all_variant_ids = existing_variant_ids + variant_ids

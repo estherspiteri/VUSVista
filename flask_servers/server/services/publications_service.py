@@ -129,7 +129,7 @@ def store_variant_publications_in_db(publications: List[Publications], variant_i
         db.session.add(vus_pub)
 
 
-def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_already_stored_in_db: bool):
+def retrieve_and_store_variant_publications(vus_df: pd.DataFrame):
     current_app.logger.info('Retrieving publications for variants')
 
     # iterate through the dataframe
@@ -183,17 +183,13 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame, variants_alrea
         variant: Variants = db.session.query(Variants).get(row['Variant Id'])
 
         # merge the user's publications together with litvar's publications together with the variant's db publications
-        if variants_already_stored_in_db:
-            # get variant's current publications
-            variant_pub_ids = [vp.publication_id for vp in variant.variants_publications]
-            variant_publications: List[Publications] = db.session.query(Publications).filter(
-                Publications.id.in_(variant_pub_ids)).all()
+        # get variant's current publications
+        variant_pub_ids = [vp.publication_id for vp in variant.variants_publications]
+        variant_publications: List[Publications] = db.session.query(Publications).filter(
+            Publications.id.in_(variant_pub_ids)).all()
 
-            final_pub_list = merge_user_and_litvar_and_db_publications(publication_links, litvar_publications,
+        final_pub_list = merge_user_and_litvar_and_db_publications(publication_links, litvar_publications,
                                                                        variant_publications)
-        # merge the user's publications together with litvar's publications
-        else:
-            final_pub_list = merge_2_sets_of_publications(publication_links, litvar_publications)
 
         date = datetime.now()
 
@@ -257,21 +253,21 @@ def update_variant_publications(variant: Variants, hgvs: str | None, rsid: str |
         else:
             litvar_publications = litvar_publications_res.data
 
-            # get variant's current publications
-            variant_pub_ids = [vp.publication_id for vp in variant.variants_publications]
-            variant_publications: List[Publications] = db.session.query(Publications).filter(
-                Publications.id.in_(variant_pub_ids)).all()
+            if len(litvar_publications) > 0:
+                # get variant's current publications
+                variant_publications = [vp.publication for vp in variant.variants_publications]
+                variant_publications_doi = [p.doi for p in variant_publications]
 
-            # merge litvar publications with those found in db
-            updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
+                # merge litvar publications with those found in db
+                updated_pub_list = merge_2_sets_of_publications(litvar_publications, variant_publications)
 
-            # extract the publications not yet included for the variant
-            pub_not_in_variant = [p for p in updated_pub_list if p not in variant_publications]
+                # extract the publications not yet included for the variant
+                pub_not_in_variant = [p for p in updated_pub_list if p.doi not in variant_publications_doi]
 
-            date = datetime.now()
+                date = datetime.now()
 
-            # update the variant's publications in the db
-            store_variant_publications_in_db(pub_not_in_variant, variant.id, [], date)
+                # update the variant's publications in the db
+                store_variant_publications_in_db(pub_not_in_variant, variant.id, [], date)
 
             auto_pub_eval_date = AutoPublicationEvalDates(eval_date=date, variant_id=variant.id)
             db.session.add(auto_pub_eval_date)
