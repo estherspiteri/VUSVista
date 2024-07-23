@@ -120,12 +120,12 @@ def create_app():
         run_date = datetime.now(timezone)
 
         # scheduler.add_job(func=scheduled_clinvar_updates_, run_date=run_date)
-        # 5min
-        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=300)
+        # 2hrs
+        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=7200)
 
         # scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
-        # 8min
-        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=480)
+        # 4hrs
+        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=14400)
 
         # scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
         # 3 min

@@ -182,12 +182,12 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame):
         # retrieve variant
         variant: Variants = db.session.query(Variants).get(row['Variant Id'])
 
-        # merge the user's publications together with litvar's publications together with the variant's db publications
         # get variant's current publications
         variant_pub_ids = [vp.publication_id for vp in variant.variants_publications]
         variant_publications: List[Publications] = db.session.query(Publications).filter(
             Publications.id.in_(variant_pub_ids)).all()
 
+        # merge the user's publications together with litvar's publications together with the variant's db publications
         final_pub_list = merge_user_and_litvar_and_db_publications(publication_links, litvar_publications,
                                                                        variant_publications)
 
@@ -201,8 +201,8 @@ def retrieve_and_store_variant_publications(vus_df: pd.DataFrame):
         manually_added_dois = [p.doi for p in publication_links]
 
         # extract the publications not yet included for the variant
-        variant_publication_ids = [vp.publication_id for vp in variant.variants_publications]
-        pub_not_in_variant = [p for p in final_pub_list if p.id not in variant_publication_ids]
+        variant_publication_dois = [vp.publication.doi for vp in variant.variants_publications]
+        pub_not_in_variant = [p for p in final_pub_list if p.doi not in variant_publication_dois]
         store_variant_publications_in_db(pub_not_in_variant, variant.id, manually_added_dois, date)
 
     return InternalResponse(None, 200)
@@ -285,7 +285,7 @@ def check_for_new_litvar_publications():
             ExternalReferences.db_type == 'db_snp').one_or_none()
 
         rsid = None
-        if db_snp_external_ref is not None:
+        if db_snp_external_ref is not None and len(db_snp_external_ref.error_msg) == 0:
             rsid = db_snp_external_ref.db_snp.rsid
 
         hgvs = None
