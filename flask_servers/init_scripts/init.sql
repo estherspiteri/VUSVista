@@ -20,11 +20,14 @@ CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
 -- FILE UPLOAD EVENTS
 CREATE TABLE file_upload_events (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    scientific_member_id INT,
     file_name TEXT,
     file_data BYTEA,
     date_created TIMESTAMP,
     date_processed TIMESTAMP,
-	user_id INT
+    CONSTRAINT fk_scientific_members,
+    FOREIGN KEY (scientific_member_id)
+        REFERENCES scientific_members(id)
 );
 
 -- GENE ANNOTATIONS

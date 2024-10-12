@@ -87,6 +87,8 @@ class ReviewStatus(Enum):
 class FileUploadEvents(Base):
     __tablename__ = 'file_upload_events'
     __table_args__ = (
+        ForeignKeyConstraint(['scientific_members_id'], ['scientific_members.id'],
+                             name='file_upload_events_scientific_members_id_fkey'),
         PrimaryKeyConstraint('id', name='file_upload_events_pkey'),
     )
 
@@ -95,7 +97,9 @@ class FileUploadEvents(Base):
     file_data = mapped_column(LargeBinary)
     date_created = mapped_column(DateTime)
     date_processed = mapped_column(DateTime)
-    user_id = mapped_column(Integer)
+    scientific_members_id = mapped_column(Integer)
+
+    scientific_members: Mapped[Optional['ScientificMembers']] = relationship('ScientificMembers', back_populates='file_upload_events')
 
 
 class AcmgRules(Base):
@@ -257,6 +261,7 @@ class ScientificMembers(UserMixin, Base):
     email = mapped_column(Text, nullable=False)
     password = mapped_column(Text, nullable=False)
 
+    file_upload_events: Mapped[List['FileUploadEvents']] = relationship('FileUploadEvents', uselist=True, back_populates='scientific_members')
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
                                                                                     back_populates='scientific_member')
