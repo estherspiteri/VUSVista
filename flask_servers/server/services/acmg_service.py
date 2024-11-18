@@ -1,11 +1,7 @@
 from typing import List, Dict
 
-from flask import current_app
-from sqlalchemy.exc import SQLAlchemyError
-
 from server import db
 from server.models import AcmgRules, VariantsAcmgRules
-from server.responses.internal_response import InternalResponse
 
 
 def get_acmg_rules() -> List[Dict[str, str]]:

@@ -33,75 +33,6 @@ from server.services.publications_service import retrieve_and_store_variant_publ
 
 Entrez.email = "esther.spiteri.18@um.edu.mt"
 
-
-# TODO: fn can be eliminated later on since user will be asked which of the genes he/she would like to use
-
-# generate separate records for each gene when a VUS has multiple genes
-def handle_vus_with_multiple_genes(vus_df: pd.DataFrame):
-    multiple_genes = []
-    rows_to_delete = []
-    new_rows_dictionaries = []
-    var_id = 0
-
-    # insert id column so that variants with multiple genes have multiple entries in the dataframe with the same id
-    vus_df.insert(0, 'VUS Id', 0)
-
-    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
-    new_vus_df = vus_df.copy()
-
-    # note VUS with multiple genes and generate records for each gene (same VUS ID)
-    for index, row in new_vus_df.iterrows():
-        # set variant id
-        vus_df.at[index, 'VUS Id'] = var_id
-
-        # get the gene name
-        gene_string = row['Gene']
-        genes = gene_string.split(',')
-
-        # note if variant has multiple genes
-        filtered_genes = [g for g in genes if 'AS1' not in g and 'LOC' not in g]
-        if len(filtered_genes) > 1:
-            multiple_genes.append(var_id)
-
-        if len(genes) > 1:
-            rows_to_delete.append(index)
-
-            # create a variant record for every gene
-            for i, gene in enumerate(genes):
-                # exclude anti-sense and locus
-                if 'AS1' not in gene and 'LOC' not in gene:
-                    new_row = row.copy().to_dict()
-                    new_row['Gene'] = gene
-                    new_row['VUS Id'] = var_id
-                    new_rows_dictionaries.append(new_row)
-
-        # increment variant id
-        var_id += 1
-
-        # TODO: handle cases where not SNVs
-
-    current_app.logger.info(f"Percentage of VUS with multiple genes: {round(len(multiple_genes) / var_id * 100, 2)}%\n"
-                            f"VUS IDs of VUS with multiple genes: {[g for g in multiple_genes]}")
-
-    # clean up - remove multiple gene records (since they will be replaced by individual records)
-    # drop rows containing variants with multiple genes (including those with AS1 and LOC)
-    vus_df = vus_df.drop([g for g in rows_to_delete])
-    vus_df = vus_df.reset_index(drop=True)
-
-    # insert row for every one of the multiple genes
-    for r in new_rows_dictionaries:
-        df_dictionary = pd.DataFrame([r])
-        vus_df = pd.concat([vus_df, df_dictionary], ignore_index=True)
-
-    # sort the dataframe by the 'VUS Id' column in ascending order
-    vus_df = vus_df.sort_values(by='VUS Id')
-
-    # reset the indices to maintain a continuous index
-    vus_df = vus_df.reset_index(drop=True)
-
-    return vus_df
-
-
 # create columns for chromosome and chromosome position
 def extract_chr_and_position(vus_df: pd.DataFrame):
     # create new columns for chromosome and position and initialize it with empty strings
@@ -201,14 +132,6 @@ def get_rsids(vus_df: pd.DataFrame):
     else:
         vus_df = get_rsids_from_dbsnp_res.data
 
-        # vus_df = handle_vus_with_multiple_genes(
-        #     vus_df)
-        # TODO: is this correct location? should it be included with RSID retrieval process? [needs to be done after rsids]
-
-        # write dataframe to excel file
-        # TODO: write to database
-        # vus_df.to_excel('rsid_vus.xlsx', index=False)
-
         return InternalResponse(vus_df, 200)
 
 
@@ -257,7 +180,6 @@ def get_gene_ids(vus_df: pd.DataFrame) -> pd.DataFrame:
 
             for a in gene_attributes:
                 if a.attribute_value in filtered_genes:
-                    is_matching_gene_found = True
                     vus_df.at[index, 'Gene Id'] = a.gene_id
                     vus_df.at[index, 'Gene'] = a.attribute_value
                     break
@@ -380,6 +302,30 @@ def get_external_references_for_new_vus(new_vus_df: pd.DataFrame) -> InternalRes
                              'new_vus_df': new_vus_df}, 200)
 
 
+def get_consequences_for_new_uploads(vus_df: pd.DataFrame) -> pd.DataFrame:
+    hgvs = []
+    for var in vus_df.iterrows():
+        if not (isinstance(var[1]["HGVS"], float) and math.isnan(var[1]["HGVS"])) and var[1]['HGVS'] is not None:
+            hgvs.append(var[1]["HGVS"])
+
+    if len(hgvs) > 0:
+        # get variant consequences through HGVS
+        get_consequences_for_new_vus_res = get_consequences_for_new_vus(hgvs)
+
+        if get_consequences_for_new_vus_res.status != 200:
+            current_app.logger.error(
+                f'Preprocessing of VUS and retrieval of variant consequences failed 500')
+        else:
+            hgvs_dict = get_consequences_for_new_vus_res.data['consequences_dict']
+
+            # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
+            vus_df_copy = vus_df.copy()
+            for index, row in vus_df_copy.iterrows():
+                vus_df.at[index, 'Consequence'] = hgvs_dict.get(row['HGVS'], "")
+
+    return vus_df
+
+
 def preprocess_vus(vus_df: pd.DataFrame):
     vus_df = add_missing_columns(vus_df)
 
@@ -404,29 +350,7 @@ def preprocess_vus(vus_df: pd.DataFrame):
         else:
             new_vus_df = get_external_references_for_new_vus_res.data['new_vus_df']
 
-            hgvs = []
-            for var in new_vus_df.iterrows():
-                if not (isinstance(var[1]["HGVS"], float) and math.isnan(var[1]["HGVS"])) and var[1]['HGVS'] is not None:
-                    hgvs.append(var[1]["HGVS"])
-
-            if len(hgvs) > 0:
-                # get variant consequences though HGVS
-                get_consequences_for_new_vus_res = get_consequences_for_new_vus(hgvs)
-
-                if get_consequences_for_new_vus_res.status != 200:
-                    current_app.logger.error(
-                        f'Preprocessing of VUS and retrieval of variant consequences failed 500')
-                    return InternalResponse(
-                        {'areRsidsRetrieved:': get_external_references_for_new_vus_res.data['areRsidsRetrieved'],
-                         'isClinvarAccessed': get_external_references_for_new_vus_res.data['isClinvarAccessed'],
-                         'multiple_genes': None}, 500)
-                else:
-                    hgvs_dict = get_consequences_for_new_vus_res.data['consequences_dict']
-
-                    # make a copy of the dataframe to be able to iterate through it whilst modifying the original dataframe
-                    vus_df_copy = new_vus_df.copy()
-                    for index, row in vus_df_copy.iterrows():
-                        new_vus_df.at[index, 'Consequence'] = hgvs_dict.get(row['HGVS'], "")
+            new_vus_df = get_consequences_for_new_uploads(new_vus_df)
 
     # get updated external references for existing vus
     if len(existing_vus_df) > 0:
@@ -441,6 +365,8 @@ def preprocess_vus(vus_df: pd.DataFrame):
                  'multiple_genes': None}, 500)
         else:
             existing_vus_df = get_updated_external_references_for_existing_vus_res.data['existing_vus_df']
+
+            existing_vus_df = get_consequences_for_new_uploads(existing_vus_df)
 
     return InternalResponse({'existing_vus_df': existing_vus_df, 'vus_df': new_vus_df,
                              'existing_variant_ids': existing_variant_ids, 'multiple_genes': None}, 200)
@@ -846,7 +772,7 @@ def scheduled_file_upload_events():
             # Read the Excel content into a DataFrame
             vus_df = pd.read_excel(byte_stream, engine='openpyxl')
 
-            handle_vus_file(e.id, vus_df, e.file_name, e.user_id)
+            handle_vus_file(e.id, vus_df, e.file_name, e.scientific_members_id)
 
             e.date_processed = datetime.now()
         try:

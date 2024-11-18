@@ -2,7 +2,6 @@ import gzip
 from typing import List, Tuple
 
 from flask import current_app
-from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from server import db

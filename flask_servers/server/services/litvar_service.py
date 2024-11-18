@@ -218,7 +218,7 @@ def get_more_info_on_litvar_publications(litvar_publications: list[Publications]
             # store publication doi in a dict where the key is the publication's PMID
             pubmed_publications_doi_dict = extract_doi_by_pmids(pubmed_publications_info)
 
-            # add abstract column to LitVar publications df
+            # add doi column to LitVar publications df
             litvar_publications = add_doi_to_publications(litvar_publications, pubmed_publications_doi_dict)
 
             current_app.logger.info(f'Found {len(litvar_publications)} Litvar publications')

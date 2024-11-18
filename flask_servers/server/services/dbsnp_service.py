@@ -305,14 +305,14 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
                 verify_rsid_res = verify_rsid(row['RSID'], row['Gene'], row['Chr'], row['Position'], row['Reference'],
                                                 row['Alt'], row['Type'], row['RSID_'])
 
-
                 if verify_rsid_res.status != 200:
                     current_app.logger.error(f"RSID verification for {row['RSID']}  failed 500")
                     return InternalResponse(None, 500)
                 else:
                     rsid_verification.append(verify_rsid_res.data)
 
-        # create a column which shows if an rsid is verified successfully or not (rsid variant matches details of inputted variant)
+        # create a column which shows if an rsid is verified successfully or not (rsid variant matches details of
+        # inputted variant)
         vus_df['RSID dbSNP verified'] = [x['isValid'] for x in rsid_verification]
         # create a column which shows the error messages that where returned during RSID verification§
         vus_df['RSID dbSNP errorMsgs'] = ['|| '.join(x['errorMsgs']) for x in rsid_verification]

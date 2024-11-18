@@ -20,7 +20,7 @@ CREATE TYPE REVIEW_STATUS AS ENUM ('IN_PROGRESS', 'COMPLETE');
 -- FILE UPLOAD EVENTS
 CREATE TABLE file_upload_events (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    scientific_member_id INT,
+    scientific_member_id INT NOT NULL,
     file_name TEXT,
     file_data BYTEA,
     date_created TIMESTAMP,

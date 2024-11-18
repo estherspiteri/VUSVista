@@ -1,8 +1,6 @@
 import math
 from datetime import datetime
 
-from flask_login import current_user
-
 from server import db
 from server.models import VariantsSamplesUploads, FileUploads, ManualUploads, VariantsSamples, VariantHgvs
 
