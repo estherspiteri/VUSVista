@@ -26,7 +26,7 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
 
       <div className={styles["login-content"]}>
         <div className={styles["field-container"]}>
-          {/** Email - TODO: add validation */}
+          {/** Email */}
           <div className={styles.field}>
             <span className={styles["field-name"]}>Email:</span>
             <Text
@@ -37,7 +37,7 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
             />
           </div>
 
-          {/** Password - TODO: add visibility */}
+          {/** Password */}
           <div className={styles.field}>
             <span className={styles["field-name"]}>Password:</span>
             <Text
@@ -68,13 +68,6 @@ const LoginPage: React.FunctionComponent<LoginPageProps> = (
           <Button text="Login" onClick={login} className={styles.btn} />
         </div>
       </div>
-
-      {/* <p className={styles.register}>
-        <Link to={"/register"} className={styles.link}>
-          Click here
-        </Link>
-        &nbsp;to register.
-      </p> */}
     </div>
   );
 

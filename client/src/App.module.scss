@@ -1,7 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap");
 
-//TODO: fix styling to global
 body {
   font-family: "Poppins", sans-serif !important;
   background-color: #f7f7f5;
@@ -20,7 +19,6 @@ body {
   }
 }
 
-//TODO: add common styling for inner-page-width
 .container {
   .completed-task-ids {
     position: sticky;

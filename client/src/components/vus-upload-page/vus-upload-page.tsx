@@ -185,7 +185,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </VusUploadField>
 
           {/** Reference & Alt Alleles */}
-          {/**TODO: check on attempt to submit if allele consists of just GACT*/}
           <VusUploadField title="Alleles" showCheckMark={areAllelesValid}>
             <div className={styles["allele-wrapper"]}>
               <div className={`${styles["field-content"]} ${styles.alleles}`}>
@@ -239,7 +238,9 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles["field-content"]}>
               {geneId === undefined ? (
                 <>
-                  <span>Input the gene and click on the search icon to validate it:</span>
+                  <span>
+                    Input the gene and click on the search icon to validate it:
+                  </span>
                   <div className={styles["gene-selection"]}>
                     <Text
                       value={geneInput}
@@ -294,7 +295,10 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             <div className={styles["field-content-container"]}>
               {/** Sample Ids */}
               <div className={styles["field-content"]}>
-                <span>List the samples that have this variant. Click on the add icon to add a sample to this variant.</span>
+                <span>
+                  List the samples that have this variant. Click on the add icon
+                  to add a sample to this variant.
+                </span>
                 <div className={styles.samples}>
                   <div className={styles["sample-input-container"]}>
                     <input
@@ -635,8 +639,6 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
     props.vusService.uploadVus({ vus: vus }).then((res) => {
       if (res.isSuccess) {
         window.location.href = `/vus/${res.vusList[0].id}`;
-      } else {
-        //TODO: handle error
       }
     });
   }

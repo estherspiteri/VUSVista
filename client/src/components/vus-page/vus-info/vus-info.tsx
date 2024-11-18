@@ -142,7 +142,6 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
           </div>
         </div>
 
-        {/*TODO: Next to is RSID verified do info icon - on hover show what info was compared. Same for clinvar*/}
         {/** External References */}
         <div className={styles["external-ref"]}>
           {/** Clinvar */}

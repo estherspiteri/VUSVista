@@ -16,8 +16,6 @@ const ViewAllVus: React.FunctionComponent<ViewAllVusProps> = (
     props.vusService?.loadAllVus().then((res) => {
       if (res.isSuccess) {
         setVusList(res.vusList);
-      } else {
-        //TODO: Handle error
       }
     });
   }, [props.vusService]);

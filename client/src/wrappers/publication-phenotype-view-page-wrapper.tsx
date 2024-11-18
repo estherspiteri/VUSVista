@@ -32,8 +32,6 @@ const PublicationPhenotypeViewPageWrapper: React.FunctionComponent = () => {
             setPublications(convertPubDates(res.publications));
             setVariant(res.variant);
             setIsLoading(false);
-          } else {
-            //TODO: handle error
           }
         });
     }

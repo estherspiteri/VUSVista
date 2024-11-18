@@ -13,7 +13,7 @@ export interface IVusUpload {
   altAllele?: string | null;
   refAllele?: string | null;
   genotype: string;
-  type: string; //TODO: change to enum?
+  type: string;
   samples: string[];
   phenotypes: IPhenotype[];
   acmgRules: IAcmgRuleUpload[];

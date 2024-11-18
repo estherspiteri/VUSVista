@@ -62,9 +62,6 @@ const App: React.FunctionComponent<AppProps> = () => {
   }, [location.pathname]);
 
   return (
-    //TODO: lazy loading
-    //routing: https://hygraph.com/blog/routing-in-react
-
     <div className={styles.container}>
       {completedTasks.length > 0 && (
         <div className={styles["completed-task-ids"]}>

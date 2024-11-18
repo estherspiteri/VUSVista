@@ -52,7 +52,7 @@ const RegisterPage: React.FunctionComponent<RegisterPageProps> = (
             />
           </div>
 
-          {/** Email - TODO: add validation */}
+          {/** Email */}
           <div className={styles.field}>
             <span className={styles["field-name"]}>Email:</span>
             <Text
@@ -63,7 +63,7 @@ const RegisterPage: React.FunctionComponent<RegisterPageProps> = (
             />
           </div>
 
-          {/** Password - TODO: add visibility */}
+          {/** Password */}
           <div className={styles.field}>
             <span className={styles["field-name"]}>Password:</span>
             <Text

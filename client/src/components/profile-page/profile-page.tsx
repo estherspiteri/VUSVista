@@ -4,7 +4,6 @@ import { IProfile } from "../../models/profile.model";
 
 type ProfilePageProps = { profile: IProfile };
 
-//TODO: update profile & update password
 const ProfilePage: React.FunctionComponent<ProfilePageProps> = (
   props: ProfilePageProps
 ) => {
@@ -26,7 +25,7 @@ const ProfilePage: React.FunctionComponent<ProfilePageProps> = (
             <span>{props.profile.surname}</span>
           </div>
 
-          {/** Email - TODO: add validation */}
+          {/** Email */}
           <div className={styles.field}>
             <span className={styles["field-name"]}>Email:</span>
             <span>{props.profile.email}</span>

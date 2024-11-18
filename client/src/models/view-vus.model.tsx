@@ -30,7 +30,7 @@ export interface IVus {
   rsid?: string;
   rsidDbsnpVerified: boolean;
   rsidDbsnpErrorMsgs: string;
-  type: string; //TODO: change to enum?
+  type: string;
   numHeterozygous?: number;
   numHomozygous?: number;
   samples: IVusSample[];

@@ -146,7 +146,6 @@ const SampleInfo: React.FunctionComponent<SampleInfoProps> = (
                       <div className={styles["variant-info-container"]}>
                         <div className={styles["variant-info"]}>
                           <div className={styles["variant-summary"]}>
-                            {/*TODO: on click take to VUS page*/}
                             <VariantSummary variant={v.variant} />
                           </div>
                           <div className={styles.genotype}>

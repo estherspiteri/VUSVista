@@ -13,8 +13,7 @@ export class HomepageService {
       .then((response) => {
         return response;
       })
-      .catch((error) => console.error("error============:", error)); //TODO: handle error
-
+      .catch((error) => console.error("error============:", error));
     return result;
   }
 }

@@ -22,8 +22,6 @@ const VusPageWrapper: React.FunctionComponent = () => {
           setVus(res.vus);
           setAcmgRules(res.acmgRules);
           setIsLoading(false);
-        } else {
-          //TODO: handle error
         }
       });
     }
@@ -34,7 +32,14 @@ const VusPageWrapper: React.FunctionComponent = () => {
   } else if (vus === null) {
     return <Navigate to="/view-vus" />;
   } else {
-    return <VusPage vus={vus} acmgRules={acmgRules} vusService={vusService} sampleService={samplesService}/>;
+    return (
+      <VusPage
+        vus={vus}
+        acmgRules={acmgRules}
+        vusService={vusService}
+        sampleService={samplesService}
+      />
+    );
   }
 };
 

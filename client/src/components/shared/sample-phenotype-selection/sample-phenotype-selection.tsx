@@ -15,7 +15,6 @@ type SamplePhenotypeSelectionProps = {
   onPhenotypesUpdateCallback?: (phenotypes: IHPOTerm[]) => void;
 };
 
-//TODO: turn into atom since it is used even in VUS Upload
 const SamplePhenotypeSelection: React.FunctionComponent<
   SamplePhenotypeSelectionProps
 > = (props: SamplePhenotypeSelectionProps) => {

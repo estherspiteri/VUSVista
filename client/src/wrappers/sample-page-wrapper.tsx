@@ -18,8 +18,6 @@ const SamplePageWrapper: React.FunctionComponent = () => {
         if (res.isSuccess) {
           setSample(res.sample);
           setIsLoading(false);
-        } else {
-          //TODO: handle error
         }
       });
     }

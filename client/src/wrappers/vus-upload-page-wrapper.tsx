@@ -19,9 +19,7 @@ const VusUploadPageWrapper: React.FunctionComponent = () => {
         if (res.isSuccess) {
           setAcmgRules(res.acmgRules);
           setIsLoading(false);
-        } else {
-          //TODO: handle error
-        }
+        } 
       });
     }
   }, [isLoading, vusId]);

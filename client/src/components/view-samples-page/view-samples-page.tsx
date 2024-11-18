@@ -11,13 +11,10 @@ const ViewAllSamples: React.FunctionComponent<ViewAllSamplesProps> = (
   props: ViewAllSamplesProps
 ) => {
   const [sampleList, setSampleList] = useState<ISampleSummary[]>(undefined);
-  //TODO: move to wrapper
   useEffect(() => {
     props.sampleService?.loadAllSamples().then((res) => {
       if (res.isSuccess) {
         setSampleList(res.sampleList);
-      } else {
-        //TODO: Handle error
       }
     });
   }, [props.sampleService]);
