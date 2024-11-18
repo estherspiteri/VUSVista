@@ -65,7 +65,7 @@ def retrieve_clinvar_dict(clinvar_variation_id: str):
         return InternalResponse(clinvar_res_dict, 200)
 
 
-def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]):  # TODO: use this to replace retrieve_clinvar_dict
+def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]):
     # retrieve clinvar info for multiple variants
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&rettype=vcv&is_variationid&id={','.join(clinvar_ids)}&from_esearch=true"
 
@@ -122,7 +122,6 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, classifie
                             f"Chromosome start position {loc.get('@start')} does not match the expected chromosome "
                             f"position {chr_pos}!")
                     break
-                # TODO compare ref & alt alleles
         else:
             return False, (f"Unable to verify this Clinvar entry!")
 
@@ -292,11 +291,9 @@ def clinvar_clinical_significance_pipeline_single(genome_version: str, rsid: str
         return InternalResponse((is_success, clinical_significance, canonical_spdi, variation_id, error_msg), 200)
 
 
-# TODO: retrieve other vital infor from clinvar (such as last modfied)
 # Retrieve Clinvar variant classifications for every variant attempt to retrieve a corresponding
 # ClinVar variant and extract its clinical significance.
 def retrieve_clinvar_variant_classifications(vus_df: pd.DataFrame) -> InternalResponse:
-    # TODO: add fix for when multiple rsids are found
     clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline(vus_df)
 
     if clinvar_clinical_significance_pipeline_res.status != 200:

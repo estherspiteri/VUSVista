@@ -74,7 +74,7 @@ def check_file_existing_genes():
         multiple_genes_selection_arr = []
 
     # handle multiple genes selection
-    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
+    vus_df = pd.read_excel(file, header=0)
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
 
     if len(multiple_genes_selection_arr) > 0:
@@ -93,11 +93,8 @@ def store_and_verify_vus_file():
     file = request.files['file']
     current_app.logger.info(f'Received file {file.filename} of type {file.content_type}')
 
-    vus_df = pd.read_excel(file, header=0)  # TODO: check re header
+    vus_df = pd.read_excel(file, header=0)
     current_app.logger.info(f'Number of VUS found in file: {len(vus_df)}')
-
-    # TODO: merge multiple genes selection with genes not found selection
-    #  further improvement: store updated vus file in database after each stage
 
     # handle multiple genes selection
     multiple_genes_selection = request.form['multipleGenesSelection']

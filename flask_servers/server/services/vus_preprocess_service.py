@@ -79,7 +79,7 @@ def check_for_multiple_genes(vus_df: pd.DataFrame) -> List:
     try:
         for index, row in vus_df_copy.iterrows():
             # exclude AS1 and LOC from genes
-            filtered_genes = get_filtered_genes(row['Gene']) # TODO store updated genes in db
+            filtered_genes = get_filtered_genes(row['Gene'])
 
             # note if variant has multiple genes
             if len(filtered_genes) > 1:
@@ -471,7 +471,6 @@ def convert_acmg_rules_dataframe_row_into_array(acmg_rules: pd.Series) -> List:
     if acmg_rules_str != 'nan' and len(acmg_rules_str) > 0:
         acmg_rules_arr = re.split(',', acmg_rules_str)
 
-        # TODO: stop ignoring weight given to each rule
         acmg_rules_arr = [r.split('_')[0] for r in acmg_rules_arr]
 
     return acmg_rules_arr
@@ -543,7 +542,6 @@ def store_acmg_rules_for_variant(are_rules_with_ids: bool, vus_df: pd.DataFrame,
             for rule in acmg_rules_input:
                 acmg_rule: AcmgRules = db.session.query(AcmgRules).filter(AcmgRules.rule_name == rule).first()
                 acmg_rules.append({'id': acmg_rule.id, 'name': acmg_rule.rule_name})
-            # TODO include mapping of acmg rules
 
         # store acmg rules to the respective variant, if the variant does not already have that acmg rule
         new_added_acmg_rule_ids = []

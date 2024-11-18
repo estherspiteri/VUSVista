@@ -22,8 +22,6 @@ def get_litvar_info(search_string: str) -> InternalResponse:
         litvar_search_variant_res_json = litvar_search_variant_res.json()
 
         if len(litvar_search_variant_res_json) > 0:
-            # TODO: check gene match
-
             litvar_id = None
             for litvar_res in litvar_search_variant_res_json:
                 if litvar_res['name'] == search_string:
@@ -128,7 +126,7 @@ def get_litvar_publications(litvar_id: str, optional_text: str | None) -> Intern
 
         litvar_publications: List[Publications] = []
 
-        for publication in litvar_publications_data: # TODO: include doi & fix date when received in front (convert in front)
+        for publication in litvar_publications_data:
             date = datetime.strptime(publication['date'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y/%m/%d')
             litvar_publications.append(Publications(title=publication['title'], pmid=publication['pmid'],
                                                     authors=publication['authors'], journal=publication['journal'],

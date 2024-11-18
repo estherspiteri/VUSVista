@@ -46,7 +46,6 @@ def convert_variants_to_vcf(variant_df: pd.DataFrame, variants_vcf_filename: str
 
                 vcf_string = f"{var[1]['Chr']} {var[1]['Position']} . {ref} {alt} . PASS\n"
             # for deletions, if no alt allele is provided, use nucleotide just before given position
-            # TODO: cater for position 0
             elif 'deletion' in var[1]['Type'].lower() and var[1]['Alt'] is None and int(var[1]['Position']) != 0:
                 get_nucleotide_seq_res = get_nucleotide_seq(var[1]['Chr'], int(var[1]['Position']) - 1,
                                                             int(var[1]['Position']) - 1)
@@ -82,13 +81,11 @@ def get_rsids(genome_version: str, variants_vcf_filename: str) -> InternalRespon
         current_app.logger.error(f'NCBI Variation Service failed: {rsid_vcf_res.reason}')
         return InternalResponse(None, rsid_vcf_res.status_code, rsid_vcf_res.reason)
     else:
-        # TODO: save updated file with rsids (overwrite initially created file)?
         rsids = []
 
         for variant_rsid_res in rsid_vcf_res.text.split('PASS\n'):
             if re.match("^# Error in the next line:", variant_rsid_res,
                         re.IGNORECASE | re.DOTALL):
-                # TODO: try and get RSID with refAllele set to 'N'
                 rsids.append('NORSID')
             # skip empty lines (x.strip()) - trying to split an empty line can lead to an "index out of range" error
             elif variant_rsid_res.strip():
@@ -172,7 +169,6 @@ def get_alleles_from_dbsnp_info(dbsnp_info, pos, variant_type: str):
         for doc_sum in doc_sum_array:
             hgvs = doc_sum
 
-            # TODO: use regex
             if '=' in hgvs:
                 hgvs = hgvs.split('=')[1]
 

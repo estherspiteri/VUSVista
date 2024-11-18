@@ -39,7 +39,7 @@ def get_publication_info(publication_link: str) -> InternalResponse:
         if 'published' in metadata.keys():
             date = metadata['published']
         elif 'year' in metadata.keys():
-            date = metadata['year'] + '-01-01'  # TODO: fix - misleading on front-end
+            date = metadata['year'] + '-01-01'
 
         if date is not None and re.match(r"^\d{4}-\d{2}-\d{2}$", date):
             date = datetime.strptime(date, '%Y-%m-%d')
@@ -109,7 +109,6 @@ def merge_user_and_litvar_and_db_publications(user_pub_list: List[Publications],
     return final_pub_list
 
 
-# TODO: stop giving this function publications which the variant already has in first parameter
 def store_variant_publications_in_db(publications: List[Publications], variant_id: int,
                                      manually_added_pub_dois: List[str], date_added=datetime.now()):
     # check which publications already exist in the publications table in the db
@@ -125,7 +124,7 @@ def store_variant_publications_in_db(publications: List[Publications], variant_i
     # set up relationship between the variant & its publications
     for p in all_publications:
         vus_pub = VariantsPublications(variant_id=variant_id, publication_id=p.id, date_added=date_added,
-                                       is_manually_added=p.doi is not None and p.doi in manually_added_pub_dois)  # TODO: get value
+                                       is_manually_added=p.doi is not None and p.doi in manually_added_pub_dois)
         db.session.add(vus_pub)
 
 

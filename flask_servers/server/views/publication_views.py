@@ -11,10 +11,8 @@ from server.services.publications_service import get_publications_by_variant_id_
 publication_views = Blueprint('publication_views', __name__)
 
 
-# TODO: check if can be removed
 @publication_views.route('/getByRsid/<string:rsid>', methods=['GET'])
 def get_publications_of_variant_by_rsid(rsid: str):
-    # TODO: check that rsid starts with 'rs'
     current_app.logger.info(f"User requested retrieval of publications for variant with rsid {rsid}")
 
     get_publications_res = get_publications(None, rsid, '')
