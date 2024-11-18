@@ -1,6 +1,3 @@
-from datetime import datetime
-
-import pytz
 from flask import Flask
 from flask_cors import CORS
 from logging.config import dictConfig
@@ -87,7 +84,8 @@ def create_app():
     # Register error handlers
     register_error_handlers(app)
 
-    # specify user loader: tells Flask-Login how to find a specific user from the ID that is stored in their session cookie
+    # specify user loader: tells Flask-Login how to find a specific user from the ID that is stored in
+    # their session cookie
     login_manager = LoginManager()
     login_manager.login_view = 'auth_views.login'
     login_manager.init_app(app)
@@ -115,19 +113,12 @@ def create_app():
     with app.app_context():
         scheduler = BackgroundScheduler()
 
-        # Get the current time with timezone information
-        timezone = pytz.timezone('Europe/Amsterdam')
-        run_date = datetime.now(timezone)
-
-        # scheduler.add_job(func=scheduled_clinvar_updates_, run_date=run_date)
         # 1 week
         scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
 
-        # scheduler.add_job(func=scheduled_litvar_updates_, run_date=run_date)
         # 10 days
         scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
 
-        # scheduler.add_job(func=scheduled_file_upload_events_, run_date=run_date)
         # 3 min
         scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180, max_instances=1)
 

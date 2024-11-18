@@ -1,4 +1,4 @@
-## https://pypi.org/project/sqlacodegen-v2/
+# https://pypi.org/project/sqlacodegen-v2/
 # cmd: sqlacodegen_v2 postgresql://postgres:21641@localhost:5432/vus-app-db
 from typing import List
 
@@ -15,11 +15,6 @@ from server import db
 Base = declarative_base()
 Base.query = db.session.query_property()
 metadata = Base.metadata
-
-
-# class ExternalRefDbType(Enum):
-#     DBSNP = 'DBSNP'
-#     CLINVAR = 'CLINVAR'
 
 
 class Strand(Enum):
@@ -92,14 +87,16 @@ class FileUploadEvents(Base):
         PrimaryKeyConstraint('id', name='file_upload_events_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     file_name = mapped_column(Text)
     file_data = mapped_column(LargeBinary)
     date_created = mapped_column(DateTime)
     date_processed = mapped_column(DateTime)
     scientific_members_id = mapped_column(Integer)
 
-    scientific_members: Mapped[Optional['ScientificMembers']] = relationship('ScientificMembers', back_populates='file_upload_events')
+    scientific_members: Mapped[Optional['ScientificMembers']] = relationship('ScientificMembers',
+                                                                             back_populates='file_upload_events')
 
 
 class AcmgRules(Base):
@@ -108,13 +105,15 @@ class AcmgRules(Base):
         PrimaryKeyConstraint('id', name='acmg_rules_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     rule_name = mapped_column(EnumSQL(ACMGRule, name='acmg_rule'))
     description = mapped_column(Text, nullable=False)
     default_strength = mapped_column(EnumSQL(ACMGStrength, name='acmg_strength'), nullable=False)
     requires_lab_verification = mapped_column(Boolean, nullable=False)
 
-    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_acmg_rules', back_populates='acmg_rules')
+    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_acmg_rules',
+                                                   back_populates='acmg_rules')
     variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
                                                                           back_populates='acmg_rule')
 
@@ -144,12 +143,15 @@ class AutoClinvarUpdates(Base):
         PrimaryKeyConstraint('id', name='auto_clinvar_updates_pkey'),
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     classification = mapped_column(Text)
     review_status = mapped_column(Text)
     last_evaluated = mapped_column(DateTime)
 
-    auto_clinvar_eval_dates: Mapped['AutoClinvarEvalDates'] = relationship('AutoClinvarEvalDates', uselist=True, back_populates='auto_clinvar_update')
+    auto_clinvar_eval_dates: Mapped['AutoClinvarEvalDates'] = relationship('AutoClinvarEvalDates',
+                                                                           uselist=True,
+                                                                           back_populates='auto_clinvar_update')
 
 
 class AutoClinvarEvalDates(Base):
@@ -160,40 +162,49 @@ class AutoClinvarEvalDates(Base):
         PrimaryKeyConstraint('id', name='auto_clinvar_eval_dates_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     clinvar_id = mapped_column(Integer, nullable=False)
     auto_clinvar_update_id = mapped_column(Integer)
     eval_date = mapped_column(DateTime)
 
-    auto_clinvar_update: Mapped[Optional['AutoClinvarUpdates']] = relationship('AutoClinvarUpdates', back_populates='auto_clinvar_eval_dates')
+    auto_clinvar_update: Mapped[Optional['AutoClinvarUpdates']] = relationship('AutoClinvarUpdates',
+                                                                               back_populates='auto_clinvar_eval_dates')
     clinvar: Mapped['Clinvar'] = relationship('Clinvar', back_populates='auto_clinvar_eval_dates')
+
 
 class Clinvar(Base):
     __tablename__ = 'clinvar'
     __table_args__ = (
-        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], ondelete='CASCADE', name='fk_external_references'),
+        ForeignKeyConstraint(['external_clinvar_id'], ['external_references.id'], ondelete='CASCADE',
+                             name='fk_external_references'),
         PrimaryKeyConstraint('id', name='clinvar_pkey'),
         UniqueConstraint('external_clinvar_id', name='clinvar_external_clinvar_id_key')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     variation_id = mapped_column(Text, nullable=False)
     external_clinvar_id = mapped_column(Integer, nullable=False)
     canonical_spdi = mapped_column(Text)
 
-    external_clinvar: Mapped['ExternalReferences'] = relationship('ExternalReferences', back_populates='clinvar')
-    auto_clinvar_eval_dates: Mapped[List['AutoClinvarEvalDates']] = relationship('AutoClinvarEvalDates', uselist=True, back_populates='clinvar')
+    external_clinvar: Mapped['ExternalReferences'] = relationship('ExternalReferences',
+                                                                  back_populates='clinvar')
+    auto_clinvar_eval_dates: Mapped[List['AutoClinvarEvalDates']] = relationship('AutoClinvarEvalDates',
+                                                                                 uselist=True, back_populates='clinvar')
 
 
 class DbSnp(Base):
     __tablename__ = 'db_snp'
     __table_args__ = (
-        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], ondelete='CASCADE', name='fk_external_references'),
+        ForeignKeyConstraint(['external_db_snp_id'], ['external_references.id'], ondelete='CASCADE',
+                             name='fk_external_references'),
         PrimaryKeyConstraint('id', name='db_snp_pkey'),
         UniqueConstraint('external_db_snp_id', name='db_snp_external_db_snp_id_key')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     rsid = mapped_column(String(15), nullable=False)
     external_db_snp_id = mapped_column(Integer, nullable=False)
 
@@ -242,9 +253,11 @@ class Publications(Base):
     journal = mapped_column(Text)
     link = mapped_column(Text)
 
-    variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
+    variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications',
+                                                                               uselist=True,
                                                                                back_populates='publication')
-    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_publications', back_populates='publications')
+    review: Mapped[List['Reviews']] = relationship('Reviews', secondary='reviews_publications',
+                                                   back_populates='publications')
 
 
 class ScientificMembers(UserMixin, Base):
@@ -261,7 +274,8 @@ class ScientificMembers(UserMixin, Base):
     email = mapped_column(Text, nullable=False)
     password = mapped_column(Text, nullable=False)
 
-    file_upload_events: Mapped[List['FileUploadEvents']] = relationship('FileUploadEvents', uselist=True, back_populates='scientific_members')
+    file_upload_events: Mapped[List['FileUploadEvents']] = relationship('FileUploadEvents', uselist=True,
+                                                                        back_populates='scientific_members')
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
                                                                                     back_populates='scientific_member')
@@ -300,23 +314,30 @@ class Samples(Base):
 class VariantsSamplesUploads(Base):
     __tablename__ = 'variants_samples_uploads'
     __table_args__ = (
-        ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id', 'variants_samples.sample_id'],
+        ForeignKeyConstraint(['variant_id', 'sample_id'], ['variants_samples.variant_id',
+                                                           'variants_samples.sample_id'],
                              ondelete='CASCADE', name='fk_variants_samples'),
-        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'], name='fk_scientific_members'),
+        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'],
+                             name='fk_scientific_members'),
         PrimaryKeyConstraint('id', name='variants_samples_uploads_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     variant_id = mapped_column(Integer, nullable=False)
     sample_id = mapped_column(Text, nullable=False)
     upload_type = mapped_column(Text, nullable=False)
     date_uploaded = mapped_column(DateTime, nullable=False)
     scientific_member_id = mapped_column(Integer, nullable=False)
 
-    variants_samples: Mapped['VariantsSamples'] = relationship('VariantsSamples', back_populates='variants_samples_uploads')
-    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='variants_samples_uploads')
-    file_upload: Mapped['FileUploads'] = relationship('FileUploads', secondary='file_uploads_variants_samples_uploads', back_populates='variants_samples_uploads')
-    manual_uploads: Mapped['ManualUploads'] = relationship('ManualUploads', back_populates='variants_samples_uploads_manual')
+    variants_samples: Mapped['VariantsSamples'] = relationship('VariantsSamples',
+                                                               back_populates='variants_samples_uploads')
+    scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers',
+                                                                  back_populates='variants_samples_uploads')
+    file_upload: Mapped['FileUploads'] = relationship('FileUploads', secondary='file_uploads_variants_samples_uploads',
+                                                      back_populates='variants_samples_uploads')
+    manual_uploads: Mapped['ManualUploads'] = relationship('ManualUploads',
+                                                           back_populates='variants_samples_uploads_manual')
 
 
 class FileUploads(Base):
@@ -330,7 +351,9 @@ class FileUploads(Base):
                                 cache=1))
     filename = mapped_column(Text, nullable=False)
 
-    variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads', secondary='file_uploads_variants_samples_uploads', back_populates='file_upload')
+    variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = (
+        relationship('VariantsSamplesUploads', secondary='file_uploads_variants_samples_uploads',
+                     back_populates='file_upload'))
 
 
 t_file_uploads_variants_samples_uploads = Table(
@@ -338,22 +361,27 @@ t_file_uploads_variants_samples_uploads = Table(
     Column('file_upload_id', Integer, nullable=False),
     Column('variants_samples_uploads_id', Integer, nullable=False),
     ForeignKeyConstraint(['file_upload_id'], ['file_uploads.id'], name='fk_file_uploads'),
-    ForeignKeyConstraint(['variants_samples_uploads_id'], ['variants_samples_uploads.id'], ondelete='CASCADE', name='fk_variants_samples_uploads'),
-    PrimaryKeyConstraint('file_upload_id', 'variants_samples_uploads_id', name='file_uploads_variants_samples_uploads_pkey')
+    ForeignKeyConstraint(['variants_samples_uploads_id'], ['variants_samples_uploads.id'], ondelete='CASCADE',
+                         name='fk_variants_samples_uploads'),
+    PrimaryKeyConstraint('file_upload_id', 'variants_samples_uploads_id',
+                         name='file_uploads_variants_samples_uploads_pkey')
 )
 
 
 class ManualUploads(Base):
     __tablename__ = 'manual_uploads'
     __table_args__ = (
-        ForeignKeyConstraint(['variants_samples_uploads_manual_id'], ['variants_samples_uploads.id'], ondelete='CASCADE', name='fk_variants_samples_uploads'),
+        ForeignKeyConstraint(['variants_samples_uploads_manual_id'], ['variants_samples_uploads.id'],
+                             ondelete='CASCADE', name='fk_variants_samples_uploads'),
         PrimaryKeyConstraint('id', name='manual_uploads_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     variants_samples_uploads_manual_id = mapped_column(Integer, nullable=False)
 
-    variants_samples_uploads_manual: Mapped['VariantsSamplesUploads'] = relationship('VariantsSamplesUploads', back_populates='manual_uploads')
+    variants_samples_uploads_manual: Mapped['VariantsSamplesUploads'] = relationship('VariantsSamplesUploads',
+                                                                                     back_populates='manual_uploads')
 
 
 class Phenotypes(Base):
@@ -386,13 +414,15 @@ class VariantHgvs(Base):
         PrimaryKeyConstraint('id', name='variant_hgvs_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     variant_id = mapped_column(Integer, nullable=False)
     hgvs = mapped_column(Text, nullable=False)
     is_updated = mapped_column(Boolean)
 
     variant: Mapped['Variants'] = relationship('Variants', back_populates='variant_hgvs')
-    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True, back_populates='variant_hgvs')
+    variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
+                                                                     back_populates='variant_hgvs')
 
 
 class Variants(Base):
@@ -415,17 +445,25 @@ class Variants(Base):
     alt = mapped_column(Text)
 
     variants_publications: Mapped[List['VariantsPublications']] = relationship('VariantsPublications', uselist=True,
-                                                                               back_populates='variant', passive_deletes=True)
+                                                                               back_populates='variant',
+                                                                               passive_deletes=True)
     gene: Mapped['GeneAnnotations'] = relationship('GeneAnnotations', back_populates='variants')
     external_references: Mapped[List['ExternalReferences']] = relationship('ExternalReferences', uselist=True,
-                                                                           back_populates='variant', passive_deletes=True)
-    reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant', passive_deletes=True)
+                                                                           back_populates='variant',
+                                                                           passive_deletes=True)
+    reviews: Mapped[List['Reviews']] = relationship('Reviews', uselist=True, back_populates='variant',
+                                                    passive_deletes=True)
     variants_acmg_rules: Mapped[List['VariantsAcmgRules']] = relationship('VariantsAcmgRules', uselist=True,
-                                                                          back_populates='variant', passive_deletes=True)
+                                                                          back_populates='variant',
+                                                                          passive_deletes=True)
     variants_samples: Mapped[List['VariantsSamples']] = relationship('VariantsSamples', uselist=True,
                                                                      back_populates='variant', passive_deletes=True)
-    variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant', passive_deletes=True)
-    auto_publication_eval_dates: Mapped[List['AutoPublicationEvalDates']] = relationship('AutoPublicationEvalDates', uselist=True, back_populates='variant', passive_deletes=True)
+    variant_hgvs: Mapped[List['VariantHgvs']] = relationship('VariantHgvs', uselist=True, back_populates='variant',
+                                                             passive_deletes=True)
+    auto_publication_eval_dates: Mapped[List['AutoPublicationEvalDates']] = relationship('AutoPublicationEvalDates',
+                                                                                         uselist=True,
+                                                                                         back_populates='variant',
+                                                                                         passive_deletes=True)
 
 
 class Reviews(Base):
@@ -449,10 +487,11 @@ class Reviews(Base):
     is_acmg_rule_deleted = mapped_column(Boolean)
 
     publications: Mapped[List['Publications']] = relationship('Publications', secondary='reviews_publications',
-                                                        back_populates='review')
+                                                              back_populates='review')
     scientific_member: Mapped['ScientificMembers'] = relationship('ScientificMembers', back_populates='reviews')
     variant: Mapped['Variants'] = relationship('Variants', back_populates='reviews')
-    acmg_rules: Mapped[List['AcmgRules']] = relationship('AcmgRules', secondary='reviews_acmg_rules', back_populates='review')
+    acmg_rules: Mapped[List['AcmgRules']] = relationship('AcmgRules', secondary='reviews_acmg_rules',
+                                                         back_populates='review')
 
 
 class VariantsAcmgRules(Base):
@@ -495,7 +534,8 @@ class AutoPublicationEvalDates(Base):
         PrimaryKeyConstraint('id', name='auto_publication_eval_dates_pkey')
     )
 
-    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647, cycle=False, cache=1))
+    id = mapped_column(Integer, Identity(always=True, start=1, increment=1, minvalue=1, maxvalue=2147483647,
+                                         cycle=False, cache=1))
     variant_id = mapped_column(Integer, nullable=False)
     eval_date = mapped_column(DateTime)
 
@@ -522,7 +562,8 @@ class VariantsSamples(Base):
     variant_hgvs: Mapped['VariantHgvs'] = relationship('VariantHgvs', back_populates='variants_samples')
     variants_samples_uploads: Mapped[List['VariantsSamplesUploads']] = relationship('VariantsSamplesUploads',
                                                                                     uselist=True,
-                                                                                    back_populates='variants_samples', passive_deletes=True)
+                                                                                    back_populates='variants_samples',
+                                                                                    passive_deletes=True)
 
 
 t_reviews_acmg_rules = Table(
