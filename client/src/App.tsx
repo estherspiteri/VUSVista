@@ -25,7 +25,6 @@ import VusUploadPageWrapper from "./wrappers/vus-upload-page-wrapper";
 import ReviewPageWrapper from "./wrappers/review-page-wrapper";
 import ReviewHistoryPageWrapper from "./wrappers/review-history-page-wrapper";
 import ErrorPage from "./components/error-page/error-page";
-import HomePage from "./components/home-page/home-page";
 import { AppContext } from "./app-context";
 import Banner from "./atoms/banner/banner";
 import { IStatus } from "./services/vus/vus.dto";
@@ -44,12 +43,8 @@ const App: React.FunctionComponent<AppProps> = () => {
   const [fileUploadTaskOnDisplay, setFileUploadTaskOnDisplay] =
     useState<IStatus>(undefined);
 
-  const {
-    isUserLoggedIn,
-    setIsUserLoggedIn,
-    completedTasks,
-    setCompletedTasks,
-  } = useContext(AppContext);
+  const { setIsUserLoggedIn, completedTasks, setCompletedTasks } =
+    useContext(AppContext);
 
   useEffect(() => {
     authService.isUserLoggedIn().then((res) => {

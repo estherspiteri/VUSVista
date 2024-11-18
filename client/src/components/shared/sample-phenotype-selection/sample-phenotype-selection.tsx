@@ -77,7 +77,7 @@ const SamplePhenotypeSelection: React.FunctionComponent<
   }
 
   function addToSelection(term: IHPOTerm) {
-    var updatedSelection = samplePhenotypesSelection;
+    let updatedSelection = samplePhenotypesSelection;
 
     const isHPOTermSelectedAlready = samplePhenotypesSelection
       .map((s) => s.ontologyId)

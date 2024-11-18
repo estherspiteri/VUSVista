@@ -107,24 +107,22 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
         {file ? (
           <p>Process your uploaded file.</p>
         ) : (
-          <>
-            <p style={{ lineHeight: "28px" }}>
-              Drag 'n' drop or click on the button to select your VUS file from
-              the file directory. Your VUS file should be a spreadheet with the
-              same headers as in this template:&nbsp;
-              <span
-                style={{
-                  color: "#008080",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                }}
-                onClick={downloadTemplate}
-              >
-                template.xlsx
-              </span>
-              .
-            </p>
-          </>
+          <p style={{ lineHeight: "28px" }}>
+            Drag 'n' drop or click on the button to select your VUS file from
+            the file directory. Your VUS file should be a spreadheet with the
+            same headers as in this template:&nbsp;
+            <span
+              style={{
+                color: "#008080",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+              onClick={downloadTemplate}
+            >
+              template.xlsx
+            </span>
+            .
+          </p>
         )}
       </div>
       <div className={styles["drag-and-drop-wrapper"]}>
@@ -138,7 +136,7 @@ const VusFileUploadPage: React.FunctionComponent<VusFileUploadPageProps> = (
             <div className={styles["drag-and-drop"]}>
               <div className={styles["dotted-drag-and-drop"]}>
                 {isDragActive ? (
-                  <img src={uploadGif} width={200} />
+                  <img src={uploadGif} width={200} alt='upload-gif'/>
                 ) : (
                   <>
                     <Icon

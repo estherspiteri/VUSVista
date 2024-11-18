@@ -71,7 +71,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
 
   const [literatureLinks, setLiteratureLinks] = useState<string[]>([]);
 
-  const [isSummaryModalOpen, setIsSummaryModelOpen] = useState(false);
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
   //validity of the sections
   const isChrValid =
@@ -433,7 +433,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
             !isTypeValid ||
             !areSamplesValid
           }
-          onClick={() => setIsSummaryModelOpen(true)}
+          onClick={() => setIsSummaryModalOpen(true)}
         />
 
         {/** Summary Modal */}
@@ -531,7 +531,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
                 <Button text="Save VUS" onClick={saveVus} />
                 <Button
                   text="Modify VUS"
-                  onClick={() => setIsSummaryModelOpen(false)}
+                  onClick={() => setIsSummaryModalOpen(false)}
                 />
               </div>
             </div>

@@ -3,7 +3,6 @@ import styles from "./login-page.module.scss";
 import Button from "../../atoms/button/button";
 import { AuthService } from "../../services/auth/auth.service";
 import Text from "../../atoms/text/text";
-import { Link } from "react-router-dom";
 
 type LoginPageProps = { authService: AuthService };
 
