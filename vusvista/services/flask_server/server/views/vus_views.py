@@ -131,7 +131,7 @@ def store_and_verify_vus_file():
     # Get the binary content
     file_data = output.getvalue()
 
-    file_upload_event: FileUploadEvents = FileUploadEvents(file_name=file.filename, file_data=file_data, date_created=datetime.now(), date_processed=None, scientific_members_id=current_user.id)
+    file_upload_event: FileUploadEvents = FileUploadEvents(file_name=file.filename, file_data=file_data, date_created=datetime.now(), date_processed=None, scientific_member_id=current_user.id)
     db.session.add(file_upload_event)
 
     try:

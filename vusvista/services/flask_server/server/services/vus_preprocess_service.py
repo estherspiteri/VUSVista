@@ -770,7 +770,7 @@ def scheduled_file_upload_events():
             # Read the Excel content into a DataFrame
             vus_df = pd.read_excel(byte_stream, engine='openpyxl')
 
-            handle_vus_file(e.id, vus_df, e.file_name, e.scientific_members_id)
+            handle_vus_file(e.id, vus_df, e.file_name, e.scientific_member_id)
 
             e.date_processed = datetime.now()
         try:

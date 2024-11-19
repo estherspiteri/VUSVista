@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      context: ./services/flask_server
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      FLASK_APP: main.py
+      SECRET_KEY: 'h227GW-MI.5k}@H+Ppi"NOXO2#c)_z'
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:ktUQNP4bp9B1Ox@db:5432/vcs-db
+      MAIL_PASSWORD: "qzga rhqd ipiq byty"
+      FRONT_URL: http://localhost:3001
+      POSTGRES_DB: vcs-db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    build:
+      context: ./services/db
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ktUQNP4bp9B1Ox
+      POSTGRES_DB: vcs-db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./services/client
+      dockerfile: Dockerfile
+    ports:
+      - "3001:80"
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: http://backend:5001
+      HTTPS: false
+    # volumes:
+    # - ./services/client/nginx.conf:/etc/nginx/conf.d/default.conf
+    # - ./react/build:/usr/share/nginx/html  # React build files
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

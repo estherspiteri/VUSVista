@@ -12,7 +12,6 @@ type HeaderProps = { authService: AuthService };
 const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
   const { isUserLoggedIn, setIsUserLoggedIn } = useContext(AppContext);
 
-  console.log(isUserLoggedIn);
   return (
     <div className={styles["header-container"]}>
       <div className={styles["header-content"]}>

@@ -82,8 +82,8 @@ class ReviewStatus(Enum):
 class FileUploadEvents(Base):
     __tablename__ = 'file_upload_events'
     __table_args__ = (
-        ForeignKeyConstraint(['scientific_members_id'], ['scientific_members.id'],
-                             name='file_upload_events_scientific_members_id_fkey'),
+        ForeignKeyConstraint(['scientific_member_id'], ['scientific_members.id'],
+                             name='file_upload_events_scientific_member_id_fkey'),
         PrimaryKeyConstraint('id', name='file_upload_events_pkey'),
     )
 
@@ -93,7 +93,7 @@ class FileUploadEvents(Base):
     file_data = mapped_column(LargeBinary)
     date_created = mapped_column(DateTime)
     date_processed = mapped_column(DateTime)
-    scientific_members_id = mapped_column(Integer)
+    scientific_member_id = mapped_column(Integer)
 
     scientific_members: Mapped[Optional['ScientificMembers']] = relationship('ScientificMembers',
                                                                              back_populates='file_upload_events')
