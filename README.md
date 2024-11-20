@@ -33,11 +33,7 @@ git clone https://github.com/estherspiteri/Masters-project/tree/docker_compose
 git checkout docker_compose 
 cd vusvista
 ```
-### 2. Create Environment File
-
-In the root directory, create a `.env` file based on `.env.example` but fill in the correct values.
-
-### 3. Build and Start the Application
+### 2. Build and Start the Application
 
 Run the following command to start all services:
 
@@ -45,7 +41,7 @@ Run the following command to start all services:
 docker-compose up --build
 ```
 
-### 4. Access the Application
+### 3. Access the Application
 
 Go to [http://localhost:3001](http://localhost:3001) on your web browser.
 
