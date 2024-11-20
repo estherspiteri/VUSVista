@@ -25,6 +25,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def create_app():
+    # Create the 'logs' directory if it doesn't exist
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
     # logging configuration
     dictConfig({
         'version': 1,
