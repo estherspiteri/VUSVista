@@ -48,7 +48,6 @@ const App: React.FunctionComponent<AppProps> = () => {
 
   useEffect(() => {
     authService.isUserLoggedIn().then((res) => {
-      console.log("pppppppp", res.isUserLoggedIn);
       setIsUserLoggedIn(res.isUserLoggedIn);
 
       if (!res.isUserLoggedIn && location.pathname !== "/register") {
