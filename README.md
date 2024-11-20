@@ -40,6 +40,7 @@ Run the following command to start all services:
 ```bash
 docker-compose up --build
 ```
+<b>PLEASE NOTE: This step takes a while to complete since it is setting up the entire system.</b>
 
 ### 3. Access the Application
 
