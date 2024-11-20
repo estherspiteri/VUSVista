@@ -8,10 +8,10 @@ services:
     environment:
       FLASK_APP: main.py
       SECRET_KEY: ${SECRET_KEY}
-      SQLALCHEMY_DATABASE_URI: ${SQLALCHEMY_DATABASE_URI}
+      SQLALCHEMY_DATABASE_URI: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/vusvista-db
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      FRONT_URL: ${FRONT_URL}
-      POSTGRES_DB: ${POSTGRES_DB}
+      FRONT_URL: http:localhost:3001
+      POSTGRES_DB: vusvista-db
     depends_on:
       db:
         condition: service_healthy
@@ -21,9 +21,9 @@ services:
       context: ./services/db
       dockerfile: Dockerfile
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: vusvista-db
     ports:
       - "5433:5432"
     volumes:

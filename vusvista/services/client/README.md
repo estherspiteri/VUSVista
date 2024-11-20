@@ -1,3 +1,73 @@
+# VUSVista - Run React Locally
+
+This project is a web application built with Flask (backend), PostgreSQL (database), and React (frontend). Below are instructions to run the React frontend locally for development purposes.
+
+---
+
+## Prerequisites
+
+Ensure the following tools are installed:
+
+- [Node.js and npm](https://nodejs.org/)
+
+---
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/estherspiteri/Masters-project/tree/docker_compose
+cd vusvista
+```
+
+### 2. Navigate to the Frontend Directory
+
+```bash
+cd services
+cd client
+```
+
+### 3. Install Dependencies
+
+Run the following command to install all the necessary dependencies:
+
+```bash
+npm install
+```
+### 4. Create Environment File
+
+In the root directory, create a `.env` file based on `.env.example` but fill in the correct values.
+
+
+### 5. Start the Frontend Application
+
+Run the following command to start the React application locally:
+
+```bash
+npm start
+```
+
+This will start the React development server, and you can view the application at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Development Workflow
+
+- **Running the Frontend Locally**:
+  ```bash
+  cd frontend
+  npm start
+  ```
+
+- **Install New Dependencies**:
+  If you need additional npm packages, install them and save to `package.json`:
+  ```bash
+  npm install <package-name>
+  ```
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -68,3 +138,33 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+---
+
+## Useful Commands
+
+### Stop the React Development Server:
+
+Use `CTRL + C` in the terminal to stop the development server.
+
+### Build the Frontend for Production:
+
+```bash
+npm run build
+```
+
+This command will create an optimized production build in the `build` directory.
+
+---
+
+## Troubleshooting
+
+- **Port Conflicts**: Ensure no other services are running on port `3000` (React).
+- **Missing Dependencies**: Run `npm install` if you encounter errors related to missing packages.
+
+
+---
+
+## Acknowledgments
+
+- [React documentation](https://reactjs.org/)
