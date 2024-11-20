@@ -50,7 +50,7 @@ docker-compose up --build
 Go to [http://localhost:3001](http://localhost:3001) on your web browser.
 
 You will be automatically redirected to the login page and in order to login you need to first register.
-Since registration should be handled by authorised individuals, the registration view is inacessible through the user interface.
+Since registration should be handled by authorised individuals, the registration view is inaccessible through the user interface.
 <b>You need to go to [http://localhost:3001/register](http://localhost:3001/register) in order to register.</b>
 
 
