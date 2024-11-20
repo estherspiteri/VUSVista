@@ -18,6 +18,7 @@ Ensure the following tools are installed:
 
 ```bash
 git clone https://github.com/estherspiteri/Masters-project/tree/docker_compose
+git checkout docker_compose 
 cd vusvista
 ```
 
