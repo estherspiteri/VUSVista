@@ -44,16 +44,19 @@ docker-compose up --build
 
 ### 3. Access the Application
 
+- **Frontend**: [http://localhost:3001](http://localhost:3001)
+- **Backend API**: [http://localhost:5001](http://localhost:5001)
+- **PostgreSQL**: Runs internally on port `5432`.
+
 Go to [http://localhost:3001](http://localhost:3001) on your web browser.
 
 You will be automatically redirected to the login page and in order to login you need to first register.
 Since registration should be handled by authorised individuals, the registration view is inaccessible through the user interface.
 <b>You need to go to [http://localhost:3001/register](http://localhost:3001/register) in order to register.</b>
 
-
-- **Frontend**: [http://localhost:3001](http://localhost:3001)
-- **Backend API**: [http://localhost:5001](http://localhost:5001)
-- **PostgreSQL**: Runs internally on port `5432`.
+#### However, for the purpose of testing the system you can also login using a pre-existing user:</br>
+- Email: vus.curation.system@gmail.com</br>
+- Password: demoUser123
 
 ---
 

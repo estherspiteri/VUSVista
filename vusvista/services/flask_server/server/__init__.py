@@ -3,6 +3,7 @@ from flask_cors import CORS
 from logging.config import dictConfig
 
 from flask_login import LoginManager
+from werkzeug.security import generate_password_hash
 
 from server.config import *
 from server.db_setup.populate_gene_annotations_table import store_gtf_file_in_db
@@ -74,6 +75,12 @@ def create_app():
         if len(gene_annotations) == 0:
             # Populate gene annotations table
             store_gtf_file_in_db()
+
+        # add demo user to database
+        demo_user = ScientificMembers(email='vus.curation.system@gmail.com', name='demoUser', surname='1', password=generate_password_hash('demoUser123', method='pbkdf2:sha256'))
+        db.session.add(demo_user)
+        db.session.commit()
+
 
     CORS(app)
 
