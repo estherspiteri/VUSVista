@@ -83,7 +83,7 @@ CREATE TABLE clinvar (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     variation_id TEXT NOT NULL,
     external_clinvar_id INT NOT NULL UNIQUE,
-    canonical_spdi TEXT NOT NULL,
+    canonical_spdi TEXT,
     CONSTRAINT fk_external_references
         FOREIGN KEY (external_clinvar_id) 
             REFERENCES external_references(id)

@@ -10,7 +10,7 @@ from server.services.entrez_service import retrieve_pubmed_publications_info
 from typing import Dict, List
 
 
-def get_litvar_info(search_string: str) -> InternalResponse:
+def get_litvar_info(search_string: str, is_rsid: bool) -> InternalResponse:
     litvar_search_variant_res = requests.get(
         f'https://www.ncbi.nlm.nih.gov/research/litvar2-api/variant/autocomplete/?query={search_string}')
 
@@ -24,7 +24,8 @@ def get_litvar_info(search_string: str) -> InternalResponse:
         if len(litvar_search_variant_res_json) > 0:
             litvar_id = None
             for litvar_res in litvar_search_variant_res_json:
-                if litvar_res['name'] == search_string:
+                # store litvar id only if variant rsid or name match
+                if (is_rsid and litvar_res['rsid'] == search_string) or (litvar_res['name'] == search_string):
                     litvar_id = litvar_res['_id']
 
             if litvar_id is not None:
@@ -42,14 +43,14 @@ def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
         formatted_hgvs = hgvs.split(' ')[0]
 
     if rsid is not None:
-        rsid_litvar_info_res = get_litvar_info(rsid)
+        rsid_litvar_info_res = get_litvar_info(rsid, True)
 
         if rsid_litvar_info_res.status != 200:
             current_app.logger.error(
                 f'No Litvar info found for RSID {rsid}')
 
             if hgvs is not None:
-                hgvs_litvar_info_res = get_litvar_info(formatted_hgvs)
+                hgvs_litvar_info_res = get_litvar_info(formatted_hgvs, False)
 
                 if hgvs_litvar_info_res.status != 200:
                     current_app.logger.error(
@@ -63,7 +64,7 @@ def get_litvar_id(hgvs: str | None, rsid: str | None) -> InternalResponse:
                 f'Litvar info found for RSID {rsid}')
             return rsid_litvar_info_res
     else:
-        hgvs_litvar_info_res = get_litvar_info(formatted_hgvs)
+        hgvs_litvar_info_res = get_litvar_info(formatted_hgvs, False)
 
         if hgvs_litvar_info_res.status != 200:
             current_app.logger.error(
@@ -159,12 +160,22 @@ def extract_doi_by_pmids(pubmed_publications_info) -> Dict:
     doi_dict = {}
 
     for pubmed_article_info in pubmed_publications_info['PubmedArticle']:
+        medline_citation = pubmed_article_info['MedlineCitation']
+
         # extract pmid
-        pmid = int(pubmed_article_info['MedlineCitation']['PMID'])
+        pmid = int(medline_citation['PMID'])
 
         # extract doi
+        doi = ''
+
         id_list = pubmed_article_info['PubmedData']['ArticleIdList']
-        doi = [x for x in id_list if x.startswith('10.')][0]
+        doi_list = [x for x in id_list if x.startswith('10.')]
+        if len(doi_list) > 0:
+            doi = doi_list[0]
+        elif medline_citation.get('Article') is not None:
+            article = medline_citation['Article']
+            if article.get('ELocationID') is not None and len(article.get('ELocationID')) > 0:
+                doi = article['ELocationID'][0]
 
         # set key-value pair
         doi_dict[pmid] = doi

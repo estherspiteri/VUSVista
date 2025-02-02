@@ -87,7 +87,6 @@ def retrieve_multiple_clinvar_dict(clinvar_ids: List[str]):
 # Compare variant's properties with the properties of the ClinVar variant.
 # Note:
 # - When a ClinVar variant has multiple genes, then each gene is compared with the expeceted gene until a match is found.
-# - The genotype is compared when the Variant Validator request is made (not in the below fn).
 def compare_clinvar_variant_with_expected_variant(genome_version: str, classified_record_dict, gene: str,
                                                   chr: str, chr_pos: str) -> tuple[bool, str]:
     # only compare if Clinvar entry has classification (variationId: 478905)
@@ -124,7 +123,7 @@ def compare_clinvar_variant_with_expected_variant(genome_version: str, classifie
                     break
         else:
             return False, (f"Unable to verify this Clinvar entry!")
-
+    #TODO: compare alleles
     return True, ''
 
 

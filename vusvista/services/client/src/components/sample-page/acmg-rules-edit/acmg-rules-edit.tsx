@@ -32,6 +32,7 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
         {/** Selected Acmg Rules */}
         {props.allAcmgRules
           .filter((r) => selectedAcmgRules.includes(r.id))
+          .sort((a, b) => a.name.localeCompare(b.name))
           ?.map((r) => {
             const styleClass = r.name
               .substring(0, r.name.length - 1)
@@ -141,9 +142,9 @@ const AcmgRulesEdit: React.FunctionComponent<AcmgRulesEditProps> = (
   }
 
   function getAvailableAcmgRules() {
-    const availableAcmgRules = props.allAcmgRules.filter(
-      (r) => !selectedAcmgRules?.includes(r.id)
-    );
+    const availableAcmgRules = props.allAcmgRules
+      .filter((r) => !selectedAcmgRules?.includes(r.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
     return availableAcmgRules;
   }

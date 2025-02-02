@@ -209,12 +209,16 @@ const VusInfo: React.FunctionComponent<VusInfoProps> = (
                     <div className={styles["info-title"]}>Last evaluated:</div>
                     {clinvarInfo.clinvarClassificationLastEval}
                   </div>
-                  <div className={styles.information}>
-                    <div className={styles["info-title"]}>Canonical SPDI:</div>
-                    <span style={{ overflowX: "auto" }}>
-                      {clinvarInfo.clinvarCanonicalSpdi}
-                    </span>
-                  </div>
+                  {clinvarInfo.clinvarCanonicalSpdi && (
+                    <div className={styles.information}>
+                      <div className={styles["info-title"]}>
+                        Canonical SPDI:
+                      </div>
+                      <span style={{ overflowX: "auto" }}>
+                        {clinvarInfo.clinvarCanonicalSpdi}
+                      </span>
+                    </div>
+                  )}
                 </>
               )}
 

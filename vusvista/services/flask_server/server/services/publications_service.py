@@ -22,9 +22,18 @@ from server.services.litvar_service import get_publications
 
 
 def get_publication_info(publication_link: str) -> InternalResponse:
-    # using Open Access Button: https://openaccessbutton.org/api
-    url_encoded_link = urlencode({'id': publication_link})
-    url = f"https://bg.api.oa.works/find?{url_encoded_link}"
+    # check if there PMC-OA identifier
+    pattern = r'PMC\d+'
+    match = re.search(pattern, publication_link)
+    if match:
+        # extract the PMC identifier
+        pmc_id = match.group()
+        url_encoded_pmc_id = urlencode({'id': pmc_id})
+        url = f"https://bg.api.oa.works/find?{url_encoded_pmc_id}"
+    else:
+        # using Open Access Button: https://openaccessbutton.org/api
+        url_encoded_link = urlencode({'id': publication_link})
+        url = f"https://bg.api.oa.works/find?{url_encoded_link}"
 
     open_access_res = requests.get(url)
 
