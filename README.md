@@ -30,7 +30,7 @@ Ensure the following tools are installed:
 
 ```bash
 git clone https://github.com/estherspiteri/VUSVista.git
-cd VUSVista
+cd VUSVista/vusvista
 ```
 ### 2. Build and Start the Application
 
