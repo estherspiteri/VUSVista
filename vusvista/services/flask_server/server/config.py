@@ -19,9 +19,9 @@ SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI')
 
 MAIL_SERVER = "smtp.gmail.com"
 MAIL_PORT = 587
-MAIL_USERNAME = 'vus.curation.system@gmail.com'
+MAIL_USERNAME = os.getenv('MAIL_USERNAME')
 MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-MAIL_DEFAULT_SENDER = 'vus.curation.system@gmail.com'
+MAIL_DEFAULT_SENDER = os.getenv('MAIL_USERNAME')
 MAIL_USE_TLS = True
 MAIL_USE_SSL = False
 
