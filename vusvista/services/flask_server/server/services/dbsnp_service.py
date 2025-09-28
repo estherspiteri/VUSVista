@@ -5,6 +5,7 @@ import pandas as pd
 from Bio import Entrez
 import requests
 from requests import RequestException
+import os
 
 from server.responses.internal_response import InternalResponse
 
@@ -12,7 +13,7 @@ from server.responses.internal_response import InternalResponse
 def get_nucleotide_seq(chr: int, start_position: int, end_position: int):
     current_app.logger.error(
         f'Retrieving nucleotide sequence at Chr {chr} from position {start_position} to {end_position}')
-    url = f"https://rest.ensembl.org/sequence/region/human/{chr}:{start_position}..{end_position}:1?content-type=text/plain&coord_system_version=GRCh37"
+    url = f"https://rest.ensembl.org/sequence/region/human/{chr}:{start_position}..{end_position}:1?content-type=text/plain&coord_system_version={os.getenv('HUMAN_GENOME_BUILD', 'GRCh37')}"
 
     try:
         get_nucleotide_sequence_res = requests.get(url)
@@ -275,7 +276,7 @@ def get_rsids_from_dbsnp(vus_df: pd.DataFrame) -> InternalResponse:
     # generate VCF string for VUS
     convert_variants_to_vcf(vus_df, 'variants.vcf')
 
-    get_rsids_res: InternalResponse = get_rsids('GRCh37.p13', 'variants.vcf')
+    get_rsids_res: InternalResponse = get_rsids(os.getenv('HUMAN_GENOME_BUILD', 'GRCh37'), 'variants.vcf')
 
     if get_rsids_res.status != 200:
         current_app.logger.error(

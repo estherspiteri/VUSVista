@@ -16,9 +16,8 @@ RUN pip install -r requirements.txt
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Print directory structure
-# COPY server/db_setup/Homo_sapiens.GRCh37.87.gtf.gz .
-COPY server/db_setup/Homo_sapiens.GRCh37.87.gtf.gz /flask_server
+ARG GENE_ANNOTATION_FILE_PATH
+COPY ${GENE_ANNOTATION_FILE_PATH} /flask_server
 
 # Expose port 5001 to the outside world
 EXPOSE 5001

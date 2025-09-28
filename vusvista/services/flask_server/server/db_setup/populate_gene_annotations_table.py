@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from server import db
 from server.models import GeneAnnotations, GeneAttributes
 
+import os
 
 def parse_attributes(gene_id: int, attributes: str) -> List[Tuple[int, str, str]]:
     separated_attributes = attributes.split('; ')
@@ -24,7 +25,7 @@ def parse_attributes(gene_id: int, attributes: str) -> List[Tuple[int, str, str]
 def store_gtf_file_in_db():
     num_of_rows_added = 0
 
-    with gzip.open('server/db_setup/Homo_sapiens.GRCh37.87.gtf.gz', 'rt') as gtf_file:
+    with gzip.open(os.getenv('GENE_ANNOTATION_FILE_PATH'), 'rt') as gtf_file:
         for annotation_line in gtf_file:
             # skip comments
             if not annotation_line.startswith('#'):

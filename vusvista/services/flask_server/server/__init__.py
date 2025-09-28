@@ -21,6 +21,7 @@ from server.views.sample_views import sample_views
 from server.views.vus_views import vus_views
 
 import atexit
+import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -124,14 +125,14 @@ def create_app():
     with app.app_context():
         scheduler = BackgroundScheduler()
 
-        # 1 week
-        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=604800)
+        # 1 week (default)
+        scheduler.add_job(func=scheduled_clinvar_updates_, trigger="interval", seconds=get_int('CLINVAR_AUTO_CHECK_INTERVAL_DAYS', 7)*86400)
 
-        # 10 days
-        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=864000)
+        # 10 days (default)
+        scheduler.add_job(func=scheduled_litvar_updates_, trigger="interval", seconds=get_int('PUBLICATION_AUTO_CHECK_INTERVAL_DAYS', 10)*86400)
 
         # 3 min
-        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=180, max_instances=1)
+        scheduler.add_job(func=scheduled_file_upload_events_, trigger="interval", seconds=get_int('FILE_UPLOAD_PROCESSING_INTERVAL_MINUTES', 3)*60, max_instances=1)
 
         scheduler.start()
 
@@ -139,3 +140,9 @@ def create_app():
         atexit.register(lambda: scheduler.shutdown())
 
     return app
+
+def get_int(name, default):
+    try:
+        return int(os.getenv(name, str(default)))
+    except ValueError:
+        return default

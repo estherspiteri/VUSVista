@@ -113,7 +113,7 @@ const VusUploadPage: React.FunctionComponent<VusUploadPageProps> = (
           </p>
           <p>
             It is assumed that the variant information inputted is based on the{" "}
-            <b>GRCh37 (hg19)</b> build.
+            <b>{process.env.HUMAN_GENOME_BUILD || 'GRCh37'}</b> build.
           </p>
         </div>
 

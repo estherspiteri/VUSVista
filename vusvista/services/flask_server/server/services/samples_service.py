@@ -13,6 +13,7 @@ from server.services.consequence_service import get_consequences_for_new_vus
 from server.services.phenotype_service import append_phenotype_to_sample
 from server.services.variants_samples_service import store_upload_details_for_variant_sample
 
+import os
 
 def get_sample_variants(variants_samples: List[VariantsSamples]) -> Tuple[List, List]:
     variants = []
@@ -264,7 +265,7 @@ def add_new_sample_to_db(sample_id: str, phenotypes: List) -> Samples:
 
     # if the sample is new, add it to database
     if sample is None:
-        sample = Samples(id=sample_id, genome_version='GRCh37')
+        sample = Samples(id=sample_id, genome_version=os.getenv('HUMAN_GENOME_BUILD', 'GRCh37'))
         db.session.add(sample)
 
         db.session.flush()

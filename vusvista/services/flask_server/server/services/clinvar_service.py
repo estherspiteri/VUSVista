@@ -219,7 +219,7 @@ def clinvar_clinical_significance_pipeline(vus_df: pd.DataFrame) -> InternalResp
 
                 classified_record_dict = clinvar_variant_dict.get('ClassifiedRecord')
 
-                are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant('GRCh37',
+                are_equivalent, error_msg = compare_clinvar_variant_with_expected_variant(os.getenv('HUMAN_GENOME_BUILD', 'GRCh37'),
                                                                                           classified_record_dict,
                                                                                           vus_df.at[index, 'Gene'],  vus_df.at[index, 'Chr'],
                                                                                           vus_df.at[index, 'Position'])

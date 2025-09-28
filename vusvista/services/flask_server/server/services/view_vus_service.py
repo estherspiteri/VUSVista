@@ -19,6 +19,7 @@ from server.services.publications_service import update_variant_publications
 from server.services.samples_service import add_new_sample_to_db
 from server.services.variants_samples_service import store_upload_details_for_variant_sample, add_variant_sample_to_db
 
+import os
 
 def retrieve_vus_summaries_from_db(variants: List[Variants]):
     # sort by id
@@ -393,7 +394,7 @@ def update_variant_rsid(variant_id: int, new_rsid: str):
 
     update_variant_publications(variant, hgvs, new_rsid)
 
-    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline_single('GRCh37',
+    clinvar_clinical_significance_pipeline_res = clinvar_clinical_significance_pipeline_single(os.getenv('HUMAN_GENOME_BUILD', 'GRCh37'),
                                                                                         new_rsid,
                                                                                         variant.gene_name,
                                                                                         variant.chromosome,
