@@ -5,7 +5,7 @@ FROM node:18-alpine AS build
 WORKDIR /client
 
 # Add `/client/node_modules/.bin` to $PATH
-ENV PATH /client/node_modules/.bin:$PATH
+ENV PATH=/client/node_modules/.bin:$PATH
 
 # Copy the package.json and package-lock.json to the container
 COPY package.json package-lock.json ./

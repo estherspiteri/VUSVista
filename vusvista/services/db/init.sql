@@ -1,13 +1,3 @@
--- First run this:
--- Create a new database
-CREATE DATABASE "vus-app-db"
-WITH
-OWNER = postgres
-ENCODING = 'UTF8'
-CONNECTION LIMIT = -1
-IS_TEMPLATE = False;
-
--- Once db is created/ ON PRODUCTION, change connection to new db and run this:
 -- Create tables within the new database
 -- CREATE TYPE EXTERNAL_REF_DB_TYPE AS ENUM ('DBSNP', 'CLINVAR');
 CREATE TYPE STRAND AS ENUM ('POSITIVE', 'NEGATIVE');
