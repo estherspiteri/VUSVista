@@ -32,7 +32,18 @@ Ensure the following tools are installed:
 git clone https://github.com/estherspiteri/VUSVista.git
 cd VUSVista/vusvista
 ```
-### 2. Build and Start the Application
+
+### 2. Set up environment variables
+
+#### - Flask Server
+1. Create a copy of the file `vusvista/services/flask_server/env.example` in the `vusvista/services/flask_server` directory and name it `.env`
+2. Populate missing variables and update rest as desired
+
+#### - React Front
+1. Create a copy of the file `vusvista/services/client/env.example` in the `vusvista/services/client` directory and name it `.env`
+2. Update variables as desired
+
+### 3. Build and Start the Application
 
 Run the following command to start all services:
 
@@ -41,7 +52,7 @@ docker compose up --build
 ```
 <b>PLEASE NOTE: This step takes a while to complete since it is setting up the entire system.</b>
 
-### 3. Access the Application
+### 4. Access the Application
 
 - **Frontend**: [http://localhost:3001](http://localhost:3001)
 - **Backend API**: [http://localhost:5001](http://localhost:5001)
@@ -56,26 +67,12 @@ Since registration should be handled by authorised individuals, the registration
 #### However, for the purpose of testing the system you can also login using a pre-existing user:</br>
 - Email: vus.curation.system@gmail.com</br>
 - Password: demoUser123
+#### If you don't want this user to be created, please comment out or remove lines 81-83 in `vusvista/services/flask_server/server/__init__.py` before loading the system for the first time!
 
+### NOTE: If you would like to run the components seperately, i.e. not via docker compose, kindly read the file `README_DEV.md`
 ---
 
 ## Development Workflow
-
-### Running Individual Components
-
-#### Backend:
-
-```bash
-cd backend
-flask run
-```
-
-#### Frontend:
-
-```bash
-cd frontend
-npm start
-```
 
 ### Accessing the Database
 
@@ -108,8 +105,6 @@ docker-compose up --build
 ## Troubleshooting
 
 - **Port Conflicts**: Ensure no other services are running on ports `3001` (React), `5001` (Flask), or `5432` (PostgreSQL).
-- **Database Issues**: Check the `DATABASE_URL` in the `.env` file.
-
 
 ---
 

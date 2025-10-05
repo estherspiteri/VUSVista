@@ -3,8 +3,16 @@ from dotenv import load_dotenv
 
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
+from pathlib import Path
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env (always)
+load_dotenv(BASE_DIR / ".env")
+
+# Only load .env.local when not in Docker
+if not os.getenv("DOCKER_ENV"):
+    load_dotenv(BASE_DIR / ".env.local", override=True)
 
 # Create an instance of SQLAlchemy
 db = SQLAlchemy()
