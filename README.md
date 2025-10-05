@@ -5,6 +5,8 @@
 This project is a web application built with Flask (backend), PostgreSQL (database), and React (frontend). The system is containerized and orchestrated using Docker Compose for ease of deployment and development.
 
 ---
+#### NOTE: If you would like to run the components seperately, i.e. not via docker compose, kindly read the file `README_DEV.md`
+
 
 ## Features
 
@@ -69,7 +71,6 @@ Since registration should be handled by authorised individuals, the registration
 - Password: demoUser123
 #### If you don't want this user to be created, please comment out or remove lines 81-83 in `vusvista/services/flask_server/server/__init__.py` before loading the system for the first time!
 
-### NOTE: If you would like to run the components seperately, i.e. not via docker compose, kindly read the file `README_DEV.md`
 ---
 
 ## Development Workflow
