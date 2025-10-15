@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://seahorse-app-3ech9.ondigitalocean.app/:path*"
+      "destination": "https://vusvista-backend.onrender.com/:path*"
     }
   ],
   "headers": [
