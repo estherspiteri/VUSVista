@@ -5,6 +5,18 @@
 This project is a web application built with Flask (backend), PostgreSQL (database), and React (frontend). The system is containerized and orchestrated using Docker Compose for ease of deployment and development.
 
 ---
+
+## Live Demo
+
+A running instance of this web app is available [here](https://vus-vista.vercel.app/).
+
+### Demo Credentials
+- **Email:** vus.curation.system@gmail.com</br>
+- **Password:** demoUser123
+
+> Use the credentials above to log in and explore the app.
+
+---
 #### NOTE: If you would like to run the components seperately, i.e. not via docker compose, kindly read the file `README_DEV.md`
 
 
