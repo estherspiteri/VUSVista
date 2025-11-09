@@ -8,6 +8,9 @@ from server.services.view_vus_service import get_latest_added_vus
 
 homepage_views = Blueprint('homepage_views', __name__)
 
+@homepage_views.route('/', methods=['GET'])
+def home():
+    return {"status": "ok", "message": "Flask service running"}
 
 @homepage_views.route('/home/<int:number_of_variants>', methods=['GET'])
 def get_latest_uploaded_vus(number_of_variants: int):
